@@ -58,24 +58,13 @@ export default function NewMeasurementPage() {
     setIsLoading(true)
 
     try {
-      // バリデーション
-      const required = ['name', 'furigana', 'grade', 'gender', 'height', 'weight', 'gripRight', 'gripLeft', 'jump', 'dash']
+      // バリデーション（両モードとも7項目すべて必須）
+      const required = ['name', 'furigana', 'grade', 'gender', 'height', 'weight', 'gripRight', 'gripLeft', 'jump', 'dash', 'doublejump', 'squat', 'sidestep', 'throw']
       for (const field of required) {
         if (!formData[field as keyof FormData]) {
-          alert('基本情報と測定項目をすべて入力してください')
+          alert('基本情報と測定項目（7項目すべて）を入力してください')
           setIsLoading(false)
           return
-        }
-      }
-
-      if (mode === 'detail') {
-        const detailRequired = ['doublejump', 'squat', 'sidestep', 'throw']
-        for (const field of detailRequired) {
-          if (!formData[field as keyof FormData]) {
-            alert('7項目測定の項目をすべて入力してください')
-            setIsLoading(false)
-            return
-          }
         }
       }
 
@@ -163,7 +152,7 @@ export default function NewMeasurementPage() {
 
       if (childError) throw childError
 
-      // 2. 測定データ保存
+      // 2. 測定データ保存（両モードとも7項目すべて保存）
       const { data: measurementData, error: measurementError } = await supabase
         .from('measurements')
         .insert({
@@ -174,10 +163,10 @@ export default function NewMeasurementPage() {
           grip_left: formData.gripLeft,
           jump: formData.jump,
           dash: formData.dash,
-          doublejump: mode === 'detail' ? formData.doublejump : null,
-          squat: mode === 'detail' ? formData.squat : null,
-          sidestep: mode === 'detail' ? formData.sidestep : null,
-          throw: mode === 'detail' ? formData.throw : null
+          doublejump: formData.doublejump,
+          squat: formData.squat,
+          sidestep: formData.sidestep,
+          throw: formData.throw
         })
         .select()
         .single()
@@ -220,56 +209,63 @@ export default function NewMeasurementPage() {
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-white mb-4">新規測定</h1>
-            <p className="text-blue-200">測定項目数を選択してください</p>
+            <p className="text-blue-200">診断タイプを選択してください</p>
+            <p className="text-blue-300 text-sm mt-2">※どちらも7項目すべて測定します</p>
           </div>
 
           <div className="grid gap-6">
-            {/* 3項目測定 */}
+            {/* サマリー診断 */}
             <button
               onClick={() => handleModeSelect('simple')}
               className="bg-white rounded-2xl shadow-2xl p-8 text-left hover:scale-[1.02] transition-transform"
             >
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-3xl font-bold text-blue-600">3</span>
+                  <span className="text-2xl">📊</span>
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-blue-900">3項目測定</h2>
-                  <p className="text-gray-500">基本的な運動能力を診断</p>
+                  <h2 className="text-2xl font-bold text-blue-900">サマリー診断</h2>
+                  <p className="text-gray-500">結果の概要を表示</p>
                 </div>
               </div>
               <div className="bg-blue-50 rounded-lg p-4">
-                <p className="text-sm font-semibold text-blue-900 mb-2">測定項目</p>
+                <p className="text-sm font-semibold text-blue-900 mb-2">測定項目（7項目すべて）</p>
                 <div className="flex flex-wrap gap-2">
                   <span className="px-3 py-1 bg-blue-200 text-blue-800 rounded-full text-sm">握力</span>
                   <span className="px-3 py-1 bg-blue-200 text-blue-800 rounded-full text-sm">立ち幅跳び</span>
                   <span className="px-3 py-1 bg-blue-200 text-blue-800 rounded-full text-sm">15mダッシュ</span>
+                  <span className="px-3 py-1 bg-blue-200 text-blue-800 rounded-full text-sm">連続立ち幅跳び</span>
+                  <span className="px-3 py-1 bg-blue-200 text-blue-800 rounded-full text-sm">30秒スクワット</span>
+                  <span className="px-3 py-1 bg-blue-200 text-blue-800 rounded-full text-sm">反復横跳び</span>
+                  <span className="px-3 py-1 bg-blue-200 text-blue-800 rounded-full text-sm">ボール投げ</span>
                 </div>
               </div>
-              <p className="mt-4 text-sm text-gray-600">
-                運動器年齢、運動タイプ、おすすめクラスがわかります
-              </p>
+              <div className="mt-4 text-sm text-gray-600">
+                <p className="font-semibold mb-1">表示される結果：</p>
+                <p>運動器年齢、運動タイプ、おすすめクラス</p>
+                <p className="text-blue-600 mt-2">＋ 詳細診断のサンプルプレビュー</p>
+              </div>
             </button>
 
-            {/* 7項目測定 */}
+            {/* 詳細診断 */}
             <button
               onClick={() => handleModeSelect('detail')}
-              className="bg-white rounded-2xl shadow-2xl p-8 text-left hover:scale-[1.02] transition-transform border-4 border-green-500"
+              className="bg-white rounded-2xl shadow-2xl p-8 text-left hover:scale-[1.02] transition-transform border-4 border-green-500 relative"
             >
               <div className="absolute -top-3 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold">
                 おすすめ
               </div>
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-3xl font-bold text-green-600">7</span>
+                  <span className="text-2xl">📋</span>
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-green-900">7項目測定</h2>
-                  <p className="text-gray-500">詳細な運動能力診断</p>
+                  <h2 className="text-2xl font-bold text-green-900">詳細診断</h2>
+                  <p className="text-gray-500">すべての診断結果を表示</p>
                 </div>
               </div>
               <div className="bg-green-50 rounded-lg p-4">
-                <p className="text-sm font-semibold text-green-900 mb-2">測定項目</p>
+                <p className="text-sm font-semibold text-green-900 mb-2">測定項目（7項目すべて）</p>
                 <div className="flex flex-wrap gap-2">
                   <span className="px-3 py-1 bg-green-200 text-green-800 rounded-full text-sm">握力</span>
                   <span className="px-3 py-1 bg-green-200 text-green-800 rounded-full text-sm">立ち幅跳び</span>
@@ -280,9 +276,11 @@ export default function NewMeasurementPage() {
                   <span className="px-3 py-1 bg-green-200 text-green-800 rounded-full text-sm">ボール投げ</span>
                 </div>
               </div>
-              <p className="mt-4 text-sm text-gray-600">
-                適性スポーツ、トレーニング提案、1ヶ月目標まで詳しくわかります
-              </p>
+              <div className="mt-4 text-sm text-gray-600">
+                <p className="font-semibold mb-1">表示される結果：</p>
+                <p>運動器年齢、運動タイプ、クラス判定、レーダーチャート</p>
+                <p className="text-green-600">適性スポーツTOP6、トレーニング提案、1ヶ月目標</p>
+              </div>
             </button>
           </div>
 
@@ -403,10 +401,10 @@ export default function NewMeasurementPage() {
             </div>
           </div>
 
-          {/* 測定データ */}
+          {/* 測定データ（両モードとも7項目すべて） */}
           <div className="p-7">
             <h2 className="text-sm font-bold text-blue-900 mb-4 pl-3 border-l-4 border-blue-600">
-              測定データ（{mode === 'detail' ? '7項目' : '3項目'}）
+              測定データ（7項目）
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {/* 握力 */}
@@ -467,66 +465,65 @@ export default function NewMeasurementPage() {
                 </div>
               </MeasurementCard>
 
-              {/* 詳細版のみの項目 */}
-              {mode === 'detail' && (
-                <>
-                  <MeasurementCard icon="連" title="連続立ち幅跳び" category="バランス">
-                    <div className="flex gap-2 items-center">
-                      <input
-                        type="number"
-                        step="1"
-                        placeholder="280"
-                        className="flex-1 p-2 border border-gray-300 rounded text-sm"
-                        value={formData.doublejump}
-                        onChange={(e) => handleChange('doublejump', parseInt(e.target.value) || '')}
-                      />
-                      <span className="text-xs text-gray-600">cm</span>
-                    </div>
-                  </MeasurementCard>
+              {/* 連続立ち幅跳び */}
+              <MeasurementCard icon="連" title="連続立ち幅跳び" category="バランス">
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="number"
+                    step="1"
+                    placeholder="280"
+                    className="flex-1 p-2 border border-gray-300 rounded text-sm"
+                    value={formData.doublejump}
+                    onChange={(e) => handleChange('doublejump', parseInt(e.target.value) || '')}
+                  />
+                  <span className="text-xs text-gray-600">cm</span>
+                </div>
+              </MeasurementCard>
 
-                  <MeasurementCard icon="持" title="30秒スクワット" category="筋持久力">
-                    <div className="flex gap-2 items-center">
-                      <input
-                        type="number"
-                        step="1"
-                        placeholder="25"
-                        className="flex-1 p-2 border border-gray-300 rounded text-sm"
-                        value={formData.squat}
-                        onChange={(e) => handleChange('squat', parseInt(e.target.value) || '')}
-                      />
-                      <span className="text-xs text-gray-600">回</span>
-                    </div>
-                  </MeasurementCard>
+              {/* 30秒スクワット */}
+              <MeasurementCard icon="持" title="30秒スクワット" category="筋持久力">
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="number"
+                    step="1"
+                    placeholder="25"
+                    className="flex-1 p-2 border border-gray-300 rounded text-sm"
+                    value={formData.squat}
+                    onChange={(e) => handleChange('squat', parseInt(e.target.value) || '')}
+                  />
+                  <span className="text-xs text-gray-600">回</span>
+                </div>
+              </MeasurementCard>
 
-                  <MeasurementCard icon="敏" title="反復横跳び" category="敏捷性">
-                    <div className="flex gap-2 items-center">
-                      <input
-                        type="number"
-                        step="1"
-                        placeholder="35"
-                        className="flex-1 p-2 border border-gray-300 rounded text-sm"
-                        value={formData.sidestep}
-                        onChange={(e) => handleChange('sidestep', parseInt(e.target.value) || '')}
-                      />
-                      <span className="text-xs text-gray-600">回</span>
-                    </div>
-                  </MeasurementCard>
+              {/* 反復横跳び */}
+              <MeasurementCard icon="敏" title="反復横跳び" category="敏捷性">
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="number"
+                    step="1"
+                    placeholder="35"
+                    className="flex-1 p-2 border border-gray-300 rounded text-sm"
+                    value={formData.sidestep}
+                    onChange={(e) => handleChange('sidestep', parseInt(e.target.value) || '')}
+                  />
+                  <span className="text-xs text-gray-600">回</span>
+                </div>
+              </MeasurementCard>
 
-                  <MeasurementCard icon="投" title="ボール投げ" category="投力">
-                    <div className="flex gap-2 items-center">
-                      <input
-                        type="number"
-                        step="0.1"
-                        placeholder="18.5"
-                        className="flex-1 p-2 border border-gray-300 rounded text-sm"
-                        value={formData.throw}
-                        onChange={(e) => handleChange('throw', parseFloat(e.target.value) || '')}
-                      />
-                      <span className="text-xs text-gray-600">m</span>
-                    </div>
-                  </MeasurementCard>
-                </>
-              )}
+              {/* ボール投げ */}
+              <MeasurementCard icon="投" title="ボール投げ" category="投力">
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="number"
+                    step="0.1"
+                    placeholder="18.5"
+                    className="flex-1 p-2 border border-gray-300 rounded text-sm"
+                    value={formData.throw}
+                    onChange={(e) => handleChange('throw', parseFloat(e.target.value) || '')}
+                  />
+                  <span className="text-xs text-gray-600">m</span>
+                </div>
+              </MeasurementCard>
             </div>
           </div>
 
