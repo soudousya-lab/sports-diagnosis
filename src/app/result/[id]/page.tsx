@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -77,6 +77,12 @@ export default function ResultPage() {
   const [data, setData] = useState<MeasurementData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const printRef = useRef<HTMLDivElement>(null)
+
+  // PDF出力（印刷機能）
+  const handlePrint = () => {
+    window.print()
+  }
 
   useEffect(() => {
     async function fetchData() {
@@ -212,15 +218,23 @@ export default function ResultPage() {
   // 簡易版（サマリー表示）の場合
   if (data.mode === 'simple') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 py-6 px-4">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 py-6 px-4 print:bg-white print:py-0">
         <div className="max-w-4xl mx-auto space-y-6">
-          {/* 戻るボタン */}
-          <Link href="/" className="inline-flex items-center text-blue-200 hover:text-white transition-colors">
-            ← トップに戻る
-          </Link>
+          {/* 戻るボタン・PDF出力ボタン */}
+          <div className="flex justify-between items-center print:hidden">
+            <Link href="/" className="inline-flex items-center text-blue-200 hover:text-white transition-colors">
+              ← トップに戻る
+            </Link>
+            <button
+              onClick={handlePrint}
+              className="px-4 py-2 bg-white text-blue-900 font-bold rounded-lg shadow hover:shadow-lg transition-all flex items-center gap-2"
+            >
+              <span>🖨️</span> PDF出力
+            </button>
+          </div>
 
           {/* サマリー結果表示 */}
-          <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+          <div ref={printRef} className="bg-white rounded-2xl shadow-2xl overflow-hidden print:shadow-none print:rounded-none">
             {/* ヘッダー */}
             <div className="flex justify-between items-start p-6 border-b-4 border-blue-900">
               <div>
@@ -293,29 +307,28 @@ export default function ResultPage() {
           </div>
 
           {/* 詳細版への誘導 */}
-          <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-6 text-white text-center">
-            <h2 className="text-2xl font-bold mb-2">詳細診断をすると、もっと詳しくわかります！</h2>
-            <p className="opacity-90 mb-4">適性スポーツ、トレーニング提案、1ヶ月目標など</p>
+          <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-8 text-white text-center print:hidden">
+            <h2 className="text-2xl font-bold mb-3">詳細診断をすると、もっと詳しくわかります！</h2>
+            <p className="opacity-90 mb-2 text-lg">適性スポーツ、トレーニング提案、1ヶ月目標など</p>
           </div>
 
-          {/* デモの詳細結果（ぼかし付き） */}
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white/90 z-10 pointer-events-none" />
-            <div className="opacity-60 blur-[2px]">
-              <DetailDemoSection />
-            </div>
-            <div className="absolute bottom-8 left-0 right-0 z-20 text-center">
+          {/* デモの詳細結果（大きく表示） */}
+          <div className="relative print:hidden">
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/30 to-white/95 z-10 pointer-events-none" />
+            <DetailDemoSection result={result} />
+            <div className="absolute bottom-12 left-0 right-0 z-20 text-center">
+              <p className="text-gray-700 font-bold mb-4 text-lg">↓ 詳細診断で全ての結果が見られます ↓</p>
               <Link
-                href="/new"
-                className="inline-block px-8 py-4 bg-green-600 text-white font-bold rounded-xl shadow-lg hover:bg-green-700 transition-all"
+                href="/"
+                className="inline-block px-10 py-5 bg-green-600 text-white font-bold text-lg rounded-xl shadow-lg hover:bg-green-700 transition-all"
               >
-                詳細診断を受ける
+                トップページで「詳細出力」を選択
               </Link>
             </div>
           </div>
 
           {/* 戻るボタン */}
-          <div className="text-center pt-4">
+          <div className="text-center pt-4 print:hidden">
             <Link href="/" className="inline-block px-6 py-3 bg-white text-blue-900 font-bold rounded-lg shadow hover:shadow-lg transition-all">
               トップに戻る
             </Link>
@@ -346,15 +359,23 @@ export default function ResultPage() {
   const est50m = (data.dash * 3 + 1.2).toFixed(1)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 py-6 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 py-6 px-4 print:bg-white print:py-0">
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* 戻るボタン */}
-        <Link href="/" className="inline-flex items-center text-blue-200 hover:text-white transition-colors">
-          ← トップに戻る
-        </Link>
+        {/* 戻るボタン・PDF出力ボタン */}
+        <div className="flex justify-between items-center print:hidden">
+          <Link href="/" className="inline-flex items-center text-blue-200 hover:text-white transition-colors">
+            ← トップに戻る
+          </Link>
+          <button
+            onClick={handlePrint}
+            className="px-4 py-2 bg-white text-blue-900 font-bold rounded-lg shadow hover:shadow-lg transition-all flex items-center gap-2"
+          >
+            <span>🖨️</span> PDF出力
+          </button>
+        </div>
 
         {/* ページ1: 基本結果 */}
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden print:shadow-none print:rounded-none">
           {/* ヘッダー */}
           <div className="flex justify-between items-start p-6 border-b-4 border-blue-900">
             <div>
@@ -643,7 +664,7 @@ export default function ResultPage() {
         </div>
 
         {/* 戻るボタン */}
-        <div className="text-center pt-4">
+        <div className="text-center pt-4 print:hidden">
           <Link href="/" className="inline-block px-6 py-3 bg-white text-blue-900 font-bold rounded-lg shadow hover:shadow-lg transition-all">
             トップに戻る
           </Link>
@@ -653,68 +674,84 @@ export default function ResultPage() {
   )
 }
 
-// 詳細版デモセクション
-function DetailDemoSection() {
-  const demo = demoDetailData
+// 詳細版デモセクション（サマリーページで使用）
+function DetailDemoSection({ result }: { result: MeasurementData['results'][0] }) {
+  // 実際の結果データがあれば使用、なければデモデータ
+  const sportsData = result?.recommended_sports?.slice(0, 6) || demoDetailData.sportsAptitude
+  const trainingsData = result?.recommended_trainings?.slice(0, 4) || demoDetailData.trainings
+  const goalsData = result?.goals || demoDetailData.goals
 
   return (
     <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-      <div className="p-6 border-b-4 border-green-600">
-        <h2 className="text-lg text-green-700 font-bold">詳細診断の内容サンプル</h2>
+      <div className="p-8 border-b-4 border-green-600">
+        <h2 className="text-2xl text-green-700 font-bold text-center">詳細診断で見られる内容</h2>
+        <p className="text-gray-500 text-center mt-2">以下は実際の診断結果のプレビューです</p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-5 p-6">
+      <div className="p-8">
         {/* 適性スポーツ */}
-        <div>
-          <div className="text-sm font-bold text-white bg-green-600 px-4 py-2 rounded mb-3">
+        <div className="mb-8">
+          <div className="text-lg font-bold text-white bg-green-600 px-6 py-3 rounded-lg mb-4">
             適性スポーツ TOP6
           </div>
-          <div className="border border-gray-200 p-4 rounded-lg">
-            <div className="flex flex-wrap gap-2">
-              {demo.sportsAptitude.map(sport => (
-                <span key={sport.name} className="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                  {sport.icon} {sport.name}
-                </span>
+          <div className="border-2 border-gray-200 p-6 rounded-xl bg-gray-50">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {sportsData.map((sport, i) => (
+                <div key={sport.name} className="flex items-center gap-3 bg-white p-4 rounded-lg shadow-sm">
+                  <span className="text-3xl">{sport.icon}</span>
+                  <div>
+                    <div className="font-bold text-gray-800">{sport.name}</div>
+                    <div className="text-sm text-green-600">適性度: {sport.aptitude?.toFixed(1) || '-'}</div>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
         </div>
 
         {/* 重点トレーニング */}
-        <div>
-          <div className="text-sm font-bold text-white bg-green-600 px-4 py-2 rounded mb-3">
-            重点トレーニング
+        <div className="mb-8">
+          <div className="text-lg font-bold text-white bg-green-600 px-6 py-3 rounded-lg mb-4">
+            重点トレーニング提案
           </div>
-          <div className="border border-gray-200 p-4 rounded-lg">
-            <ul className="space-y-2">
-              {demo.trainings.map((t, i) => (
-                <li key={i} className="flex gap-2 items-center text-sm">
-                  <span className="w-5 h-5 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+          <div className="border-2 border-gray-200 p-6 rounded-xl bg-gray-50">
+            <div className="grid md:grid-cols-2 gap-4">
+              {trainingsData.map((t, i) => (
+                <div key={i} className="flex gap-4 bg-white p-4 rounded-lg shadow-sm">
+                  <span className="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0">
                     {i + 1}
                   </span>
-                  <span>{t.name}</span>
-                </li>
+                  <div>
+                    <div className="font-bold text-gray-800 text-lg">{t.name}</div>
+                    <div className="text-sm text-gray-600">{t.description}</div>
+                    <div className="text-sm text-green-600 font-semibold mt-1">{t.reps}</div>
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* 1ヶ月目標 */}
-      <div className="mx-6 mb-6 bg-green-600 text-white p-4 rounded-lg">
-        <h4 className="text-sm font-bold text-center mb-3">1ヶ月後の目標</h4>
-        <div className="grid grid-cols-3 gap-3 text-center">
-          <div className="bg-white/10 p-2 rounded">
-            <div className="text-xs opacity-80">握力</div>
-            <div className="text-lg font-bold">{demo.goals.grip}kg</div>
+        {/* 1ヶ月目標 */}
+        <div>
+          <div className="text-lg font-bold text-white bg-green-600 px-6 py-3 rounded-lg mb-4">
+            1ヶ月後の目標
           </div>
-          <div className="bg-white/10 p-2 rounded">
-            <div className="text-xs opacity-80">立ち幅跳び</div>
-            <div className="text-lg font-bold">{demo.goals.jump}cm</div>
-          </div>
-          <div className="bg-white/10 p-2 rounded">
-            <div className="text-xs opacity-80">15mダッシュ</div>
-            <div className="text-lg font-bold">{demo.goals.dash}秒</div>
+          <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-xl">
+            <div className="grid grid-cols-3 gap-6 text-center">
+              <div className="bg-white/20 p-4 rounded-lg">
+                <div className="text-sm opacity-90 mb-1">握力</div>
+                <div className="text-3xl font-extrabold">{goalsData.grip}kg</div>
+              </div>
+              <div className="bg-white/20 p-4 rounded-lg">
+                <div className="text-sm opacity-90 mb-1">立ち幅跳び</div>
+                <div className="text-3xl font-extrabold">{goalsData.jump}cm</div>
+              </div>
+              <div className="bg-white/20 p-4 rounded-lg">
+                <div className="text-sm opacity-90 mb-1">15mダッシュ</div>
+                <div className="text-3xl font-extrabold">{goalsData.dash}秒</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

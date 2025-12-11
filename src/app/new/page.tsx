@@ -307,10 +307,10 @@ export default function NewMeasurementPage() {
             <div className="flex justify-between items-center">
               <div>
                 <h1 className="text-xl font-bold tracking-wider">
-                  {mode === 'detail' ? '7項目測定' : '3項目測定'}
+                  {mode === 'detail' ? '詳細診断' : 'サマリー診断'}
                 </h1>
                 <p className="text-sm opacity-80 mt-1">
-                  {mode === 'detail' ? '詳細な運動能力診断' : '基本的な運動能力診断'}
+                  {mode === 'detail' ? 'すべての診断結果を表示' : '結果の概要を表示'}
                 </p>
               </div>
               <button
@@ -318,7 +318,7 @@ export default function NewMeasurementPage() {
                 onClick={() => setStep('select')}
                 className="text-sm opacity-80 hover:opacity-100"
               >
-                測定項目を変更
+                診断タイプを変更
               </button>
             </div>
           </div>
