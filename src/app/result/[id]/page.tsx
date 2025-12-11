@@ -81,23 +81,62 @@ export default function ResultPage() {
   useEffect(() => {
     async function fetchData() {
       try {
+        // 測定データを取得
         const { data: measurementData, error: measurementError } = await supabase
           .from('measurements')
-          .select(`
-            *,
-            children (*),
-            results (*),
-            stores (name, theme_color)
-          `)
+          .select('*')
           .eq('id', measurementId)
           .single()
 
-        if (measurementError) {
-          console.error('Supabase error:', measurementError)
-          setError('データが見つかりません')
-        } else {
-          setData(measurementData as unknown as MeasurementData)
+        if (measurementError || !measurementData) {
+          console.error('Measurement error:', measurementError)
+          setError('測定データが見つかりません')
+          setLoading(false)
+          return
         }
+
+        // 子供データを取得
+        const { data: childData, error: childError } = await supabase
+          .from('children')
+          .select('*')
+          .eq('id', measurementData.child_id)
+          .single()
+
+        if (childError) {
+          console.error('Child error:', childError)
+        }
+
+        // 結果データを取得
+        const { data: resultData, error: resultError } = await supabase
+          .from('results')
+          .select('*')
+          .eq('measurement_id', measurementId)
+
+        if (resultError) {
+          console.error('Result error:', resultError)
+        }
+
+        // 店舗データを取得
+        const { data: storeData, error: storeError } = await supabase
+          .from('stores')
+          .select('name, theme_color')
+          .eq('id', measurementData.store_id)
+          .single()
+
+        if (storeError) {
+          console.error('Store error:', storeError)
+        }
+
+        // データを組み立てる
+        const combinedData = {
+          ...measurementData,
+          children: childData,
+          results: resultData || [],
+          stores: storeData
+        }
+
+        console.log('Combined data:', combinedData)
+        setData(combinedData as unknown as MeasurementData)
       } catch (err) {
         console.error('Fetch error:', err)
         setError('データの取得に失敗しました')

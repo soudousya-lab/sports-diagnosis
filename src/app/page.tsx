@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getGradeDisplay } from '@/lib/diagnosis'
 
@@ -24,6 +25,7 @@ type MeasurementWithChild = {
 }
 
 export default function Home() {
+  const router = useRouter()
   const [measurements, setMeasurements] = useState<MeasurementWithChild[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -59,6 +61,18 @@ export default function Home() {
 
     fetchMeasurements()
   }, [])
+
+  // モード変更してresultページへ遷移
+  const handleViewResult = async (measurementId: string, viewMode: 'simple' | 'detail') => {
+    // モードを更新
+    await supabase
+      .from('measurements')
+      .update({ mode: viewMode })
+      .eq('id', measurementId)
+
+    // 結果ページへ遷移
+    router.push(`/result/${measurementId}`)
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 py-12 px-4">
@@ -107,12 +121,12 @@ export default function Home() {
                 const child = measurement.children
                 const result = measurement.results?.[0]
                 const measuredDate = new Date(measurement.measured_at).toLocaleDateString('ja-JP')
+                const hasResult = !!result
 
                 return (
-                  <Link
+                  <div
                     key={measurement.id}
-                    href={`/result/${measurement.id}`}
-                    className="block p-4 hover:bg-blue-50 transition-all"
+                    className="p-4 hover:bg-blue-50 transition-all"
                   >
                     <div className="flex items-center gap-4">
                       {/* アイコン */}
@@ -131,6 +145,10 @@ export default function Home() {
                           <span className="text-xs text-gray-500">
                             {child?.furigana}
                           </span>
+                          {/* 入力済みバッジ */}
+                          <span className="inline-block px-2 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded">
+                            入力済み
+                          </span>
                         </div>
                         <div className="flex items-center gap-3 text-sm text-gray-600">
                           <span>{child ? getGradeDisplay(child.grade) : ''}</span>
@@ -141,19 +159,8 @@ export default function Home() {
                         </div>
                       </div>
 
-                      {/* 診断タイプ */}
-                      <div className="text-center">
-                        <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
-                          measurement.mode === 'detail'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-blue-100 text-blue-800'
-                        }`}>
-                          {measurement.mode === 'detail' ? '詳細' : 'サマリー'}
-                        </span>
-                      </div>
-
                       {/* 結果サマリー */}
-                      {result && (
+                      {hasResult && (
                         <div className="text-right hidden sm:block">
                           <div className="text-sm font-bold text-blue-900">
                             運動器年齢: {Math.round(result.motor_age)}歳
@@ -164,12 +171,23 @@ export default function Home() {
                         </div>
                       )}
 
-                      {/* 矢印 */}
-                      <div className="text-gray-400">
-                        →
+                      {/* 出力ボタン */}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleViewResult(measurement.id, 'simple')}
+                          className="px-3 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-all"
+                        >
+                          サマリー出力
+                        </button>
+                        <button
+                          onClick={() => handleViewResult(measurement.id, 'detail')}
+                          className="px-3 py-2 bg-green-600 text-white text-xs font-bold rounded-lg hover:bg-green-700 transition-all"
+                        >
+                          詳細出力
+                        </button>
                       </div>
                     </div>
-                  </Link>
+                  </div>
                 )
               })}
             </div>
