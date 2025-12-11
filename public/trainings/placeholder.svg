@@ -1,0 +1,6 @@
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="80" height="80" fill="#E5E7EB"/>
+  <circle cx="40" cy="30" r="12" fill="#9CA3AF"/>
+  <path d="M20 65C20 52.85 29.85 43 42 43H38C50.15 43 60 52.85 60 65V80H20V65Z" fill="#9CA3AF"/>
+  <text x="40" y="75" text-anchor="middle" font-size="8" fill="#6B7280">トレーニング画像</text>
+</svg>
