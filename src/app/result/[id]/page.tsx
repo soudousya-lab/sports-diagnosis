@@ -621,19 +621,37 @@ export default function ResultPage() {
                   <p className="text-sm text-gray-600 mb-4">
                     お子様の運動能力をさらに伸ばすために、定期的な測定と専門的なトレーニング指導をおすすめします。
                   </p>
-                  <div className="space-y-3">
-                    <a
-                      href="#"
-                      className="block w-full py-3 bg-green-600 text-white text-center font-bold rounded-lg hover:bg-green-700 transition-all"
-                    >
-                      次回の測定を予約する
-                    </a>
-                    <a
-                      href="#"
-                      className="block w-full py-3 bg-[#06C755] text-white text-center font-bold rounded-lg hover:opacity-90 transition-all"
-                    >
-                      LINEで相談・質問する
-                    </a>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center">
+                      <div className="w-24 h-24 mx-auto mb-2 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                        <img
+                          src="/qr/reservation.png"
+                          alt="予約QRコード"
+                          className="w-full h-full object-contain"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.style.display = 'none'
+                            target.parentElement!.innerHTML = '<span class="text-xs text-gray-400">QR準備中</span>'
+                          }}
+                        />
+                      </div>
+                      <p className="text-xs font-bold text-green-600">次回の測定を予約</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="w-24 h-24 mx-auto mb-2 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                        <img
+                          src="/qr/line.png"
+                          alt="LINE QRコード"
+                          className="w-full h-full object-contain"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.style.display = 'none'
+                            target.parentElement!.innerHTML = '<span class="text-xs text-gray-400">QR準備中</span>'
+                          }}
+                        />
+                      </div>
+                      <p className="text-xs font-bold text-[#06C755]">LINEで相談・質問</p>
+                    </div>
                   </div>
                   <p className="text-xs text-gray-500 mt-4 text-center">
                     ※1ヶ月ごとの測定で成長を実感できます
