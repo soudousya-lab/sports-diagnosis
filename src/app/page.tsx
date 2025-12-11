@@ -28,6 +28,8 @@ export default function Home() {
   const router = useRouter()
   const [measurements, setMeasurements] = useState<MeasurementWithChild[]>([])
   const [loading, setLoading] = useState(true)
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     async function fetchMeasurements() {
@@ -62,16 +64,46 @@ export default function Home() {
     fetchMeasurements()
   }, [])
 
-  // モード変更してresultページへ遷移
-  const handleViewResult = async (measurementId: string, viewMode: 'simple' | 'detail') => {
-    // モードを更新
-    await supabase
-      .from('measurements')
-      .update({ mode: viewMode })
-      .eq('id', measurementId)
+  // 結果ページへ遷移（URLパラメータでモードを指定）
+  const handleViewResult = (measurementId: string, viewMode: 'simple' | 'detail') => {
+    router.push(`/result/${measurementId}?mode=${viewMode}`)
+  }
 
-    // 結果ページへ遷移
-    router.push(`/result/${measurementId}`)
+  // 編集ページへ遷移
+  const handleEdit = (measurementId: string) => {
+    router.push(`/edit/${measurementId}`)
+  }
+
+  // 削除処理
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    setIsDeleting(true)
+
+    try {
+      // 結果を削除
+      await supabase.from('results').delete().eq('measurement_id', deleteTarget.id)
+      // 測定データを削除
+      const { data: measurement } = await supabase
+        .from('measurements')
+        .select('child_id')
+        .eq('id', deleteTarget.id)
+        .single()
+
+      await supabase.from('measurements').delete().eq('id', deleteTarget.id)
+
+      // 子供データも削除（この測定に紐づく子供のみ）
+      if (measurement?.child_id) {
+        await supabase.from('children').delete().eq('id', measurement.child_id)
+      }
+
+      // リストから削除
+      setMeasurements(prev => prev.filter(m => m.id !== deleteTarget.id))
+      setDeleteTarget(null)
+    } catch (error) {
+      console.error('削除エラー:', error)
+      alert('削除に失敗しました')
+    }
+    setIsDeleting(false)
   }
 
   return (
@@ -171,8 +203,8 @@ export default function Home() {
                         </div>
                       )}
 
-                      {/* 出力ボタン */}
-                      <div className="flex gap-2">
+                      {/* ボタン群 */}
+                      <div className="flex gap-2 flex-wrap justify-end">
                         <button
                           onClick={() => handleViewResult(measurement.id, 'simple')}
                           className="px-3 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-all"
@@ -184,6 +216,18 @@ export default function Home() {
                           className="px-3 py-2 bg-green-600 text-white text-xs font-bold rounded-lg hover:bg-green-700 transition-all"
                         >
                           詳細出力
+                        </button>
+                        <button
+                          onClick={() => handleEdit(measurement.id)}
+                          className="px-3 py-2 bg-yellow-500 text-white text-xs font-bold rounded-lg hover:bg-yellow-600 transition-all"
+                        >
+                          編集
+                        </button>
+                        <button
+                          onClick={() => setDeleteTarget({ id: measurement.id, name: child?.name || '不明' })}
+                          className="px-3 py-2 bg-red-500 text-white text-xs font-bold rounded-lg hover:bg-red-600 transition-all"
+                        >
+                          削除
                         </button>
                       </div>
                     </div>
@@ -199,6 +243,35 @@ export default function Home() {
           © 2024 運動能力診断システム
         </div>
       </div>
+
+      {/* 削除確認ダイアログ */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">削除の確認</h3>
+            <p className="text-gray-600 mb-6">
+              <span className="font-bold text-red-600">{deleteTarget.name}</span> さんの測定データを削除しますか？<br />
+              <span className="text-sm text-red-500">※この操作は取り消せません</span>
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-300 transition-all disabled:opacity-50"
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-all disabled:opacity-50"
+              >
+                {isDeleting ? '削除中...' : '削除する'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

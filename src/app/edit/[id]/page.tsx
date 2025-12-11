@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { runDiagnosis, categories } from '@/lib/diagnosis'
@@ -23,9 +23,15 @@ type FormData = {
   throw: number | ''
 }
 
-export default function NewMeasurementPage() {
+export default function EditMeasurementPage() {
   const router = useRouter()
+  const params = useParams()
+  const measurementId = params.id as string
+
   const [isLoading, setIsLoading] = useState(false)
+  const [isFetching, setIsFetching] = useState(true)
+  const [childId, setChildId] = useState<string>('')
+  const [storeId, setStoreId] = useState<string>('')
   const [formData, setFormData] = useState<FormData>({
     name: '',
     furigana: '',
@@ -42,6 +48,70 @@ export default function NewMeasurementPage() {
     sidestep: '',
     throw: ''
   })
+
+  // 既存データを取得
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        // 測定データを取得
+        const { data: measurement, error: measurementError } = await supabase
+          .from('measurements')
+          .select('*')
+          .eq('id', measurementId)
+          .single()
+
+        if (measurementError || !measurement) {
+          alert('測定データが見つかりません')
+          router.push('/')
+          return
+        }
+
+        setChildId(measurement.child_id)
+        setStoreId(measurement.store_id)
+
+        // 子供データを取得
+        const { data: child, error: childError } = await supabase
+          .from('children')
+          .select('*')
+          .eq('id', measurement.child_id)
+          .single()
+
+        if (childError || !child) {
+          alert('子供データが見つかりません')
+          router.push('/')
+          return
+        }
+
+        // フォームにデータをセット
+        setFormData({
+          name: child.name || '',
+          furigana: child.furigana || '',
+          grade: child.grade || '',
+          gender: child.gender || '',
+          height: child.height || '',
+          weight: child.weight || '',
+          gripRight: measurement.grip_right || '',
+          gripLeft: measurement.grip_left || '',
+          jump: measurement.jump || '',
+          dash: measurement.dash || '',
+          doublejump: measurement.doublejump || '',
+          squat: measurement.squat || '',
+          sidestep: measurement.sidestep || '',
+          throw: measurement.throw || ''
+        })
+      } catch (error) {
+        console.error('データ取得エラー:', error)
+        alert('データの取得に失敗しました')
+        router.push('/')
+      } finally {
+        setIsFetching(false)
+      }
+    }
+
+    if (measurementId) {
+      fetchData()
+    }
+  }, [measurementId, router])
 
   const handleChange = (field: keyof FormData, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -119,21 +189,10 @@ export default function NewMeasurementPage() {
         })
       }
 
-      // デフォルト店舗IDを取得（最初の店舗を使用）
-      const { data: stores } = await supabase.from('stores').select('id').limit(1)
-      const storeId = stores?.[0]?.id
-
-      if (!storeId) {
-        alert('店舗が設定されていません')
-        setIsLoading(false)
-        return
-      }
-
-      // 1. 児童データ保存
-      const { data: childData, error: childError } = await supabase
+      // 1. 児童データ更新
+      const { error: childError } = await supabase
         .from('children')
-        .insert({
-          store_id: storeId,
+        .update({
           name: formData.name,
           furigana: formData.furigana,
           gender: formData.gender,
@@ -141,18 +200,14 @@ export default function NewMeasurementPage() {
           height: formData.height,
           weight: formData.weight
         })
-        .select()
-        .single()
+        .eq('id', childId)
 
       if (childError) throw childError
 
-      // 2. 測定データ保存（modeは'detail'で保存、出力時に選択可能）
-      const { data: measurementData, error: measurementError } = await supabase
+      // 2. 測定データ更新
+      const { error: measurementError } = await supabase
         .from('measurements')
-        .insert({
-          child_id: childData.id,
-          store_id: storeId,
-          mode: 'detail',
+        .update({
           grip_right: formData.gripRight,
           grip_left: formData.gripLeft,
           jump: formData.jump,
@@ -162,16 +217,17 @@ export default function NewMeasurementPage() {
           sidestep: formData.sidestep,
           throw: formData.throw
         })
-        .select()
-        .single()
+        .eq('id', measurementId)
 
       if (measurementError) throw measurementError
 
-      // 3. 診断結果保存
+      // 3. 既存の診断結果を削除して新規作成
+      await supabase.from('results').delete().eq('measurement_id', measurementId)
+
       const { error: resultError } = await supabase
         .from('results')
         .insert({
-          measurement_id: measurementData.id,
+          measurement_id: measurementId,
           motor_age: diagnosisResult.motorAge,
           motor_age_diff: diagnosisResult.motorAgeDiff,
           type_name: diagnosisResult.type.name,
@@ -186,14 +242,22 @@ export default function NewMeasurementPage() {
 
       if (resultError) throw resultError
 
-      // トップページへ遷移（入力完了メッセージ付き）
-      router.push('/?saved=true')
+      // トップページへ遷移
+      router.push('/?updated=true')
     } catch (err) {
-      console.error('保存エラー:', err)
-      alert('保存中にエラーが発生しました。もう一度お試しください。')
+      console.error('更新エラー:', err)
+      alert('更新中にエラーが発生しました。もう一度お試しください。')
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (isFetching) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 flex items-center justify-center">
+        <div className="text-white text-xl">読み込み中...</div>
+      </div>
+    )
   }
 
   return (
@@ -206,11 +270,11 @@ export default function NewMeasurementPage() {
 
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-2xl overflow-hidden">
           {/* ヘッダー */}
-          <div className="text-white p-6 bg-gradient-to-r from-blue-800 to-blue-900">
+          <div className="text-white p-6 bg-gradient-to-r from-yellow-600 to-yellow-700">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-xl font-bold tracking-wider">新規測定入力</h1>
-                <p className="text-sm opacity-80 mt-1">7項目すべて入力してください</p>
+                <h1 className="text-xl font-bold tracking-wider">測定データ編集</h1>
+                <p className="text-sm opacity-80 mt-1">データを修正して保存してください</p>
               </div>
             </div>
           </div>
@@ -422,15 +486,23 @@ export default function NewMeasurementPage() {
           {/* 送信ボタン */}
           <div className="p-7 text-center bg-gray-50 border-t border-gray-200">
             <p className="text-sm text-gray-600 mb-4">
-              保存後、トップページで「サマリー出力」または「詳細出力」を選択できます
+              更新後、トップページで「サマリー出力」または「詳細出力」を選択できます
             </p>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="px-12 py-4 text-base font-bold text-white rounded-lg shadow-lg hover:transform hover:-translate-y-1 transition-all disabled:opacity-50 bg-gradient-to-r from-blue-800 to-blue-900"
-            >
-              {isLoading ? '保存中...' : '測定データを保存'}
-            </button>
+            <div className="flex gap-4 justify-center">
+              <Link
+                href="/"
+                className="px-8 py-4 text-base font-bold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-all"
+              >
+                キャンセル
+              </Link>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="px-12 py-4 text-base font-bold text-white rounded-lg shadow-lg hover:transform hover:-translate-y-1 transition-all disabled:opacity-50 bg-gradient-to-r from-yellow-600 to-yellow-700"
+              >
+                {isLoading ? '更新中...' : '変更を保存'}
+              </button>
+            </div>
           </div>
         </form>
       </div>
@@ -451,9 +523,9 @@ function MeasurementCard({
   children: React.ReactNode
 }) {
   return (
-    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 transition-all hover:border-blue-500">
+    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 transition-all hover:border-yellow-500">
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-blue-900 rounded-full flex items-center justify-center text-white text-xs font-bold">
+        <div className="w-9 h-9 bg-gradient-to-br from-yellow-500 to-yellow-700 rounded-full flex items-center justify-center text-white text-xs font-bold">
           {icon}
         </div>
         <div>

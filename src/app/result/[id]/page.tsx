@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { averageData, getGradeDisplay, categories, developmentAdvice, getGrade } from '@/lib/diagnosis'
@@ -72,7 +72,10 @@ const demoDetailData = {
 
 export default function ResultPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const measurementId = params.id as string
+  // URLパラメータからモードを取得（デフォルトはdetail）
+  const viewMode = (searchParams.get('mode') as 'simple' | 'detail') || 'detail'
 
   const [data, setData] = useState<MeasurementData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -215,8 +218,8 @@ export default function ResultPage() {
   const actualAge = child.grade === 'k5' ? 6 : parseInt(child.grade) + 6
   const today = new Date(data.measured_at).toLocaleDateString('ja-JP')
 
-  // 簡易版（サマリー表示）の場合
-  if (data.mode === 'simple') {
+  // 簡易版（サマリー表示）の場合 - URLパラメータのmodeで判定
+  if (viewMode === 'simple') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 py-6 px-4 print:bg-white print:py-0">
         <div className="max-w-4xl mx-auto space-y-6">
