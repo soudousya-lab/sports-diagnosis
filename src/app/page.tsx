@@ -94,39 +94,50 @@ export default function Home() {
 
       const childId = measurement?.child_id
 
-      // 1. 結果を削除
-      const { error: resultsError } = await supabase
+      // 1. 結果を削除（.select()で削除されたデータを取得して確認）
+      const { data: deletedResults, error: resultsError } = await supabase
         .from('results')
         .delete()
         .eq('measurement_id', deleteTarget.id)
+        .select()
 
       if (resultsError) {
         console.error('結果削除エラー:', resultsError)
         throw resultsError
       }
+      console.log('削除された結果:', deletedResults)
 
       // 2. 測定データを削除
-      const { error: measurementError } = await supabase
+      const { data: deletedMeasurement, error: measurementError } = await supabase
         .from('measurements')
         .delete()
         .eq('id', deleteTarget.id)
+        .select()
 
       if (measurementError) {
         console.error('測定データ削除エラー:', measurementError)
         throw measurementError
       }
+      console.log('削除された測定データ:', deletedMeasurement)
+
+      // 削除が実際に行われたか確認
+      if (!deletedMeasurement || deletedMeasurement.length === 0) {
+        throw new Error('測定データの削除が実行されませんでした。権限を確認してください。')
+      }
 
       // 3. 子供データも削除（この測定に紐づく子供のみ）
       if (childId) {
-        const { error: childError } = await supabase
+        const { data: deletedChild, error: childError } = await supabase
           .from('children')
           .delete()
           .eq('id', childId)
+          .select()
 
         if (childError) {
           console.error('子供データ削除エラー:', childError)
           // 子供データの削除失敗は警告だけ（測定データは既に削除済み）
         }
+        console.log('削除された子供データ:', deletedChild)
       }
 
       // リストから削除
@@ -134,7 +145,7 @@ export default function Home() {
       setDeleteTarget(null)
     } catch (error) {
       console.error('削除エラー:', error)
-      alert('削除に失敗しました。ページを更新して再度お試しください。')
+      alert(`削除に失敗しました: ${error instanceof Error ? error.message : '不明なエラー'}`)
     }
     setIsDeleting(false)
   }
