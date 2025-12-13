@@ -260,7 +260,7 @@ export default function ResultPage() {
             </Link>
             <button
               onClick={handlePrint}
-              className="px-3 xs:px-4 py-2 bg-white text-blue-900 font-bold rounded-lg shadow hover:shadow-lg transition-all flex items-center gap-2 text-sm xs:text-base"
+              className="px-4 xs:px-5 py-2.5 xs:py-2 bg-white text-blue-900 font-bold rounded-lg shadow hover:shadow-lg transition-all flex items-center gap-2 text-sm xs:text-base min-h-[44px] min-w-[100px] justify-center"
             >
               <FaPrint /> PDF出力
             </button>
@@ -438,7 +438,7 @@ export default function ResultPage() {
                     </div>
                   </div>
                   <p className="text-[10px] xs:text-xs text-blue-700 mt-2 text-center font-medium bg-blue-100 p-1.5 rounded-lg flex items-center justify-center gap-1 print:mt-1.5 print:p-1">
-                    <FaChartLine /> 専門トレーナーが丁寧に指導します！
+                    <FaChartLine /> 専門的に丁寧に指導します！
                   </p>
                 </div>
               </div>
@@ -585,7 +585,7 @@ export default function ResultPage() {
           </Link>
           <button
             onClick={handlePrint}
-            className="px-3 xs:px-4 py-2 bg-white text-blue-900 font-bold rounded-lg shadow hover:shadow-lg transition-all flex items-center gap-2 text-sm xs:text-base"
+            className="px-4 xs:px-5 py-2.5 xs:py-2 bg-white text-blue-900 font-bold rounded-lg shadow hover:shadow-lg transition-all flex items-center gap-2 text-sm xs:text-base min-h-[44px] min-w-[100px] justify-center"
           >
             <FaPrint /> PDF出力
           </button>
@@ -813,8 +813,9 @@ export default function ResultPage() {
               <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 print:gap-1.5 print:grid-cols-2">
                 {result.recommended_trainings?.slice(0, 8).map((t, i) => (
                   <div key={i} className="rounded-lg p-2 border-2 bg-blue-50 border-blue-200 print:p-1.5">
-                    <div className="flex flex-col xs:flex-row gap-2">
-                      <div className="w-full xs:w-24 h-20 xs:h-20 flex-shrink-0 bg-gray-100 rounded overflow-hidden border border-white shadow print:w-20 print:h-16">
+                    <div className="flex gap-2">
+                      {/* 画像: 3:2比率（幅90px x 高さ60px → xs以上） */}
+                      <div className="w-[72px] xs:w-[90px] h-12 xs:h-[60px] flex-shrink-0 bg-gray-100 rounded overflow-hidden border border-white shadow print:w-[72px] print:h-12">
                         <img
                           src={`/trainings/${t.name.replace(/\s/g, '_')}.jpg`}
                           alt={t.name}
@@ -827,16 +828,16 @@ export default function ResultPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-1 mb-0.5">
-                          <div className="w-5 h-5 rounded-full flex items-center justify-center text-white font-black text-xs shadow-md flex-shrink-0 bg-gradient-to-br from-blue-500 to-blue-700">
+                          <div className="w-4 h-4 xs:w-5 xs:h-5 rounded-full flex items-center justify-center text-white font-black text-[10px] xs:text-xs shadow-md flex-shrink-0 bg-gradient-to-br from-blue-500 to-blue-700">
                             {i + 1}
                           </div>
-                          <strong className="text-xs xs:text-sm text-gray-800">{t.name}</strong>
-                          <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full bg-blue-600 text-white flex-shrink-0">
+                          <strong className="text-[11px] xs:text-xs text-gray-800 leading-tight">{t.name}</strong>
+                          <span className="text-[7px] xs:text-[8px] font-bold px-1 xs:px-1.5 py-0.5 rounded-full bg-blue-600 text-white flex-shrink-0">
                             {t.category}
                           </span>
                         </div>
-                        <div className="text-[9px] xs:text-[10px] text-gray-600 line-clamp-2 xs:line-clamp-3 leading-relaxed">{t.description}</div>
-                        <div className="text-[10px] font-bold text-blue-700 flex items-center gap-0.5 mt-0.5"><FaClipboardList className="text-[8px]" /> {t.reps}</div>
+                        <div className="text-[8px] xs:text-[9px] text-gray-600 line-clamp-2 leading-relaxed">{t.description}</div>
+                        <div className="text-[9px] xs:text-[10px] font-bold text-blue-700 flex items-center gap-0.5 mt-0.5"><FaClipboardList className="text-[7px] xs:text-[8px]" /> {t.reps}</div>
                       </div>
                     </div>
                   </div>
@@ -1224,7 +1225,7 @@ function DetailDemoSection({ result }: { result: MeasurementData['results'][0] }
                 </div>
               </div>
               <p className="text-[9px] text-blue-700 mt-2 text-center font-medium bg-blue-100 p-1.5 rounded-lg flex items-center justify-center gap-1">
-                <FaChartLine /> 専門トレーナーが丁寧に指導します！
+                <FaChartLine /> 専門的に丁寧に指導します！
               </p>
             </div>
           </div>
