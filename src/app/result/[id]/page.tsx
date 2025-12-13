@@ -531,8 +531,8 @@ export default function ResultPage() {
                         <div className="text-blue-900 font-bold">{t.reps}</div>
                         <div className="text-gray-600">効果：{t.effect}</div>
                       </div>
-                      {/* トレーニング画像（3:2比率） */}
-                      <div className="w-24 h-16 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                      {/* トレーニング画像（3:2比率・大きめ） */}
+                      <div className="w-36 h-24 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
                         <img
                           src={`/trainings/${t.name.replace(/\s/g, '_')}.jpg`}
                           alt={t.name}

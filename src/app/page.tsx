@@ -80,20 +80,53 @@ export default function Home() {
     setIsDeleting(true)
 
     try {
-      // 結果を削除
-      await supabase.from('results').delete().eq('measurement_id', deleteTarget.id)
-      // 測定データを削除
-      const { data: measurement } = await supabase
+      // 先に測定データからchild_idを取得
+      const { data: measurement, error: fetchError } = await supabase
         .from('measurements')
         .select('child_id')
         .eq('id', deleteTarget.id)
         .single()
 
-      await supabase.from('measurements').delete().eq('id', deleteTarget.id)
+      if (fetchError) {
+        console.error('測定データ取得エラー:', fetchError)
+        throw fetchError
+      }
 
-      // 子供データも削除（この測定に紐づく子供のみ）
-      if (measurement?.child_id) {
-        await supabase.from('children').delete().eq('id', measurement.child_id)
+      const childId = measurement?.child_id
+
+      // 1. 結果を削除
+      const { error: resultsError } = await supabase
+        .from('results')
+        .delete()
+        .eq('measurement_id', deleteTarget.id)
+
+      if (resultsError) {
+        console.error('結果削除エラー:', resultsError)
+        throw resultsError
+      }
+
+      // 2. 測定データを削除
+      const { error: measurementError } = await supabase
+        .from('measurements')
+        .delete()
+        .eq('id', deleteTarget.id)
+
+      if (measurementError) {
+        console.error('測定データ削除エラー:', measurementError)
+        throw measurementError
+      }
+
+      // 3. 子供データも削除（この測定に紐づく子供のみ）
+      if (childId) {
+        const { error: childError } = await supabase
+          .from('children')
+          .delete()
+          .eq('id', childId)
+
+        if (childError) {
+          console.error('子供データ削除エラー:', childError)
+          // 子供データの削除失敗は警告だけ（測定データは既に削除済み）
+        }
       }
 
       // リストから削除
@@ -101,7 +134,7 @@ export default function Home() {
       setDeleteTarget(null)
     } catch (error) {
       console.error('削除エラー:', error)
-      alert('削除に失敗しました')
+      alert('削除に失敗しました。ページを更新して再度お試しください。')
     }
     setIsDeleting(false)
   }
