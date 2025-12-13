@@ -284,50 +284,22 @@ export default function ResultPage() {
               <div className="text-sm leading-relaxed">{result.type_description}</div>
             </div>
 
-            {/* クラス判定 */}
-            <div className="mx-6 mb-6 bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-600 rounded-lg p-5">
-              <h3 className="text-base font-bold text-green-600 mb-4 text-center">おすすめクラス</h3>
-              <div className="grid grid-cols-3 gap-3">
-                {(['beginner', 'standard', 'expert'] as const).map(level => (
-                  <div
-                    key={level}
-                    className={`bg-white rounded-lg p-4 text-center border-2 ${
-                      result.class_level === level ? 'border-green-600 shadow-lg' : 'border-transparent'
-                    }`}
-                  >
-                    <div className="text-sm font-bold text-blue-900 mb-2">
-                      {level === 'beginner' ? 'ビギナー' : level === 'standard' ? 'スタンダード' : 'エキスパート'}
-                    </div>
-                    {result.class_level === level && (
-                      <span className="inline-block mt-2 px-3 py-1 bg-green-600 text-white text-[9px] font-semibold rounded-full">
-                        おすすめ
-                      </span>
-                    )}
-                  </div>
-                ))}
+          </div>
+
+          {/* 詳細版プレビュー（SAMPLEオーバーレイ付き） */}
+          <div className="relative print:hidden overflow-hidden rounded-2xl">
+            {/* SAMPLEウォーターマーク */}
+            <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center overflow-hidden">
+              <div
+                className="text-[120px] font-extrabold text-gray-400/30 whitespace-nowrap select-none"
+                style={{ transform: 'rotate(-30deg)' }}
+              >
+                SAMPLE
               </div>
             </div>
-          </div>
-
-          {/* 詳細版への誘導 */}
-          <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-8 text-white text-center print:hidden">
-            <h2 className="text-2xl font-bold mb-3">詳細診断をすると、もっと詳しくわかります！</h2>
-            <p className="opacity-90 mb-2 text-lg">適性スポーツ、トレーニング提案、1ヶ月目標など</p>
-          </div>
-
-          {/* デモの詳細結果（大きく表示） */}
-          <div className="relative print:hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/30 to-white/95 z-10 pointer-events-none" />
+            {/* 半透明オーバーレイ */}
+            <div className="absolute inset-0 bg-white/60 z-10 pointer-events-none" />
             <DetailDemoSection result={result} />
-            <div className="absolute bottom-12 left-0 right-0 z-20 text-center">
-              <p className="text-gray-700 font-bold mb-4 text-lg">↓ 詳細診断で全ての結果が見られます ↓</p>
-              <Link
-                href="/"
-                className="inline-block px-10 py-5 bg-green-600 text-white font-bold text-lg rounded-xl shadow-lg hover:bg-green-700 transition-all"
-              >
-                トップページで「詳細出力」を選択
-              </Link>
-            </div>
           </div>
 
           {/* 戻るボタン */}
@@ -472,29 +444,6 @@ export default function ResultPage() {
             <div className="text-sm leading-relaxed">{result.type_description}</div>
           </div>
 
-          {/* クラス判定 */}
-          <div className="mx-6 mb-6 bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-600 rounded-lg p-5">
-            <h3 className="text-base font-bold text-green-600 mb-4 text-center">クラス判定結果</h3>
-            <div className="grid grid-cols-3 gap-3">
-              {(['beginner', 'standard', 'expert'] as const).map(level => (
-                <div
-                  key={level}
-                  className={`bg-white rounded-lg p-4 text-center border-2 ${
-                    result.class_level === level ? 'border-green-600 shadow-lg' : 'border-transparent'
-                  }`}
-                >
-                  <div className="text-sm font-bold text-blue-900 mb-2">
-                    {level === 'beginner' ? 'ビギナー' : level === 'standard' ? 'スタンダード' : 'エキスパート'}
-                  </div>
-                  {result.class_level === level && (
-                    <span className="inline-block mt-2 px-3 py-1 bg-green-600 text-white text-[9px] font-semibold rounded-full">
-                      現在のレベル
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* ページ2: トレーニング＆適性スポーツ */}
@@ -582,8 +531,8 @@ export default function ResultPage() {
                         <div className="text-blue-900 font-bold">{t.reps}</div>
                         <div className="text-gray-600">効果：{t.effect}</div>
                       </div>
-                      {/* トレーニング画像 */}
-                      <div className="w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                      {/* トレーニング画像（3:2比率） */}
+                      <div className="w-24 h-16 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
                         <img
                           src={`/trainings/${t.name.replace(/\s/g, '_')}.jpg`}
                           alt={t.name}
@@ -607,6 +556,23 @@ export default function ResultPage() {
               保護者の方へ
             </div>
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 p-6 rounded-lg">
+              {/* 当店ご来店のメリット（強調表示） */}
+              <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-5 rounded-xl mb-6 shadow-lg">
+                <h4 className="text-lg font-extrabold text-center mb-3">当店にご来店いただくと</h4>
+                <div className="flex flex-wrap justify-center gap-4 text-center">
+                  <div className="bg-white/20 px-4 py-3 rounded-lg">
+                    <div className="text-2xl font-extrabold">&quot;正しい骨格&quot;</div>
+                  </div>
+                  <div className="bg-white/20 px-4 py-3 rounded-lg">
+                    <div className="text-2xl font-extrabold">&quot;正しい関節&quot;</div>
+                  </div>
+                  <div className="bg-white/20 px-4 py-3 rounded-lg">
+                    <div className="text-2xl font-extrabold">&quot;正しい筋肉の使い方&quot;</div>
+                  </div>
+                </div>
+                <p className="text-center mt-4 text-lg font-bold">を学べます</p>
+              </div>
+
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <h4 className="text-base font-bold text-blue-900 mb-3">【発達段階】{devAdv?.golden}</h4>
@@ -704,12 +670,7 @@ function DetailDemoSection({ result }: { result: MeasurementData['results'][0] }
 
   return (
     <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-      <div className="p-8 border-b-4 border-green-600">
-        <h2 className="text-2xl text-green-700 font-bold text-center">詳細診断で見られる内容</h2>
-        <p className="text-gray-500 text-center mt-2">以下は実際の診断結果のプレビューです</p>
-      </div>
-
-      <div className="p-8">
+      <div className="p-6">
         {/* 適性スポーツ */}
         <div className="mb-8">
           <div className="text-lg font-bold text-white bg-green-600 px-6 py-3 rounded-lg mb-4">
