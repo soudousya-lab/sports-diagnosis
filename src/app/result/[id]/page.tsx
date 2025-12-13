@@ -1251,10 +1251,10 @@ function DetailDemoSectionCompact() {
     { name: 'ダンス', icon: '💃' }
   ]
   const sampleTrainings = [
-    { name: 'スクワットジャンプ', description: 'しゃがんでから勢いよくジャンプ', reps: '10回×3セット', category: '瞬発力' },
-    { name: 'バランスボード', description: '片足でバランスをとる練習', reps: '30秒×左右3回', category: 'バランス' },
-    { name: 'ラダートレーニング', description: '素早く足を動かす練習', reps: '5往復×3セット', category: '敏捷性' },
-    { name: 'ボール投げ練習', description: '正しいフォームでの投球', reps: '20回×2セット', category: '投力' }
+    { name: 'カエルジャンプ', description: 'しゃがんでから勢いよくジャンプ', reps: '10回×3セット', category: '瞬発力' },
+    { name: 'T字バランス', description: '片足でバランスをとる練習', reps: '30秒×左右3回', category: 'バランス' },
+    { name: 'サイドステップ', description: '素早く足を動かす練習', reps: '5往復×3セット', category: '敏捷性' },
+    { name: 'ボール投げ', description: '正しいフォームでの投球', reps: '20回×2セット', category: '投力' }
   ]
   const sampleGoals = { grip: 15.5, jump: 148, dash: 3.42 }
 
