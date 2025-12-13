@@ -440,10 +440,10 @@ export default function ResultPage() {
               <FaChartBar /> 7つの能力チェック
             </div>
             <div className="flex gap-4">
-              <div className="w-56 flex-shrink-0 print:w-52">
+              <div className="w-64 flex-shrink-0 print:w-60">
                 <RadarChart scores={result.scores} keys={allKeys} labels={allLabels} />
               </div>
-              <div className="flex-1 space-y-1">
+              <div className="w-1/2 space-y-1">
                 {measurementItems.map(item => {
                   const score = result.scores[item.key]
                   const grade = getGrade(score)
@@ -463,7 +463,7 @@ export default function ResultPage() {
                           <span className={`font-black text-sm ${grade.colorClass}`}>{grade.grade}</span>
                         </div>
                       </div>
-                      <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden w-1/2">
+                      <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full"
                           style={{ width: `${score * 10}%` }}
@@ -567,20 +567,7 @@ export default function ResultPage() {
                 {result.recommended_trainings?.slice(0, 6).map((t, i) => (
                   <div key={i} className="rounded-lg p-2 border-2 bg-blue-50 border-blue-200 print:p-1.5">
                     <div className="flex gap-2">
-                      <div className="w-6 h-6 rounded-full flex items-center justify-center text-white font-black text-sm shadow-md flex-shrink-0 bg-gradient-to-br from-blue-500 to-blue-700 print:w-5 print:h-5 print:text-xs">
-                        {i + 1}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1 mb-0.5">
-                          <strong className="text-xs text-gray-800 truncate">{t.name}</strong>
-                          <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full bg-blue-600 text-white flex-shrink-0">
-                            {t.category}
-                          </span>
-                        </div>
-                        <div className="text-[9px] text-gray-600 line-clamp-1">{t.description}</div>
-                        <div className="text-[10px] font-bold text-blue-700 flex items-center gap-0.5"><FaClipboardList className="text-[8px]" /> {t.reps}</div>
-                      </div>
-                      <div className="w-16 h-12 flex-shrink-0 bg-gray-100 rounded overflow-hidden border border-white shadow print:w-14 print:h-10">
+                      <div className="w-20 h-16 flex-shrink-0 bg-gray-100 rounded overflow-hidden border border-white shadow print:w-18 print:h-14">
                         <img
                           src={`/trainings/${t.name.replace(/\s/g, '_')}.jpg`}
                           alt={t.name}
@@ -590,6 +577,19 @@ export default function ResultPage() {
                             target.src = '/trainings/placeholder.svg'
                           }}
                         />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1 mb-0.5">
+                          <div className="w-5 h-5 rounded-full flex items-center justify-center text-white font-black text-xs shadow-md flex-shrink-0 bg-gradient-to-br from-blue-500 to-blue-700">
+                            {i + 1}
+                          </div>
+                          <strong className="text-xs text-gray-800 truncate">{t.name}</strong>
+                          <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full bg-blue-600 text-white flex-shrink-0">
+                            {t.category}
+                          </span>
+                        </div>
+                        <div className="text-[9px] text-gray-600 line-clamp-2">{t.description}</div>
+                        <div className="text-[10px] font-bold text-blue-700 flex items-center gap-0.5"><FaClipboardList className="text-[8px]" /> {t.reps}</div>
                       </div>
                     </div>
                   </div>
