@@ -449,9 +449,20 @@ export default function ResultPage() {
             <div className="text-base font-bold text-blue-900 mb-2 flex items-center gap-2">
               <FaChartBar /> 7つの能力チェック
             </div>
-            <div className="flex gap-4 items-start">
-              <div className="w-1/2 flex justify-center">
+            <div className="flex gap-4 items-end">
+              <div className="w-1/2 flex flex-col items-center">
                 <RadarChart scores={result.scores} keys={allKeys} labels={allLabels} size={320} averageScores={{ grip: 5, jump: 5, dash: 5, doublejump: 5, squat: 5, sidestep: 5, throw: 5 }} />
+                {/* チャート凡例 */}
+                <div className="flex gap-4 mt-2 text-[10px]">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-6 h-0.5 bg-[#003366]"></div>
+                    <span className="text-gray-700">あなたの結果</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-6 h-0.5 bg-[#FF8C00]" style={{ borderStyle: 'dashed', borderWidth: '1px', borderColor: '#FF8C00', backgroundColor: 'transparent' }}></div>
+                    <span className="text-gray-700">全国平均</span>
+                  </div>
+                </div>
               </div>
               <div className="w-1/2 space-y-1">
                 {measurementItems.map(item => {
