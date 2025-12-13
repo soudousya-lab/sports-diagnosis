@@ -439,9 +439,9 @@ export default function ResultPage() {
             <div className="text-base font-bold text-blue-900 mb-2 flex items-center gap-2">
               <FaChartBar /> 7つの能力チェック
             </div>
-            <div className="flex gap-6 justify-between items-start">
-              <div className="w-[45%] flex-shrink-0 print:w-[42%]">
-                <RadarChart scores={result.scores} keys={allKeys} labels={allLabels} size={200} />
+            <div className="flex gap-6 items-start">
+              <div className="flex-shrink-0">
+                <RadarChart scores={result.scores} keys={allKeys} labels={allLabels} size={320} />
               </div>
               <div className="w-1/2 space-y-1">
                 {measurementItems.map(item => {
@@ -567,7 +567,7 @@ export default function ResultPage() {
                 {result.recommended_trainings?.slice(0, 6).map((t, i) => (
                   <div key={i} className="rounded-lg p-2 border-2 bg-blue-50 border-blue-200 print:p-1.5">
                     <div className="flex gap-2">
-                      <div className="w-[120px] h-24 flex-shrink-0 bg-gray-100 rounded overflow-hidden border border-white shadow print:w-[100px] print:h-20">
+                      <div className="w-[180px] h-36 flex-shrink-0 bg-gray-100 rounded overflow-hidden border border-white shadow print:w-[150px] print:h-28">
                         <img
                           src={`/trainings/${t.name.replace(/\s/g, '_')}.jpg`}
                           alt={t.name}
@@ -640,7 +640,7 @@ export default function ResultPage() {
             {/* 当店ご来店のメリット */}
             <div className="bg-gradient-to-r from-blue-700 to-blue-900 text-white p-5 rounded-xl mb-4 shadow-xl print:p-4 print:mb-3">
               <h4 className="text-xl font-extrabold text-center mb-3">
-                当店にご来店いただくと
+                当院の継続サポートにより
               </h4>
               <div className="flex flex-wrap justify-center gap-2 text-center">
                 <div className="bg-white/25 backdrop-blur px-4 py-3 rounded-lg border-2 border-white/30">
