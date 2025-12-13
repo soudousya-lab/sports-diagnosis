@@ -449,11 +449,11 @@ export default function ResultPage() {
             <div className="text-base font-bold text-blue-900 mb-2 flex items-center gap-2">
               <FaChartBar /> 7つの能力チェック
             </div>
-            <div className="flex gap-6 items-start justify-between">
-              <div className="flex-shrink-0">
+            <div className="flex gap-4 items-start">
+              <div className="w-1/2 flex justify-center">
                 <RadarChart scores={result.scores} keys={allKeys} labels={allLabels} size={320} averageScores={{ grip: 5, jump: 5, dash: 5, doublejump: 5, squat: 5, sidestep: 5, throw: 5 }} />
               </div>
-              <div className="w-1/2 space-y-1 ml-auto">
+              <div className="w-1/2 space-y-1">
                 {measurementItems.map(item => {
                   const score = result.scores[item.key]
                   const grade = getGrade(score)

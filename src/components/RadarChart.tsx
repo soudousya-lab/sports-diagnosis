@@ -30,7 +30,7 @@ export default function RadarChart({ scores, keys, labels, size = 220, averageSc
 
     const cx = size / 2
     const cy = size / 2 + 5
-    const maxRadius = size / 2 - 30
+    const maxRadius = size / 2 - 45
     const n = keys.length
 
     // Clear canvas
