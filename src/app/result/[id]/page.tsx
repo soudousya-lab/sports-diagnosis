@@ -6,6 +6,12 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { averageData, getGradeDisplay, categories, developmentAdvice, getGrade } from '@/lib/diagnosis'
 import RadarChart from '@/components/RadarChart'
+import {
+  FaTrophy, FaChartBar, FaBullseye, FaSearch, FaMedal, FaRunning,
+  FaDumbbell, FaClipboardList, FaFileAlt, FaBook, FaLightbulb,
+  FaExclamationTriangle, FaHandshake, FaCalendarAlt, FaComments,
+  FaChartLine, FaSchool, FaPrint, FaUser, FaChild
+} from 'react-icons/fa'
 
 type MeasurementData = {
   id: string
@@ -232,7 +238,7 @@ export default function ResultPage() {
               onClick={handlePrint}
               className="px-4 py-2 bg-white text-blue-900 font-bold rounded-lg shadow hover:shadow-lg transition-all flex items-center gap-2"
             >
-              <span>🖨️</span> PDF出力
+              <FaPrint /> PDF出力
             </button>
           </div>
 
@@ -345,7 +351,7 @@ export default function ResultPage() {
             onClick={handlePrint}
             className="px-4 py-2 bg-white text-blue-900 font-bold rounded-lg shadow hover:shadow-lg transition-all flex items-center gap-2"
           >
-            <span>🖨️</span> PDF出力
+            <FaPrint /> PDF出力
           </button>
         </div>
 
@@ -355,8 +361,8 @@ export default function ResultPage() {
           <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 print:p-3">
             <div className="flex justify-between items-start">
               <div className="text-white">
-                <h1 className="text-xl font-extrabold tracking-wider mb-1">
-                  🏆 運動能力診断レポート
+                <h1 className="text-xl font-extrabold tracking-wider mb-1 flex items-center gap-2">
+                  <FaTrophy /> 運動能力診断レポート
                 </h1>
                 <div className="text-xs opacity-90">Athletic Performance Assessment Report</div>
               </div>
@@ -372,8 +378,8 @@ export default function ResultPage() {
           {/* 被験者情報 */}
           <div className="bg-blue-50 border-2 border-blue-200 p-3 mx-4 mt-4 rounded-xl flex justify-between items-center print:mx-3 print:mt-3 print:p-2">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center text-2xl shadow-lg print:w-10 print:h-10">
-                {child.gender === 'male' ? '👦' : '👧'}
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center text-xl text-white shadow-lg print:w-10 print:h-10">
+                <FaChild />
               </div>
               <div>
                 <span className="text-[10px] text-gray-600 block">{child.furigana}</span>
@@ -430,11 +436,11 @@ export default function ResultPage() {
 
           {/* 測定結果（7項目） */}
           <div className="mx-4 mt-4 print:mx-3 print:mt-3">
-            <div className="text-base font-bold text-blue-900 mb-2">
-              📊 7つの能力チェック
+            <div className="text-base font-bold text-blue-900 mb-2 flex items-center gap-2">
+              <FaChartBar /> 7つの能力チェック
             </div>
             <div className="flex gap-4">
-              <div className="w-44 flex-shrink-0 print:w-40">
+              <div className="w-56 flex-shrink-0 print:w-52">
                 <RadarChart scores={result.scores} keys={allKeys} labels={allLabels} />
               </div>
               <div className="flex-1 space-y-1">
@@ -457,7 +463,7 @@ export default function ResultPage() {
                           <span className={`font-black text-sm ${grade.colorClass}`}>{grade.grade}</span>
                         </div>
                       </div>
-                      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden w-1/2">
                         <div
                           className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full"
                           style={{ width: `${score * 10}%` }}
@@ -491,8 +497,8 @@ export default function ResultPage() {
           {/* ヘッダー */}
           <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 print:p-3">
             <div className="flex justify-between items-center">
-              <h1 className="text-xl text-white font-extrabold tracking-wider">
-                🎯 トレーニング＆適性スポーツ
+              <h1 className="text-xl text-white font-extrabold tracking-wider flex items-center gap-2">
+                <FaBullseye /> トレーニング＆適性スポーツ
               </h1>
               <div className="text-white/80 text-xs">Training & Sports Aptitude</div>
             </div>
@@ -503,7 +509,7 @@ export default function ResultPage() {
             <div className="grid grid-cols-3 gap-3 mb-4 print:gap-2 print:mb-3">
               {/* 強み・弱み */}
               <div>
-                <div className="text-sm font-bold text-blue-900 mb-2">🔍 強み・弱み分析</div>
+                <div className="text-sm font-bold text-blue-900 mb-2 flex items-center gap-1"><FaSearch className="text-xs" /> 強み・弱み分析</div>
                 <div className="space-y-2">
                   <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-2">
                     <span className="text-[9px] font-bold text-blue-700 bg-blue-200 px-1.5 py-0.5 rounded-full">レベルアップ項目</span>
@@ -520,7 +526,7 @@ export default function ResultPage() {
 
               {/* 適性スポーツ */}
               <div className="col-span-2">
-                <div className="text-sm font-bold text-blue-900 mb-2">🏅 キミに向いているスポーツ TOP6</div>
+                <div className="text-sm font-bold text-blue-900 mb-2 flex items-center gap-1"><FaMedal className="text-xs" /> キミに向いているスポーツ TOP6</div>
                 <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-3">
                   <div className="text-[9px] font-bold text-blue-800 mb-1">特に適性が高い</div>
                   <div className="flex flex-wrap gap-1.5 mb-2">
@@ -542,7 +548,7 @@ export default function ResultPage() {
                 {/* 50m予測 */}
                 <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg p-2 text-white mt-2">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-sm">🏃 50m走予測タイム</span>
+                    <span className="font-bold text-sm flex items-center gap-1"><FaRunning /> 50m走予測タイム</span>
                     <span className="text-2xl font-black text-blue-200">{est50m}秒</span>
                   </div>
                 </div>
@@ -552,7 +558,7 @@ export default function ResultPage() {
             {/* 重点トレーニング 6種目 */}
             <div className="mb-4 print:mb-3">
               <div className="flex items-center justify-between mb-2">
-                <div className="text-sm font-bold text-blue-900">💪 キミの重点トレーニング</div>
+                <div className="text-sm font-bold text-blue-900 flex items-center gap-1"><FaDumbbell /> キミの重点トレーニング</div>
                 <div className="bg-blue-100 border border-blue-300 px-2 py-1 rounded-lg text-[10px] text-blue-800 font-bold">
                   お父さん・お母さんと一緒にやろう！
                 </div>
@@ -572,7 +578,7 @@ export default function ResultPage() {
                           </span>
                         </div>
                         <div className="text-[9px] text-gray-600 line-clamp-1">{t.description}</div>
-                        <div className="text-[10px] font-bold text-blue-700">📋 {t.reps}</div>
+                        <div className="text-[10px] font-bold text-blue-700 flex items-center gap-0.5"><FaClipboardList className="text-[8px]" /> {t.reps}</div>
                       </div>
                       <div className="w-16 h-12 flex-shrink-0 bg-gray-100 rounded overflow-hidden border border-white shadow print:w-14 print:h-10">
                         <img
@@ -594,7 +600,7 @@ export default function ResultPage() {
             {/* 1ヶ月目標 */}
             <div className="bg-gradient-to-r from-blue-700 to-blue-900 text-white p-4 rounded-xl shadow-lg print:p-3">
               <div className="text-center mb-3">
-                <h4 className="text-base font-bold">🎯 1ヶ月後のキミの目標！</h4>
+                <h4 className="text-base font-bold flex items-center justify-center gap-2"><FaBullseye /> 1ヶ月後のキミの目標！</h4>
                 <p className="text-[10px] opacity-80">毎日10分のトレーニングで達成できる！</p>
               </div>
               <div className="grid grid-cols-3 gap-3">
@@ -623,8 +629,8 @@ export default function ResultPage() {
           {/* ヘッダー */}
           <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 print:p-3">
             <div className="flex justify-between items-center">
-              <h1 className="text-xl text-white font-extrabold tracking-wider">
-                📋 保護者の方へ
+              <h1 className="text-xl text-white font-extrabold tracking-wider flex items-center gap-2">
+                <FaFileAlt /> 保護者の方へ
               </h1>
               <div className="text-white/80 text-xs">Information for Parents</div>
             </div>
@@ -653,19 +659,19 @@ export default function ResultPage() {
             <div className="grid md:grid-cols-2 gap-4 mb-4 print:gap-3 print:mb-3">
               {/* 発達段階の情報 */}
               <div className="bg-blue-50 border-2 border-blue-200 p-4 rounded-xl print:p-3">
-                <h4 className="text-base font-bold text-blue-900 border-b-2 border-blue-900 pb-1 mb-3">📚 発達段階: {devAdv?.golden}</h4>
+                <h4 className="text-base font-bold text-blue-900 border-b-2 border-blue-900 pb-1 mb-3 flex items-center gap-2"><FaBook /> 発達段階: {devAdv?.golden}</h4>
                 <p className="text-xs text-gray-700 mb-3 leading-relaxed bg-white/50 p-2 rounded-lg">{devAdv?.focus}</p>
 
-                <h4 className="text-sm font-bold text-blue-900 mb-2">💡 この時期のポイント</h4>
+                <h4 className="text-sm font-bold text-blue-900 mb-2 flex items-center gap-1"><FaLightbulb /> この時期のポイント</h4>
                 <p className="text-xs text-gray-700 mb-3 leading-relaxed bg-white/50 p-2 rounded-lg">{devAdv?.key}</p>
 
-                <h4 className="text-sm font-bold text-blue-800 mb-2">⚠️ 注意点</h4>
+                <h4 className="text-sm font-bold text-blue-800 mb-2 flex items-center gap-1"><FaExclamationTriangle /> 注意点</h4>
                 <p className="text-xs text-blue-800 leading-relaxed bg-blue-100 p-2 rounded-lg border border-blue-300">{devAdv?.avoid}</p>
               </div>
 
               {/* 継続的なサポートのご案内 */}
               <div className="bg-blue-50 p-4 rounded-xl border-2 border-blue-200 print:p-3">
-                <h4 className="text-lg font-bold text-blue-900 border-b-2 border-blue-600 pb-1 mb-3 text-center">🤝 継続的なサポートのご案内</h4>
+                <h4 className="text-lg font-bold text-blue-900 border-b-2 border-blue-600 pb-1 mb-3 text-center flex items-center justify-center gap-2"><FaHandshake /> 継続的なサポートのご案内</h4>
                 <p className="text-xs text-gray-600 mb-3 text-center leading-relaxed bg-white/50 p-2 rounded-lg">
                   お子様の運動能力をさらに伸ばすために、<br />
                   定期的な測定と専門的なトレーニング指導をおすすめします。
@@ -684,7 +690,7 @@ export default function ResultPage() {
                         }}
                       />
                     </div>
-                    <p className="text-xs font-bold text-blue-700">📅 次回の測定を予約</p>
+                    <p className="text-xs font-bold text-blue-700 flex items-center justify-center gap-1"><FaCalendarAlt /> 次回の測定を予約</p>
                   </div>
                   <div className="text-center bg-white p-3 rounded-lg shadow-md border-2 border-blue-200">
                     <div className="w-20 h-20 mx-auto mb-2 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-200 print:w-16 print:h-16">
@@ -699,18 +705,31 @@ export default function ResultPage() {
                         }}
                       />
                     </div>
-                    <p className="text-xs font-bold text-blue-700">💬 LINEで相談・質問</p>
+                    <p className="text-xs font-bold text-blue-700 flex items-center justify-center gap-1"><FaComments /> LINEで相談・質問</p>
                   </div>
                 </div>
-                <p className="text-xs text-blue-700 mt-3 text-center font-medium bg-blue-100 p-2 rounded-lg">
-                  📈 1ヶ月ごとの測定で成長を実感できます！
+                <p className="text-xs text-blue-700 mt-3 text-center font-medium bg-blue-100 p-2 rounded-lg flex items-center justify-center gap-1">
+                  <FaChartLine /> 1ヶ月ごとの測定で成長を実感できます！
                 </p>
+                {/* 16:9 横長画像エリア */}
+                <div className="mt-3 aspect-video bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-200">
+                  <img
+                    src="/images/support-banner.jpg"
+                    alt="サポートバナー"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      target.style.display = 'none'
+                      target.parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center text-gray-400 text-xs">画像準備中</div>'
+                    }}
+                  />
+                </div>
               </div>
             </div>
 
             {/* フッター：店舗情報 */}
             <div className="bg-gradient-to-r from-blue-700 to-blue-900 text-white p-5 rounded-xl text-center shadow-lg print:p-4">
-              <p className="text-xl font-bold mb-1">🏫 {store?.name || 'かけっこ体幹教室'}</p>
+              <p className="text-xl font-bold mb-1 flex items-center justify-center gap-2"><FaSchool /> かけっこ体幹教室</p>
               <p className="text-sm opacity-90">お子様の運動能力向上を全力でサポートします</p>
             </div>
           </div>
