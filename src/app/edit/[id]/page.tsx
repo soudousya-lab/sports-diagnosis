@@ -261,28 +261,28 @@ export default function EditMeasurementPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 py-6 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 py-6 px-3 xs:px-4">
       <div className="max-w-4xl mx-auto">
         {/* 戻るボタン */}
-        <Link href="/" className="inline-flex items-center text-blue-200 hover:text-white transition-colors mb-4">
+        <Link href="/" className="inline-flex items-center text-blue-200 hover:text-white transition-colors mb-4 text-sm xs:text-base">
           ← トップに戻る
         </Link>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+        <form onSubmit={handleSubmit} className="bg-white rounded-xl xs:rounded-2xl shadow-2xl overflow-hidden">
           {/* ヘッダー */}
-          <div className="text-white p-6 bg-gradient-to-r from-yellow-600 to-yellow-700">
+          <div className="text-white p-4 xs:p-6 bg-gradient-to-r from-yellow-600 to-yellow-700">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-xl font-bold tracking-wider">測定データ編集</h1>
-                <p className="text-sm opacity-80 mt-1">データを修正して保存してください</p>
+                <h1 className="text-lg xs:text-xl font-bold tracking-wider">測定データ編集</h1>
+                <p className="text-xs xs:text-sm opacity-80 mt-1">データを修正して保存してください</p>
               </div>
             </div>
           </div>
 
           {/* 基本情報 */}
-          <div className="p-7 bg-gray-50 border-b border-gray-200">
+          <div className="p-4 xs:p-7 bg-gray-50 border-b border-gray-200">
             <h2 className="text-sm font-bold text-blue-900 mb-4 pl-3 border-l-4 border-blue-600">基本情報</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 xs:gap-4">
               <div>
                 <label className="block mb-1 text-gray-600 text-xs font-semibold">氏名 *</label>
                 <input
@@ -358,11 +358,11 @@ export default function EditMeasurementPage() {
           </div>
 
           {/* 測定データ（7項目すべて） */}
-          <div className="p-7">
+          <div className="p-4 xs:p-7">
             <h2 className="text-sm font-bold text-blue-900 mb-4 pl-3 border-l-4 border-blue-600">
               測定データ（7項目）
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 xs:gap-4">
               {/* 握力 */}
               <MeasurementCard icon="筋" title="握力" category="筋力">
                 <div className="flex gap-2 items-center mb-2">
@@ -484,21 +484,21 @@ export default function EditMeasurementPage() {
           </div>
 
           {/* 送信ボタン */}
-          <div className="p-7 text-center bg-gray-50 border-t border-gray-200">
-            <p className="text-sm text-gray-600 mb-4">
+          <div className="p-4 xs:p-7 text-center bg-gray-50 border-t border-gray-200">
+            <p className="text-xs xs:text-sm text-gray-600 mb-4">
               更新後、トップページで「サマリー出力」または「詳細出力」を選択できます
             </p>
-            <div className="flex gap-4 justify-center">
+            <div className="flex flex-col xs:flex-row gap-3 xs:gap-4 justify-center">
               <Link
                 href="/"
-                className="px-8 py-4 text-base font-bold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-all"
+                className="w-full xs:w-auto px-6 xs:px-8 py-3 xs:py-4 text-sm xs:text-base font-bold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-all text-center"
               >
                 キャンセル
               </Link>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="px-12 py-4 text-base font-bold text-white rounded-lg shadow-lg hover:transform hover:-translate-y-1 transition-all disabled:opacity-50 bg-gradient-to-r from-yellow-600 to-yellow-700"
+                className="w-full xs:w-auto px-8 xs:px-12 py-3 xs:py-4 text-sm xs:text-base font-bold text-white rounded-lg shadow-lg hover:transform hover:-translate-y-1 transition-all disabled:opacity-50 bg-gradient-to-r from-yellow-600 to-yellow-700"
               >
                 {isLoading ? '更新中...' : '変更を保存'}
               </button>

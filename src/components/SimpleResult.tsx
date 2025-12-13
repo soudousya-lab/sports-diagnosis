@@ -40,41 +40,41 @@ export default function SimpleResult({ store, child, measurements, result, avera
   ]
 
   return (
-    <div className="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-4xl mx-auto">
+    <div className="bg-white rounded-xl xs:rounded-2xl shadow-2xl overflow-hidden max-w-4xl mx-auto">
       {/* ヘッダー */}
-      <div className="flex justify-between items-start p-6 border-b-4 border-blue-900">
+      <div className="flex flex-col xs:flex-row justify-between items-start p-4 xs:p-6 border-b-4 border-blue-900 gap-2 xs:gap-0">
         <div>
-          <h1 className="text-xl text-blue-900 font-bold tracking-wider mb-1">運動能力診断レポート</h1>
-          <div className="text-xs text-gray-600">Athletic Performance Assessment Report</div>
+          <h1 className="text-lg xs:text-xl text-blue-900 font-bold tracking-wider mb-1">運動能力診断レポート</h1>
+          <div className="text-[10px] xs:text-xs text-gray-600">Athletic Performance Assessment Report</div>
         </div>
-        <div className="text-right text-xs text-gray-600">
-          <div className="inline-block px-3 py-1 bg-blue-600 text-white font-bold rounded mb-1">SIMPLE</div>
+        <div className="text-left xs:text-right text-[10px] xs:text-xs text-gray-600">
+          <div className="inline-block px-2 xs:px-3 py-1 bg-blue-600 text-white font-bold rounded mb-1">SIMPLE</div>
           <div>測定日: {today}</div>
         </div>
       </div>
 
       {/* 被験者情報 */}
-      <div className="bg-blue-50 border border-blue-200 p-4 m-6 rounded-lg flex justify-between items-center">
-        <div className="text-xl font-bold text-blue-900">
-          <span className="text-xs font-normal text-gray-600 block mb-1">{child.furigana}</span>
+      <div className="bg-blue-50 border border-blue-200 p-3 xs:p-4 m-4 xs:m-6 rounded-lg flex flex-col xs:flex-row justify-between items-start xs:items-center gap-2 xs:gap-0">
+        <div className="text-lg xs:text-xl font-bold text-blue-900">
+          <span className="text-[10px] xs:text-xs font-normal text-gray-600 block mb-1">{child.furigana}</span>
           {child.name} 様
         </div>
-        <div className="text-xs text-gray-600 text-right leading-relaxed">
+        <div className="text-[10px] xs:text-xs text-gray-600 text-left xs:text-right leading-relaxed">
           {getGradeDisplay(child.grade)}（{actualAge}歳）・{child.gender === 'male' ? '男子' : '女子'}<br />
           身長 {child.height}cm ／ 体重 {child.weight}kg
         </div>
       </div>
 
       {/* 運動器年齢 */}
-      <div className="flex gap-6 items-center p-5 bg-gradient-to-r from-yellow-50 to-amber-100 border-2 border-yellow-500 rounded-lg mx-6 mb-6">
-        <div className="w-28 h-28 rounded-full bg-gradient-to-br from-blue-900 to-blue-700 flex flex-col items-center justify-center text-white shadow-lg flex-shrink-0">
-          <span className="text-[9px] opacity-90">運動器年齢</span>
-          <span className="text-4xl font-extrabold">{Math.round(result.motorAge)}</span>
-          <span className="text-sm">歳</span>
+      <div className="flex flex-col xs:flex-row gap-4 xs:gap-6 items-center p-4 xs:p-5 bg-gradient-to-r from-yellow-50 to-amber-100 border-2 border-yellow-500 rounded-lg mx-4 xs:mx-6 mb-4 xs:mb-6">
+        <div className="w-24 h-24 xs:w-28 xs:h-28 rounded-full bg-gradient-to-br from-blue-900 to-blue-700 flex flex-col items-center justify-center text-white shadow-lg flex-shrink-0">
+          <span className="text-[8px] xs:text-[9px] opacity-90">運動器年齢</span>
+          <span className="text-3xl xs:text-4xl font-extrabold">{Math.round(result.motorAge)}</span>
+          <span className="text-xs xs:text-sm">歳</span>
         </div>
-        <div className="text-sm leading-relaxed">
-          実年齢 <span className="text-lg font-extrabold text-blue-900">{actualAge}歳</span> に対して、運動器年齢は
-          <span className={`text-lg font-extrabold ${result.motorAgeDiff >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+        <div className="text-xs xs:text-sm leading-relaxed text-center xs:text-left">
+          実年齢 <span className="text-base xs:text-lg font-extrabold text-blue-900">{actualAge}歳</span> に対して、運動器年齢は
+          <span className={`text-base xs:text-lg font-extrabold ${result.motorAgeDiff >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {result.motorAgeDiff >= 0 ? '+' : ''}{result.motorAgeDiff.toFixed(1)}歳
           </span> です。<br /><br />
           {result.motorAgeDiff >= 1
@@ -88,19 +88,19 @@ export default function SimpleResult({ store, child, measurements, result, avera
       </div>
 
       {/* 測定結果 */}
-      <div className="mx-6 mb-6">
-        <div className="text-sm font-bold text-white bg-blue-900 px-4 py-2 rounded mb-3">
+      <div className="mx-4 xs:mx-6 mb-4 xs:mb-6">
+        <div className="text-xs xs:text-sm font-bold text-white bg-blue-900 px-3 xs:px-4 py-2 rounded mb-3">
           測定結果（3項目）
         </div>
-        <div className="flex gap-5">
-          <div className="w-56 flex-shrink-0">
+        <div className="flex flex-col xs:flex-row gap-4 xs:gap-5">
+          <div className="w-full xs:w-56 flex-shrink-0 flex justify-center">
             <RadarChart
               scores={result.scores}
               keys={['grip', 'jump', 'dash']}
               labels={['筋力', '瞬発力', '移動能力']}
             />
           </div>
-          <table className="flex-1 border-collapse text-xs">
+          <table className="flex-1 border-collapse text-[10px] xs:text-xs">
             <thead>
               <tr>
                 <th className="border border-gray-200 bg-blue-900 text-white p-2">測定項目</th>
@@ -128,41 +128,41 @@ export default function SimpleResult({ store, child, measurements, result, avera
             </tbody>
           </table>
         </div>
-        <div className="text-[9px] text-gray-600 mt-2">
+        <div className="text-[8px] xs:text-[9px] text-gray-600 mt-2">
           ※評点は10段階評価（10が最高）、判定 A:非常に優秀 B:良好 C:標準 D:要改善 E:要注意
         </div>
       </div>
 
       {/* 運動タイプ */}
-      <div className="mx-6 mb-6 border-4 border-blue-900 p-5 text-center bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg">
-        <div className="text-xs text-gray-600 mb-2">運動タイプ診断結果</div>
-        <div className="text-2xl font-extrabold text-blue-900 mb-3 tracking-wider">{result.type.name}</div>
-        <div className="text-sm leading-relaxed">{result.type.desc}</div>
+      <div className="mx-4 xs:mx-6 mb-4 xs:mb-6 border-4 border-blue-900 p-4 xs:p-5 text-center bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg">
+        <div className="text-[10px] xs:text-xs text-gray-600 mb-2">運動タイプ診断結果</div>
+        <div className="text-xl xs:text-2xl font-extrabold text-blue-900 mb-3 tracking-wider">{result.type.name}</div>
+        <div className="text-xs xs:text-sm leading-relaxed">{result.type.desc}</div>
       </div>
 
       {/* クラス推薦 */}
-      <div className="mx-6 mb-6 bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-600 rounded-lg p-5">
-        <h3 className="text-base font-bold text-green-600 mb-4 text-center">📋 おすすめクラス</h3>
-        <div className="grid grid-cols-3 gap-3">
+      <div className="mx-4 xs:mx-6 mb-4 xs:mb-6 bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-600 rounded-lg p-4 xs:p-5">
+        <h3 className="text-sm xs:text-base font-bold text-green-600 mb-4 text-center">📋 おすすめクラス</h3>
+        <div className="grid grid-cols-1 xs:grid-cols-3 gap-2 xs:gap-3">
           {(['beginner', 'standard', 'expert'] as const).map(level => (
             <div
               key={level}
-              className={`bg-white rounded-lg p-4 text-center border-2 ${
+              className={`bg-white rounded-lg p-3 xs:p-4 text-center border-2 ${
                 result.classLevel === level
                   ? 'border-green-600 shadow-lg'
                   : 'border-transparent'
               }`}
             >
-              <div className="text-sm font-bold text-blue-900 mb-2">
+              <div className="text-xs xs:text-sm font-bold text-blue-900 mb-2">
                 {level === 'beginner' ? 'ビギナー' : level === 'standard' ? 'スタンダード' : 'エキスパート'}
               </div>
-              <div className="text-[10px] text-gray-600 leading-relaxed">
+              <div className="text-[9px] xs:text-[10px] text-gray-600 leading-relaxed">
                 {level === 'beginner' && '動物マネっこ体操など\n楽しく体を動かす'}
                 {level === 'standard' && '正しい走り方+\n各種目の基礎練習'}
                 {level === 'expert' && '長所伸展 or 弱点克服\n専門的トレーニング'}
               </div>
               {result.classLevel === level && (
-                <span className="inline-block mt-2 px-3 py-1 bg-green-600 text-white text-[9px] font-semibold rounded-full">
+                <span className="inline-block mt-2 px-2 xs:px-3 py-1 bg-green-600 text-white text-[8px] xs:text-[9px] font-semibold rounded-full">
                   おすすめ
                 </span>
               )}
@@ -172,14 +172,14 @@ export default function SimpleResult({ store, child, measurements, result, avera
       </div>
 
       {/* 詳細診断CTA */}
-      <div className="mx-6 mb-6 bg-gradient-to-r from-yellow-50 to-amber-100 border-4 border-yellow-500 p-6 text-center rounded-lg">
-        <h3 className="text-xl font-bold text-blue-900 mb-3">🏃 詳細診断を受けてみませんか？</h3>
-        <p className="text-sm leading-relaxed mb-5">
+      <div className="mx-4 xs:mx-6 mb-4 xs:mb-6 bg-gradient-to-r from-yellow-50 to-amber-100 border-4 border-yellow-500 p-4 xs:p-6 text-center rounded-lg">
+        <h3 className="text-lg xs:text-xl font-bold text-blue-900 mb-3">🏃 詳細診断を受けてみませんか？</h3>
+        <p className="text-xs xs:text-sm leading-relaxed mb-4 xs:mb-5">
           本レポートは<strong>簡易版（3項目測定）</strong>です。<br />
           店舗では<strong>7項目のフル測定</strong>による詳細診断が可能です。
         </p>
 
-        <div className="flex justify-center gap-6 mb-5">
+        <div className="flex flex-wrap justify-center gap-3 xs:gap-6 mb-4 xs:mb-5">
           {[
             { icon: '連', text: '連続立ち幅跳び\n（バランス）' },
             { icon: '持', text: '30秒スクワット\n（筋持久力）' },
@@ -187,15 +187,15 @@ export default function SimpleResult({ store, child, measurements, result, avera
             { icon: '投', text: 'ボール投げ\n（投力）' }
           ].map(item => (
             <div key={item.icon} className="text-center">
-              <div className="w-14 h-14 bg-blue-900 text-white rounded-full flex items-center justify-center text-xl font-bold mb-2 mx-auto">
+              <div className="w-10 h-10 xs:w-14 xs:h-14 bg-blue-900 text-white rounded-full flex items-center justify-center text-base xs:text-xl font-bold mb-1 xs:mb-2 mx-auto">
                 {item.icon}
               </div>
-              <div className="text-xs font-semibold whitespace-pre-line">{item.text}</div>
+              <div className="text-[10px] xs:text-xs font-semibold whitespace-pre-line">{item.text}</div>
             </div>
           ))}
         </div>
 
-        <div className="bg-white p-4 rounded-lg text-sm">
+        <div className="bg-white p-3 xs:p-4 rounded-lg text-xs xs:text-sm">
           <strong>詳細診断のご予約</strong><br />
           {store.name}<br />
           {store.address && <span>{store.address}<br /></span>}
@@ -205,7 +205,7 @@ export default function SimpleResult({ store, child, measurements, result, avera
       </div>
 
       {/* フッター */}
-      <div className="px-6 py-4 border-t-2 border-blue-900 flex justify-between text-[9px] text-gray-600">
+      <div className="px-4 xs:px-6 py-3 xs:py-4 border-t-2 border-blue-900 flex flex-col xs:flex-row justify-between text-[8px] xs:text-[9px] text-gray-600 gap-1 xs:gap-0">
         <div className="font-bold text-blue-900">{store.name}</div>
         <div>本診断は統計データに基づく参考値です</div>
       </div>

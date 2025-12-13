@@ -229,7 +229,7 @@ export default function StorePage() {
   const avg = result ? averageData[result.formData.grade][result.formData.gender] : null
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 py-6 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 py-6 px-3 xs:px-4">
       <div className="max-w-4xl mx-auto">
         {!result ? (
           <DiagnosisForm
@@ -302,10 +302,10 @@ export default function StorePage() {
             )}
 
             {/* 新しい診断ボタン */}
-            <div className="text-center mt-8">
+            <div className="text-center mt-6 xs:mt-8">
               <button
                 onClick={() => setResult(null)}
-                className="px-8 py-4 bg-white text-blue-900 font-bold rounded-lg shadow-lg hover:transform hover:-translate-y-1 transition-all"
+                className="w-full xs:w-auto px-6 xs:px-8 py-3 xs:py-4 bg-white text-blue-900 font-bold rounded-lg shadow-lg hover:transform hover:-translate-y-1 transition-all text-sm xs:text-base"
               >
                 新しい診断を行う
               </button>

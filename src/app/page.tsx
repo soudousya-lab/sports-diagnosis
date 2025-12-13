@@ -155,10 +155,10 @@ export default function Home() {
       <div className="max-w-5xl mx-auto">
         {/* ヘッダー */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-4 tracking-wider">
+          <h1 className="text-2xl xs:text-3xl sm:text-4xl font-bold text-white mb-4 tracking-wider">
             運動能力診断システム
           </h1>
-          <p className="text-blue-200 text-lg">
+          <p className="text-blue-200 text-sm xs:text-base sm:text-lg">
             Athletic Performance Assessment System
           </p>
         </div>
@@ -204,72 +204,75 @@ export default function Home() {
                     key={measurement.id}
                     className="p-4 hover:bg-blue-50 transition-all"
                   >
-                    <div className="flex items-center gap-4">
-                      {/* アイコン */}
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ${
-                        child?.gender === 'male' ? 'bg-blue-500' : 'bg-pink-500'
-                      }`}>
-                        {child?.name?.charAt(0) || '?'}
-                      </div>
-
-                      {/* 情報 */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-bold text-gray-900 truncate">
-                            {child?.name || '不明'}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            {child?.furigana}
-                          </span>
-                          {/* 入力済みバッジ */}
-                          <span className="inline-block px-2 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded">
-                            入力済み
-                          </span>
+                    <div className="flex flex-col xs:flex-row xs:items-center gap-3 xs:gap-4">
+                      {/* 上段: アイコンと情報 */}
+                      <div className="flex items-center gap-3 xs:gap-4 flex-1 min-w-0">
+                        {/* アイコン */}
+                        <div className={`w-10 h-10 xs:w-12 xs:h-12 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 ${
+                          child?.gender === 'male' ? 'bg-blue-500' : 'bg-pink-500'
+                        }`}>
+                          {child?.name?.charAt(0) || '?'}
                         </div>
-                        <div className="flex items-center gap-3 text-sm text-gray-600">
-                          <span>{child ? getGradeDisplay(child.grade) : ''}</span>
-                          <span>•</span>
-                          <span>{child?.gender === 'male' ? '男子' : '女子'}</span>
-                          <span>•</span>
-                          <span>{measuredDate}</span>
-                        </div>
-                      </div>
 
-                      {/* 結果サマリー */}
-                      {hasResult && (
-                        <div className="text-right hidden sm:block">
-                          <div className="text-sm font-bold text-blue-900">
-                            運動器年齢: {Math.round(result.motor_age)}歳
+                        {/* 情報 */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <span className="font-bold text-gray-900 truncate text-sm xs:text-base">
+                              {child?.name || '不明'}
+                            </span>
+                            <span className="text-xs text-gray-500 hidden xs:inline">
+                              {child?.furigana}
+                            </span>
+                            {/* 入力済みバッジ */}
+                            <span className="inline-block px-2 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded">
+                              入力済み
+                            </span>
                           </div>
-                          <div className="text-xs text-gray-500">
-                            {result.type_name}
+                          <div className="flex items-center gap-2 xs:gap-3 text-xs xs:text-sm text-gray-600 flex-wrap">
+                            <span>{child ? getGradeDisplay(child.grade) : ''}</span>
+                            <span>•</span>
+                            <span>{child?.gender === 'male' ? '男子' : '女子'}</span>
+                            <span className="hidden xs:inline">•</span>
+                            <span className="hidden xs:inline">{measuredDate}</span>
                           </div>
                         </div>
-                      )}
+
+                        {/* 結果サマリー */}
+                        {hasResult && (
+                          <div className="text-right hidden sm:block flex-shrink-0">
+                            <div className="text-sm font-bold text-blue-900">
+                              運動器年齢: {Math.round(result.motor_age)}歳
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {result.type_name}
+                            </div>
+                          </div>
+                        )}
+                      </div>
 
                       {/* ボタン群 */}
-                      <div className="flex gap-2 flex-wrap justify-end">
+                      <div className="flex gap-1.5 xs:gap-2 flex-wrap justify-start xs:justify-end">
                         <button
                           onClick={() => handleViewResult(measurement.id, 'simple')}
-                          className="px-3 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-all"
+                          className="px-2 xs:px-3 py-1.5 xs:py-2 bg-blue-600 text-white text-[10px] xs:text-xs font-bold rounded-lg hover:bg-blue-700 transition-all"
                         >
-                          サマリー出力
+                          サマリー
                         </button>
                         <button
                           onClick={() => handleViewResult(measurement.id, 'detail')}
-                          className="px-3 py-2 bg-green-600 text-white text-xs font-bold rounded-lg hover:bg-green-700 transition-all"
+                          className="px-2 xs:px-3 py-1.5 xs:py-2 bg-green-600 text-white text-[10px] xs:text-xs font-bold rounded-lg hover:bg-green-700 transition-all"
                         >
-                          詳細出力
+                          詳細
                         </button>
                         <button
                           onClick={() => handleEdit(measurement.id)}
-                          className="px-3 py-2 bg-yellow-500 text-white text-xs font-bold rounded-lg hover:bg-yellow-600 transition-all"
+                          className="px-2 xs:px-3 py-1.5 xs:py-2 bg-yellow-500 text-white text-[10px] xs:text-xs font-bold rounded-lg hover:bg-yellow-600 transition-all"
                         >
                           編集
                         </button>
                         <button
                           onClick={() => setDeleteTarget({ id: measurement.id, name: child?.name || '不明' })}
-                          className="px-3 py-2 bg-red-500 text-white text-xs font-bold rounded-lg hover:bg-red-600 transition-all"
+                          className="px-2 xs:px-3 py-1.5 xs:py-2 bg-red-500 text-white text-[10px] xs:text-xs font-bold rounded-lg hover:bg-red-600 transition-all"
                         >
                           削除
                         </button>

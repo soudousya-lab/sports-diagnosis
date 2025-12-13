@@ -68,44 +68,44 @@ export default function DiagnosisForm({ store, onSubmit, isLoading }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+    <form onSubmit={handleSubmit} className="bg-white rounded-xl xs:rounded-2xl shadow-2xl overflow-hidden">
       {/* ヘッダー */}
       <div
-        className="text-white p-6"
+        className="text-white p-4 xs:p-6"
         style={{ background: `linear-gradient(135deg, ${store.theme_color} 0%, ${store.theme_color}dd 100%)` }}
       >
-        <div className="flex justify-between items-center mb-5">
-          <h1 className="text-xl font-bold tracking-wider">運動能力診断システム</h1>
-          <div className="text-xs opacity-85">{store.name}</div>
+        <div className="flex justify-between items-center mb-4 xs:mb-5">
+          <h1 className="text-lg xs:text-xl font-bold tracking-wider">運動能力診断システム</h1>
+          <div className="text-[10px] xs:text-xs opacity-85">{store.name}</div>
         </div>
 
         {/* モード選択 */}
-        <div className="flex gap-4">
+        <div className="flex flex-col xs:flex-row gap-3 xs:gap-4">
           <button
             type="button"
             onClick={() => handleModeChange('simple')}
-            className={`flex-1 p-4 border-2 rounded-lg cursor-pointer transition-all text-left ${
+            className={`flex-1 p-3 xs:p-4 border-2 rounded-lg cursor-pointer transition-all text-left ${
               mode === 'simple'
                 ? 'bg-white text-gray-800 border-white'
                 : 'bg-white/10 border-white/30 hover:bg-white/20'
             }`}
           >
-            <div className="font-bold mb-1">簡易版（イベント用）</div>
-            <div className={`text-xs ${mode === 'simple' ? 'text-gray-600' : 'opacity-80'}`}>
+            <div className="font-bold mb-1 text-sm xs:text-base">簡易版（イベント用）</div>
+            <div className={`text-[10px] xs:text-xs ${mode === 'simple' ? 'text-gray-600' : 'opacity-80'}`}>
               かけっこ教室・測定会向け<br />3項目測定 → 来店誘導
             </div>
           </button>
           <button
             type="button"
             onClick={() => handleModeChange('detail')}
-            className={`flex-1 p-4 border-2 rounded-lg cursor-pointer transition-all text-left ${
+            className={`flex-1 p-3 xs:p-4 border-2 rounded-lg cursor-pointer transition-all text-left ${
               mode === 'detail'
                 ? 'bg-white text-gray-800 border-white'
                 : 'bg-white/10 border-white/30 hover:bg-white/20'
             }`}
           >
-            <div className="font-bold mb-1">詳細版（店舗用）</div>
-            <div className={`text-xs ${mode === 'detail' ? 'text-gray-600' : 'opacity-80'}`}>
+            <div className="font-bold mb-1 text-sm xs:text-base">詳細版（店舗用）</div>
+            <div className={`text-[10px] xs:text-xs ${mode === 'detail' ? 'text-gray-600' : 'opacity-80'}`}>
               店舗来店・完全診断<br />7項目測定 → フルレポート
             </div>
           </button>
@@ -113,9 +113,9 @@ export default function DiagnosisForm({ store, onSubmit, isLoading }: Props) {
       </div>
 
       {/* 基本情報 */}
-      <div className="p-7 bg-gray-50 border-b border-gray-200">
+      <div className="p-4 xs:p-7 bg-gray-50 border-b border-gray-200">
         <h2 className="text-sm font-bold text-blue-900 mb-4 pl-3 border-l-4 border-blue-600">基本情報</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 xs:gap-4">
           <div>
             <label className="block mb-1 text-gray-600 text-xs font-semibold">氏名</label>
             <input
@@ -185,9 +185,9 @@ export default function DiagnosisForm({ store, onSubmit, isLoading }: Props) {
       </div>
 
       {/* 測定データ */}
-      <div className="p-7">
+      <div className="p-4 xs:p-7">
         <h2 className="text-sm font-bold text-blue-900 mb-4 pl-3 border-l-4 border-blue-600">測定データ（7項目）</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 xs:gap-4">
           {/* 握力 */}
           <MeasurementCard
             icon="筋"
@@ -330,21 +330,23 @@ export default function DiagnosisForm({ store, onSubmit, isLoading }: Props) {
       </div>
 
       {/* 送信ボタン */}
-      <div className="p-7 text-center bg-gray-50 border-t border-gray-200">
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="px-12 py-4 text-base font-bold bg-gradient-to-r from-blue-900 to-blue-700 text-white rounded-lg shadow-lg hover:transform hover:-translate-y-1 transition-all disabled:opacity-50"
-        >
-          {isLoading ? '診断中...' : '診断を実行'}
-        </button>
-        <button
-          type="button"
-          onClick={() => window.location.reload()}
-          className="ml-4 px-12 py-4 text-base font-bold bg-white text-blue-900 border-2 border-blue-900 rounded-lg"
-        >
-          クリア
-        </button>
+      <div className="p-4 xs:p-7 text-center bg-gray-50 border-t border-gray-200">
+        <div className="flex flex-col xs:flex-row gap-3 xs:gap-4 justify-center">
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full xs:w-auto px-8 xs:px-12 py-3 xs:py-4 text-sm xs:text-base font-bold bg-gradient-to-r from-blue-900 to-blue-700 text-white rounded-lg shadow-lg hover:transform hover:-translate-y-1 transition-all disabled:opacity-50"
+          >
+            {isLoading ? '診断中...' : '診断を実行'}
+          </button>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="w-full xs:w-auto px-8 xs:px-12 py-3 xs:py-4 text-sm xs:text-base font-bold bg-white text-blue-900 border-2 border-blue-900 rounded-lg"
+          >
+            クリア
+          </button>
+        </div>
       </div>
     </form>
   )
