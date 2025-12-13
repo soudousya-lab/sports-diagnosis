@@ -567,7 +567,7 @@ export default function ResultPage() {
                 {result.recommended_trainings?.slice(0, 6).map((t, i) => (
                   <div key={i} className="rounded-lg p-2 border-2 bg-blue-50 border-blue-200 print:p-1.5">
                     <div className="flex gap-2">
-                      <div className="w-20 h-16 flex-shrink-0 bg-gray-100 rounded overflow-hidden border border-white shadow print:w-18 print:h-14">
+                      <div className="w-[120px] h-24 flex-shrink-0 bg-gray-100 rounded overflow-hidden border border-white shadow print:w-[100px] print:h-20">
                         <img
                           src={`/trainings/${t.name.replace(/\s/g, '_')}.jpg`}
                           alt={t.name}
