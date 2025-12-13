@@ -269,7 +269,7 @@ export default function ResultPage() {
           {/* ページ1: サマリー結果 + 保護者の方へ（合体版） */}
           <div ref={printRef} className="bg-white rounded-xl xs:rounded-2xl shadow-2xl overflow-hidden print:shadow-none print:rounded-none print:h-[297mm] print:w-[210mm] print:overflow-hidden print:box-border">
             {/* ヘッダー */}
-            <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 xs:p-5 print:p-4">
+            <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 xs:p-5 print:p-3">
               <div className="flex flex-col xs:flex-row justify-between items-start gap-2 xs:gap-0">
                 <div className="text-white">
                   <h1 className="text-lg xs:text-2xl font-extrabold tracking-wider mb-1 flex items-center gap-2">
@@ -287,9 +287,9 @@ export default function ResultPage() {
             </div>
 
             {/* 被験者情報 */}
-            <div className="bg-blue-50 border-2 border-blue-200 p-3 xs:p-4 mx-3 xs:mx-5 mt-4 xs:mt-5 rounded-xl flex flex-col xs:flex-row justify-between items-start xs:items-center gap-3 xs:gap-0 print:mx-4 print:mt-4 print:p-3">
+            <div className="bg-blue-50 border-2 border-blue-200 p-3 xs:p-4 mx-3 xs:mx-5 mt-3 xs:mt-4 rounded-xl flex flex-col xs:flex-row justify-between items-start xs:items-center gap-3 xs:gap-0 print:mx-3 print:mt-3 print:p-2">
               <div className="flex items-center gap-3 xs:gap-4">
-                <div className="w-10 h-10 xs:w-14 xs:h-14 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center text-lg xs:text-2xl text-white shadow-lg print:w-12 print:h-12">
+                <div className="w-10 h-10 xs:w-14 xs:h-14 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center text-lg xs:text-2xl text-white shadow-lg print:w-10 print:h-10">
                   <FaChild />
                 </div>
                 <div>
@@ -310,29 +310,29 @@ export default function ResultPage() {
             </div>
 
             {/* 運動器年齢 + 運動タイプ 横並び */}
-            <div className="grid grid-cols-1 xs:grid-cols-2 gap-4 xs:gap-5 mx-3 xs:mx-5 mt-4 xs:mt-5 print:mx-4 print:mt-4 print:gap-4 print:grid-cols-2">
+            <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 xs:gap-4 mx-3 xs:mx-5 mt-3 xs:mt-4 print:mx-3 print:mt-3 print:gap-3 print:grid-cols-2">
               {/* 運動器年齢 */}
-              <div className="bg-gradient-to-r from-blue-700 to-blue-900 rounded-xl p-4 xs:p-5 text-white shadow-xl print:p-4">
+              <div className="bg-gradient-to-r from-blue-700 to-blue-900 rounded-xl p-3 xs:p-4 text-white shadow-xl print:p-3">
                 <div className="flex flex-col xs:flex-row items-center gap-3 xs:gap-4">
-                  <div className="w-20 h-20 xs:w-24 xs:h-24 rounded-full bg-white/20 backdrop-blur flex items-center justify-center border-4 border-blue-300 shadow-lg flex-shrink-0 print:w-20 print:h-20">
+                  <div className="w-18 h-18 xs:w-20 xs:h-20 rounded-full bg-white/20 backdrop-blur flex items-center justify-center border-4 border-blue-300 shadow-lg flex-shrink-0 print:w-16 print:h-16">
                     <div className="text-center">
                       <div className="text-[8px] xs:text-[9px] opacity-80">運動器年齢</div>
-                      <div className="text-3xl xs:text-4xl font-black text-white print:text-3xl">{Math.round(result.motor_age)}</div>
+                      <div className="text-2xl xs:text-3xl font-black text-white print:text-2xl">{Math.round(result.motor_age)}</div>
                       <div className="text-[10px] xs:text-xs font-bold">歳</div>
                     </div>
                   </div>
                   <div className="flex-1 text-center xs:text-left">
-                    <div className="flex flex-wrap items-center justify-center xs:justify-start gap-1 xs:gap-2 mb-2">
+                    <div className="flex flex-wrap items-center justify-center xs:justify-start gap-1 xs:gap-2 mb-1">
                       <span className="text-xs xs:text-sm">実年齢</span>
-                      <span className="text-xl xs:text-2xl font-black text-blue-200">{actualAge}</span>
+                      <span className="text-lg xs:text-xl font-black text-blue-200">{actualAge}</span>
                       <span className="text-xs xs:text-sm">歳 →</span>
-                      <span className={`text-lg xs:text-2xl font-black px-2 xs:px-3 py-0.5 rounded-full ${
+                      <span className={`text-base xs:text-xl font-black px-2 xs:px-3 py-0.5 rounded-full ${
                         result.motor_age_diff >= 0 ? 'bg-blue-500' : 'bg-blue-400'
                       }`}>
                         {result.motor_age_diff >= 0 ? '+' : ''}{result.motor_age_diff.toFixed(1)}歳
                       </span>
                     </div>
-                    <div className="text-[10px] xs:text-xs opacity-90 bg-white/10 rounded-lg p-2">
+                    <div className="text-[9px] xs:text-[10px] opacity-90 bg-white/10 rounded-lg p-1.5 print:p-1">
                       {result.motor_age_diff >= 1
                         ? 'すごい！運動能力が同年代より優れています！'
                         : result.motor_age_diff >= -1
@@ -346,12 +346,12 @@ export default function ResultPage() {
 
               {/* 運動タイプ */}
               <div className="border-4 border-blue-800 rounded-xl">
-                <div className="bg-blue-50 rounded-xl p-4 xs:p-5 text-center h-full flex flex-col justify-center print:p-4">
+                <div className="bg-blue-50 rounded-lg p-3 xs:p-4 text-center h-full flex flex-col justify-center print:p-3">
                   <div className="text-xs xs:text-sm text-gray-600 mb-1">あなたの運動タイプ</div>
-                  <div className="text-xl xs:text-2xl font-black text-blue-800 mb-2 print:text-xl">
+                  <div className="text-lg xs:text-xl font-black text-blue-800 mb-2 print:text-lg">
                     {result.type_name}
                   </div>
-                  <div className="bg-white border-2 border-blue-200 rounded-lg px-3 xs:px-4 py-2 text-xs xs:text-sm text-gray-700">
+                  <div className="bg-white border-2 border-blue-200 rounded-lg px-2 xs:px-3 py-1.5 text-xs xs:text-sm text-gray-700 print:text-[10px] print:py-1">
                     {result.type_description}
                   </div>
                 </div>
@@ -359,55 +359,55 @@ export default function ResultPage() {
             </div>
 
             {/* 保護者の方へ */}
-            <div className="mx-3 xs:mx-5 mt-4 xs:mt-5 print:mx-4 print:mt-4">
+            <div className="mx-3 xs:mx-5 mt-3 xs:mt-4 print:mx-3 print:mt-3">
               {/* 初来店促進メッセージ */}
-              <div className="bg-gradient-to-r from-blue-700 to-blue-900 text-white p-4 xs:p-5 rounded-xl mb-4 xs:mb-5 shadow-xl print:p-4 print:mb-4">
-                <h4 className="text-lg xs:text-xl font-extrabold text-center mb-3">
+              <div className="bg-gradient-to-r from-blue-700 to-blue-900 text-white p-3 xs:p-4 rounded-xl mb-3 xs:mb-4 shadow-xl print:p-3 print:mb-3">
+                <h4 className="text-base xs:text-lg font-extrabold text-center mb-2">
                   当院のサポートで
                 </h4>
                 <div className="flex flex-wrap justify-center gap-2 xs:gap-3 text-center">
-                  <div className="bg-white/25 backdrop-blur px-3 xs:px-4 py-2 xs:py-3 rounded-lg border-2 border-white/30">
-                    <div className="text-sm xs:text-base font-extrabold">&quot;正しい骨格&quot;</div>
+                  <div className="bg-white/25 backdrop-blur px-2 xs:px-3 py-1.5 xs:py-2 rounded-lg border-2 border-white/30">
+                    <div className="text-xs xs:text-sm font-extrabold">&quot;正しい骨格&quot;</div>
                   </div>
-                  <div className="bg-white/25 backdrop-blur px-3 xs:px-4 py-2 xs:py-3 rounded-lg border-2 border-white/30">
-                    <div className="text-sm xs:text-base font-extrabold">&quot;正しい関節&quot;</div>
+                  <div className="bg-white/25 backdrop-blur px-2 xs:px-3 py-1.5 xs:py-2 rounded-lg border-2 border-white/30">
+                    <div className="text-xs xs:text-sm font-extrabold">&quot;正しい関節&quot;</div>
                   </div>
-                  <div className="bg-white/25 backdrop-blur px-3 xs:px-4 py-2 xs:py-3 rounded-lg border-2 border-white/30">
-                    <div className="text-sm xs:text-base font-extrabold">&quot;正しい筋肉の使い方&quot;</div>
+                  <div className="bg-white/25 backdrop-blur px-2 xs:px-3 py-1.5 xs:py-2 rounded-lg border-2 border-white/30">
+                    <div className="text-xs xs:text-sm font-extrabold">&quot;正しい筋肉の使い方&quot;</div>
                   </div>
                 </div>
-                <p className="text-center mt-3 text-sm xs:text-base font-bold">を身につけよう！</p>
+                <p className="text-center mt-2 text-xs xs:text-sm font-bold">を身につけよう！</p>
               </div>
 
-              <div className="grid grid-cols-1 xs:grid-cols-2 gap-4 xs:gap-5 print:gap-4 print:grid-cols-2">
+              <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 xs:gap-4 print:gap-3 print:grid-cols-2">
                 {/* 発達段階の情報 */}
-                <div className="bg-blue-50 border-2 border-blue-200 p-4 xs:p-5 rounded-xl print:p-4">
-                  <h4 className="text-sm xs:text-base font-bold text-blue-900 border-b-2 border-blue-900 pb-1 mb-3 flex items-center gap-2"><FaBook /> 発達段階について</h4>
-                  <p className="text-xs xs:text-sm text-gray-700 mb-4 leading-relaxed bg-white/50 p-2 xs:p-3 rounded-lg">
+                <div className="bg-blue-50 border-2 border-blue-200 p-3 xs:p-4 rounded-xl print:p-3">
+                  <h4 className="text-sm xs:text-base font-bold text-blue-900 border-b-2 border-blue-900 pb-1 mb-2 flex items-center gap-2"><FaBook /> 発達段階について</h4>
+                  <p className="text-[10px] xs:text-xs text-gray-700 mb-3 leading-relaxed bg-white/50 p-2 rounded-lg print:mb-2 print:p-1.5">
                     お子様は今、運動神経が大きく発達する<strong className="text-blue-700">ゴールデンエイジ</strong>の時期にあります。この時期に習得した動きは一生忘れません。
                   </p>
 
-                  <h4 className="text-xs xs:text-sm font-bold text-blue-900 mb-1 flex items-center gap-1"><FaLightbulb /> この時期のポイント</h4>
-                  <p className="text-xs xs:text-sm text-gray-700 mb-4 leading-relaxed bg-white/50 p-2 xs:p-3 rounded-lg">
+                  <h4 className="text-[10px] xs:text-xs font-bold text-blue-900 mb-1 flex items-center gap-1"><FaLightbulb /> この時期のポイント</h4>
+                  <p className="text-[10px] xs:text-xs text-gray-700 mb-3 leading-relaxed bg-white/50 p-2 rounded-lg print:mb-2 print:p-1.5">
                     <strong className="text-blue-700">多様な動き</strong>を経験することで、運動神経の土台が形成されます。楽しみながら様々なスポーツに挑戦しましょう。
                   </p>
 
-                  <h4 className="text-xs xs:text-sm font-bold text-blue-800 mb-1 flex items-center gap-1"><FaExclamationTriangle /> 注意点</h4>
-                  <p className="text-xs xs:text-sm text-blue-800 leading-relaxed bg-blue-100 p-2 xs:p-3 rounded-lg border border-blue-300">
+                  <h4 className="text-[10px] xs:text-xs font-bold text-blue-800 mb-1 flex items-center gap-1"><FaExclamationTriangle /> 注意点</h4>
+                  <p className="text-[10px] xs:text-xs text-blue-800 leading-relaxed bg-blue-100 p-2 rounded-lg border border-blue-300 print:p-1.5">
                     <strong>「できた！」という成功体験</strong>を積み重ねることが大切です。
                   </p>
                 </div>
 
                 {/* 初来店のご案内 */}
-                <div className="bg-blue-50 p-4 xs:p-5 rounded-xl border-2 border-blue-200 print:p-4">
-                  <h4 className="text-sm xs:text-base font-bold text-blue-900 border-b-2 border-blue-600 pb-1 mb-3 text-center flex items-center justify-center gap-2"><FaHandshake /> ぜひ教室にお越しください</h4>
-                  <p className="text-xs xs:text-sm text-gray-600 mb-4 text-center leading-relaxed bg-white/50 p-2 xs:p-3 rounded-lg">
+                <div className="bg-blue-50 p-3 xs:p-4 rounded-xl border-2 border-blue-200 print:p-3">
+                  <h4 className="text-sm xs:text-base font-bold text-blue-900 border-b-2 border-blue-600 pb-1 mb-2 text-center flex items-center justify-center gap-2"><FaHandshake /> ぜひ教室にお越しください</h4>
+                  <p className="text-[10px] xs:text-xs text-gray-600 mb-3 text-center leading-relaxed bg-white/50 p-2 rounded-lg print:mb-2 print:p-1.5">
                     詳細な診断結果と、お子様に合った<br />
                     専門的なトレーニング指導を受けられます！
                   </p>
-                  <div className="grid grid-cols-2 gap-3 xs:gap-4">
-                    <div className="text-center bg-white p-2 xs:p-3 rounded-lg shadow-md border-2 border-blue-200">
-                      <div className="w-14 h-14 xs:w-20 xs:h-20 mx-auto mb-2 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-200 print:w-16 print:h-16">
+                  <div className="grid grid-cols-2 gap-2 xs:gap-3 print:gap-2">
+                    <div className="text-center bg-white p-2 xs:p-3 rounded-lg shadow-md border-2 border-blue-200 print:p-2">
+                      <div className="w-12 h-12 xs:w-16 xs:h-16 mx-auto mb-1.5 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-200 print:w-12 print:h-12">
                         <img
                           src="/qr/reservation.png"
                           alt="予約QRコード"
@@ -419,10 +419,10 @@ export default function ResultPage() {
                           }}
                         />
                       </div>
-                      <p className="text-xs xs:text-sm font-bold text-blue-700 flex items-center justify-center gap-1"><FaCalendarAlt /> 体験予約</p>
+                      <p className="text-[10px] xs:text-xs font-bold text-blue-700 flex items-center justify-center gap-1"><FaCalendarAlt /> 体験予約</p>
                     </div>
-                    <div className="text-center bg-white p-2 xs:p-3 rounded-lg shadow-md border-2 border-blue-200">
-                      <div className="w-14 h-14 xs:w-20 xs:h-20 mx-auto mb-2 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-200 print:w-16 print:h-16">
+                    <div className="text-center bg-white p-2 xs:p-3 rounded-lg shadow-md border-2 border-blue-200 print:p-2">
+                      <div className="w-12 h-12 xs:w-16 xs:h-16 mx-auto mb-1.5 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-200 print:w-12 print:h-12">
                         <img
                           src="/qr/line.png"
                           alt="LINE QRコード"
@@ -434,19 +434,19 @@ export default function ResultPage() {
                           }}
                         />
                       </div>
-                      <p className="text-xs xs:text-sm font-bold text-blue-700 flex items-center justify-center gap-1"><FaComments /> LINE相談</p>
+                      <p className="text-[10px] xs:text-xs font-bold text-blue-700 flex items-center justify-center gap-1"><FaComments /> LINE相談</p>
                     </div>
                   </div>
-                  <p className="text-xs xs:text-sm text-blue-700 mt-3 text-center font-medium bg-blue-100 p-2 rounded-lg flex items-center justify-center gap-1">
+                  <p className="text-[10px] xs:text-xs text-blue-700 mt-2 text-center font-medium bg-blue-100 p-1.5 rounded-lg flex items-center justify-center gap-1 print:mt-1.5 print:p-1">
                     <FaChartLine /> 専門トレーナーが丁寧に指導します！
                   </p>
                 </div>
               </div>
 
               {/* フッター：店舗情報 */}
-              <div className="bg-gradient-to-r from-blue-700 to-blue-900 text-white p-4 xs:p-5 rounded-xl text-center shadow-lg mt-4 xs:mt-5 print:mt-4 print:p-4">
-                <p className="text-lg xs:text-xl font-bold mb-1 flex items-center justify-center gap-2"><FaSchool /> かけっこ体幹教室</p>
-                <p className="text-sm xs:text-base opacity-90">お子様の運動能力向上を全力でサポートします</p>
+              <div className="bg-gradient-to-r from-blue-700 to-blue-900 text-white p-3 xs:p-4 rounded-xl text-center shadow-lg mt-3 xs:mt-4 print:mt-3 print:p-3">
+                <p className="text-base xs:text-lg font-bold mb-1 flex items-center justify-center gap-2"><FaSchool /> かけっこ体幹教室</p>
+                <p className="text-xs xs:text-sm opacity-90">お子様の運動能力向上を全力でサポートします</p>
               </div>
             </div>
           </div>
@@ -671,12 +671,12 @@ export default function ResultPage() {
           </div>
 
           {/* 測定結果（7項目） */}
-          <div className="mx-3 xs:mx-4 mt-3 xs:mt-4 print:mx-3 print:mt-3">
+          <div className="mx-3 xs:mx-4 mt-3 xs:mt-4 print:mx-3 print:mt-2">
             <div className="text-sm xs:text-base font-bold text-blue-900 mb-2 flex items-center gap-2">
               <FaChartBar /> 7つの能力チェック
             </div>
-            <div className="flex flex-col xs:flex-row gap-3 xs:gap-4 items-center xs:items-end">
-              <div className="w-full xs:w-1/2 flex flex-col items-center">
+            <div className="flex flex-col xs:flex-row gap-3 xs:gap-4 items-center xs:items-end print:flex-row print:gap-3">
+              <div className="w-full xs:w-1/2 flex flex-col items-center print:w-1/2">
                 <RadarChart scores={result.scores} keys={allKeys} labels={allLabels} size={280} averageScores={{ grip: 5, jump: 5, dash: 5, doublejump: 5, squat: 5, sidestep: 5, throw: 5 }} />
                 {/* チャート凡例 */}
                 <div className="flex gap-3 xs:gap-4 mt-2 text-[9px] xs:text-[10px]">
@@ -690,27 +690,27 @@ export default function ResultPage() {
                   </div>
                 </div>
               </div>
-              <div className="w-full xs:w-1/2 space-y-1">
+              <div className="w-full xs:w-1/2 space-y-1 print:w-1/2 print:space-y-0.5">
                 {measurementItems.map(item => {
                   const score = result.scores[item.key]
                   const grade = getGrade(score)
                   return (
-                    <div key={item.key} className="bg-gray-50 rounded-lg p-2 border border-gray-200 print:p-1.5">
-                      <div className="flex items-center justify-between mb-1">
+                    <div key={item.key} className="bg-gray-50 rounded-lg p-2 border border-gray-200 print:p-1">
+                      <div className="flex items-center justify-between mb-1 print:mb-0.5">
                         <div className="flex items-center gap-1">
-                          <span className="font-bold text-gray-800 text-sm print:text-xs">{item.name}</span>
-                          <span className="text-[8px] text-gray-500 bg-gray-200 px-1.5 py-0.5 rounded">{item.cat}</span>
+                          <span className="font-bold text-gray-800 text-sm print:text-[10px]">{item.name}</span>
+                          <span className="text-[8px] text-gray-500 bg-gray-200 px-1.5 py-0.5 rounded print:text-[7px] print:px-1">{item.cat}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-gray-600">{item.val}</span>
-                          <span className="text-[9px] text-gray-400">平均{item.avg}</span>
-                          <div className="w-7 h-7 rounded-full flex items-center justify-center text-white font-black text-sm shadow-md bg-gradient-to-br from-blue-500 to-blue-700 print:w-6 print:h-6 print:text-xs">
+                        <div className="flex items-center gap-2 print:gap-1">
+                          <span className="text-xs text-gray-600 print:text-[9px]">{item.val}</span>
+                          <span className="text-[9px] text-gray-400 print:text-[8px]">平均{item.avg}</span>
+                          <div className="w-7 h-7 rounded-full flex items-center justify-center text-white font-black text-sm shadow-md bg-gradient-to-br from-blue-500 to-blue-700 print:w-5 print:h-5 print:text-[10px]">
                             {score}
                           </div>
-                          <span className={`font-black text-sm ${grade.colorClass}`}>{grade.grade}</span>
+                          <span className={`font-black text-sm print:text-[10px] ${grade.colorClass}`}>{grade.grade}</span>
                         </div>
                       </div>
-                      <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden print:h-1">
                         <div
                           className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full"
                           style={{ width: `${score * 10}%` }}
@@ -724,14 +724,14 @@ export default function ResultPage() {
           </div>
 
           {/* 運動タイプ */}
-          <div className="mx-4 mt-4 mb-4 print:mx-3 print:mt-3 print:mb-3">
+          <div className="mx-3 xs:mx-4 mt-3 xs:mt-4 mb-3 xs:mb-4 print:mx-3 print:mt-2 print:mb-2">
             <div className="border-4 border-blue-800 rounded-xl">
-              <div className="bg-blue-50 rounded-lg p-4 text-center print:p-3">
+              <div className="bg-blue-50 rounded-lg p-3 xs:p-4 text-center print:p-2">
                 <div className="text-xs text-gray-600 mb-1">あなたの運動タイプ</div>
-                <div className="text-2xl font-black text-blue-800 mb-2 print:text-xl">
+                <div className="text-xl xs:text-2xl font-black text-blue-800 mb-2 print:text-lg print:mb-1">
                   {result.type_name}
                 </div>
-                <div className="inline-block bg-white border-2 border-blue-200 rounded-lg px-4 py-2 text-sm text-gray-700 print:text-xs print:px-3 print:py-1.5">
+                <div className="inline-block bg-white border-2 border-blue-200 rounded-lg px-3 xs:px-4 py-1.5 xs:py-2 text-xs xs:text-sm text-gray-700 print:text-[10px] print:px-2 print:py-1">
                   {result.type_description}
                 </div>
               </div>
@@ -740,63 +740,63 @@ export default function ResultPage() {
         </div>
 
         {/* ページ2: トレーニング＆適性スポーツ（〜1ヶ月目標まで） - A4サイズ最適化 */}
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden print:shadow-none print:rounded-none print:break-before-page print:h-[297mm] print:w-[210mm]">
+        <div className="bg-white rounded-xl xs:rounded-2xl shadow-2xl overflow-hidden print:shadow-none print:rounded-none print:break-before-page print:h-[297mm] print:w-[210mm]">
           {/* ヘッダー */}
-          <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 print:p-3">
-            <div className="flex justify-between items-center">
-              <h1 className="text-xl text-white font-extrabold tracking-wider flex items-center gap-2">
+          <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-3 xs:p-4 print:p-3">
+            <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-1 xs:gap-0">
+              <h1 className="text-lg xs:text-xl text-white font-extrabold tracking-wider flex items-center gap-2">
                 <FaBullseye /> トレーニング＆適性スポーツ
               </h1>
-              <div className="text-white/80 text-xs">Training & Sports Aptitude</div>
+              <div className="text-white/80 text-[10px] xs:text-xs">Training & Sports Aptitude</div>
             </div>
           </div>
 
-          <div className="p-4 print:p-3">
+          <div className="p-3 xs:p-4 print:p-3">
             {/* 上段: 強み・弱み + 50m予測 + 適性スポーツ */}
-            <div className="grid grid-cols-3 gap-3 mb-4 print:gap-2 print:mb-3">
+            <div className="grid grid-cols-1 xs:grid-cols-3 gap-3 mb-3 xs:mb-4 print:gap-2 print:mb-2 print:grid-cols-3">
               {/* 強み・弱み */}
               <div>
-                <div className="text-sm font-bold text-blue-900 mb-2 flex items-center gap-1"><FaSearch className="text-xs" /> 強み・弱み分析</div>
-                <div className="space-y-2">
-                  <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-2">
+                <div className="text-xs xs:text-sm font-bold text-blue-900 mb-2 flex items-center gap-1"><FaSearch className="text-xs" /> 強み・弱み分析</div>
+                <div className="space-y-2 print:space-y-1">
+                  <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-2 print:p-1.5">
                     <span className="text-[9px] font-bold text-blue-700 bg-blue-200 px-1.5 py-0.5 rounded-full">レベルアップ項目</span>
-                    <div className="font-bold text-gray-800 text-sm mt-1">{categories[weakestKey]}（{result.scores[weakestKey]}点）</div>
-                    <p className="text-[9px] text-gray-600">ここを強化すると全体がグンと伸びる！</p>
+                    <div className="font-bold text-gray-800 text-xs xs:text-sm mt-1 print:text-[10px]">{categories[weakestKey]}（{result.scores[weakestKey]}点）</div>
+                    <p className="text-[8px] xs:text-[9px] text-gray-600">ここを強化すると全体がグンと伸びる！</p>
                   </div>
-                  <div className="bg-blue-50 border-2 border-blue-400 rounded-lg p-2">
+                  <div className="bg-blue-50 border-2 border-blue-400 rounded-lg p-2 print:p-1.5">
                     <span className="text-[9px] font-bold text-blue-800 bg-blue-300 px-1.5 py-0.5 rounded-full">得意項目</span>
-                    <div className="font-bold text-gray-800 text-sm mt-1">{categories[strongestKey]}（{result.scores[strongestKey]}点）</div>
-                    <p className="text-[9px] text-gray-600">この強みを活かしたスポーツで活躍しよう！</p>
+                    <div className="font-bold text-gray-800 text-xs xs:text-sm mt-1 print:text-[10px]">{categories[strongestKey]}（{result.scores[strongestKey]}点）</div>
+                    <p className="text-[8px] xs:text-[9px] text-gray-600">この強みを活かしたスポーツで活躍しよう！</p>
                   </div>
                 </div>
               </div>
 
               {/* 適性スポーツ */}
-              <div className="col-span-2">
-                <div className="text-sm font-bold text-blue-900 mb-2 flex items-center gap-1"><FaMedal className="text-xs" /> キミに向いているスポーツ TOP6</div>
-                <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-3">
+              <div className="xs:col-span-2 print:col-span-2">
+                <div className="text-xs xs:text-sm font-bold text-blue-900 mb-2 flex items-center gap-1"><FaMedal className="text-xs" /> キミに向いているスポーツ TOP6</div>
+                <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-2 xs:p-3 print:p-2">
                   <div className="text-[9px] font-bold text-blue-800 mb-1">特に適性が高い</div>
-                  <div className="flex flex-wrap gap-1.5 mb-2">
+                  <div className="flex flex-wrap gap-1 xs:gap-1.5 mb-2 print:mb-1">
                     {result.recommended_sports?.slice(0, 3).map((sport) => (
-                      <span key={sport.name} className="inline-flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded-full text-[10px] font-bold">
-                        <span className="text-sm">{sport.icon}</span> {sport.name}
+                      <span key={sport.name} className="inline-flex items-center gap-1 px-1.5 xs:px-2 py-0.5 xs:py-1 bg-blue-600 text-white rounded-full text-[9px] xs:text-[10px] font-bold">
+                        <span className="text-xs xs:text-sm">{sport.icon}</span> {sport.name}
                       </span>
                     ))}
                   </div>
                   <div className="text-[9px] font-bold text-blue-700 mb-1">適性あり</div>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex flex-wrap gap-1 xs:gap-1.5">
                     {result.recommended_sports?.slice(3, 6).map(sport => (
-                      <span key={sport.name} className="inline-flex items-center gap-1 px-2 py-1 bg-blue-400 text-white rounded-full text-[10px] font-bold">
-                        <span className="text-sm">{sport.icon}</span> {sport.name}
+                      <span key={sport.name} className="inline-flex items-center gap-1 px-1.5 xs:px-2 py-0.5 xs:py-1 bg-blue-400 text-white rounded-full text-[9px] xs:text-[10px] font-bold">
+                        <span className="text-xs xs:text-sm">{sport.icon}</span> {sport.name}
                       </span>
                     ))}
                   </div>
                 </div>
                 {/* 50m予測 */}
-                <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg p-2 text-white mt-2">
+                <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg p-2 text-white mt-2 print:mt-1.5 print:p-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-sm flex items-center gap-1"><FaRunning /> 50m走予測タイム</span>
-                    <span className="text-2xl font-black text-blue-200">{est50m}秒</span>
+                    <span className="font-bold text-xs xs:text-sm flex items-center gap-1"><FaRunning /> 50m走予測タイム</span>
+                    <span className="text-xl xs:text-2xl font-black text-blue-200 print:text-lg">{est50m}秒</span>
                   </div>
                 </div>
               </div>
@@ -804,17 +804,17 @@ export default function ResultPage() {
 
             {/* 重点トレーニング 8種目 */}
             <div className="mb-4 print:mb-3">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between mb-2 gap-1 xs:gap-0">
                 <div className="text-sm font-bold text-blue-900 flex items-center gap-1"><FaDumbbell /> キミの重点トレーニング</div>
                 <div className="bg-blue-100 border border-blue-300 px-2 py-1 rounded-lg text-[10px] text-blue-800 font-bold">
                   お父さん・お母さんと一緒にやろう！
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2 print:gap-1.5">
+              <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 print:gap-1.5 print:grid-cols-2">
                 {result.recommended_trainings?.slice(0, 8).map((t, i) => (
                   <div key={i} className="rounded-lg p-2 border-2 bg-blue-50 border-blue-200 print:p-1.5">
-                    <div className="flex gap-2">
-                      <div className="w-[180px] h-36 flex-shrink-0 bg-gray-100 rounded overflow-hidden border border-white shadow print:w-[150px] print:h-28">
+                    <div className="flex flex-col xs:flex-row gap-2">
+                      <div className="w-full xs:w-24 h-20 xs:h-20 flex-shrink-0 bg-gray-100 rounded overflow-hidden border border-white shadow print:w-20 print:h-16">
                         <img
                           src={`/trainings/${t.name.replace(/\s/g, '_')}.jpg`}
                           alt={t.name}
@@ -826,16 +826,16 @@ export default function ResultPage() {
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1 mb-0.5">
+                        <div className="flex flex-wrap items-center gap-1 mb-0.5">
                           <div className="w-5 h-5 rounded-full flex items-center justify-center text-white font-black text-xs shadow-md flex-shrink-0 bg-gradient-to-br from-blue-500 to-blue-700">
                             {i + 1}
                           </div>
-                          <strong className="text-xs text-gray-800 truncate">{t.name}</strong>
+                          <strong className="text-xs xs:text-sm text-gray-800">{t.name}</strong>
                           <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full bg-blue-600 text-white flex-shrink-0">
                             {t.category}
                           </span>
                         </div>
-                        <div className="text-[9px] text-gray-600 line-clamp-3 leading-relaxed">{t.description}</div>
+                        <div className="text-[9px] xs:text-[10px] text-gray-600 line-clamp-2 xs:line-clamp-3 leading-relaxed">{t.description}</div>
                         <div className="text-[10px] font-bold text-blue-700 flex items-center gap-0.5 mt-0.5"><FaClipboardList className="text-[8px]" /> {t.reps}</div>
                       </div>
                     </div>
@@ -845,26 +845,26 @@ export default function ResultPage() {
             </div>
 
             {/* 1ヶ月目標 */}
-            <div className="bg-gradient-to-r from-blue-700 to-blue-900 text-white p-4 rounded-xl shadow-lg print:p-3">
-              <div className="text-center mb-3">
-                <h4 className="text-base font-bold flex items-center justify-center gap-2"><FaBullseye /> 1ヶ月後のキミの目標！</h4>
-                <p className="text-[10px] opacity-80">毎日10分のトレーニングで達成できる！</p>
+            <div className="bg-gradient-to-r from-blue-700 to-blue-900 text-white p-3 xs:p-4 rounded-xl shadow-lg print:p-2">
+              <div className="text-center mb-2 xs:mb-3">
+                <h4 className="text-sm xs:text-base font-bold flex items-center justify-center gap-2"><FaBullseye /> 1ヶ月後のキミの目標！</h4>
+                <p className="text-[9px] xs:text-[10px] opacity-80">毎日10分のトレーニングで達成できる！</p>
               </div>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="bg-white/20 backdrop-blur p-3 rounded-lg text-center">
-                  <div className="text-xs opacity-90">握力</div>
-                  <div className="text-[10px] opacity-70">今 {gripAvg.toFixed(1)}kg</div>
-                  <div className="text-2xl font-black text-blue-200">{result.goals?.grip}kg</div>
+              <div className="grid grid-cols-3 gap-2 xs:gap-3 print:gap-2">
+                <div className="bg-white/20 backdrop-blur p-2 xs:p-3 rounded-lg text-center print:p-2">
+                  <div className="text-[10px] xs:text-xs opacity-90">握力</div>
+                  <div className="text-[9px] xs:text-[10px] opacity-70">今 {gripAvg.toFixed(1)}kg</div>
+                  <div className="text-lg xs:text-2xl font-black text-blue-200 print:text-lg">{result.goals?.grip}kg</div>
                 </div>
-                <div className="bg-white/20 backdrop-blur p-3 rounded-lg text-center">
-                  <div className="text-xs opacity-90">立ち幅跳び</div>
-                  <div className="text-[10px] opacity-70">今 {data.jump}cm</div>
-                  <div className="text-2xl font-black text-blue-200">{result.goals?.jump}cm</div>
+                <div className="bg-white/20 backdrop-blur p-2 xs:p-3 rounded-lg text-center print:p-2">
+                  <div className="text-[10px] xs:text-xs opacity-90">立ち幅跳び</div>
+                  <div className="text-[9px] xs:text-[10px] opacity-70">今 {data.jump}cm</div>
+                  <div className="text-lg xs:text-2xl font-black text-blue-200 print:text-lg">{result.goals?.jump}cm</div>
                 </div>
-                <div className="bg-white/20 backdrop-blur p-3 rounded-lg text-center">
-                  <div className="text-xs opacity-90">15mダッシュ</div>
-                  <div className="text-[10px] opacity-70">今 {data.dash}秒</div>
-                  <div className="text-2xl font-black text-blue-200">{result.goals?.dash}秒</div>
+                <div className="bg-white/20 backdrop-blur p-2 xs:p-3 rounded-lg text-center print:p-2">
+                  <div className="text-[10px] xs:text-xs opacity-90">15mダッシュ</div>
+                  <div className="text-[9px] xs:text-[10px] opacity-70">今 {data.dash}秒</div>
+                  <div className="text-lg xs:text-2xl font-black text-blue-200 print:text-lg">{result.goals?.dash}秒</div>
                 </div>
               </div>
             </div>
@@ -872,69 +872,69 @@ export default function ResultPage() {
         </div>
 
         {/* ページ3: 保護者の方へ - A4サイズ最適化 */}
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden print:shadow-none print:rounded-none print:break-before-page print:h-[297mm] print:w-[210mm]">
+        <div className="bg-white rounded-xl xs:rounded-2xl shadow-2xl overflow-hidden print:shadow-none print:rounded-none print:break-before-page print:h-[297mm] print:w-[210mm]">
           {/* ヘッダー */}
-          <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 print:p-3">
-            <div className="flex justify-between items-center">
-              <h1 className="text-xl text-white font-extrabold tracking-wider flex items-center gap-2">
+          <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-3 xs:p-4 print:p-3">
+            <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-1 xs:gap-0">
+              <h1 className="text-lg xs:text-xl text-white font-extrabold tracking-wider flex items-center gap-2">
                 <FaFileAlt /> 保護者の方へ
               </h1>
-              <div className="text-white/80 text-xs">Information for Parents</div>
+              <div className="text-white/80 text-[10px] xs:text-xs">Information for Parents</div>
             </div>
           </div>
 
-          <div className="p-4 print:p-3">
+          <div className="p-3 xs:p-4 print:p-3">
             {/* 当店ご来店のメリット */}
-            <div className="bg-gradient-to-r from-blue-700 to-blue-900 text-white p-5 rounded-xl mb-4 shadow-xl print:p-4 print:mb-3">
-              <h4 className="text-xl font-extrabold text-center mb-3">
+            <div className="bg-gradient-to-r from-blue-700 to-blue-900 text-white p-3 xs:p-5 rounded-xl mb-3 xs:mb-4 shadow-xl print:p-3 print:mb-3">
+              <h4 className="text-base xs:text-xl font-extrabold text-center mb-2 xs:mb-3">
                 当院の継続サポートにより
               </h4>
-              <div className="flex flex-wrap justify-center gap-2 text-center">
-                <div className="bg-white/25 backdrop-blur px-4 py-3 rounded-lg border-2 border-white/30">
-                  <div className="text-lg font-extrabold">&quot;正しい骨格&quot;</div>
+              <div className="flex flex-wrap justify-center gap-1.5 xs:gap-2 text-center">
+                <div className="bg-white/25 backdrop-blur px-2 xs:px-4 py-1.5 xs:py-3 rounded-lg border-2 border-white/30">
+                  <div className="text-sm xs:text-lg font-extrabold">&quot;正しい骨格&quot;</div>
                 </div>
-                <div className="bg-white/25 backdrop-blur px-4 py-3 rounded-lg border-2 border-white/30">
-                  <div className="text-lg font-extrabold">&quot;正しい関節&quot;</div>
+                <div className="bg-white/25 backdrop-blur px-2 xs:px-4 py-1.5 xs:py-3 rounded-lg border-2 border-white/30">
+                  <div className="text-sm xs:text-lg font-extrabold">&quot;正しい関節&quot;</div>
                 </div>
-                <div className="bg-white/25 backdrop-blur px-4 py-3 rounded-lg border-2 border-white/30">
-                  <div className="text-lg font-extrabold">&quot;正しい筋肉の使い方&quot;</div>
+                <div className="bg-white/25 backdrop-blur px-2 xs:px-4 py-1.5 xs:py-3 rounded-lg border-2 border-white/30">
+                  <div className="text-sm xs:text-lg font-extrabold">&quot;正しい筋肉の使い方&quot;</div>
                 </div>
               </div>
-              <p className="text-center mt-3 text-lg font-bold">を学べます！</p>
+              <p className="text-center mt-2 xs:mt-3 text-sm xs:text-lg font-bold">を学べます！</p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4 mb-4 print:gap-3 print:mb-3">
+            <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 xs:gap-4 mb-3 xs:mb-4 print:gap-3 print:mb-3 print:grid-cols-2">
               {/* 発達段階の情報 */}
-              <div className="bg-blue-50 border-2 border-blue-200 p-4 rounded-xl print:p-3">
-                <h4 className="text-base font-bold text-blue-900 border-b-2 border-blue-900 pb-1 mb-3 flex items-center gap-2"><FaBook /> 発達段階: {devAdv?.golden}</h4>
+              <div className="bg-blue-50 border-2 border-blue-200 p-3 xs:p-4 rounded-xl print:p-3">
+                <h4 className="text-sm xs:text-base font-bold text-blue-900 border-b-2 border-blue-900 pb-1 mb-2 xs:mb-3 flex items-center gap-2"><FaBook /> 発達段階: {devAdv?.golden}</h4>
                 <p
-                  className="text-xs text-gray-700 mb-3 leading-relaxed bg-white/50 p-2 rounded-lg"
+                  className="text-[10px] xs:text-xs text-gray-700 mb-2 xs:mb-3 leading-relaxed bg-white/50 p-2 rounded-lg print:mb-2"
                   dangerouslySetInnerHTML={{ __html: highlightText(devAdv?.focus || '', devAdv?.focusHighlights || []) }}
                 />
 
-                <h4 className="text-sm font-bold text-blue-900 mb-2 flex items-center gap-1"><FaLightbulb /> この時期のポイント</h4>
+                <h4 className="text-xs xs:text-sm font-bold text-blue-900 mb-1 xs:mb-2 flex items-center gap-1"><FaLightbulb /> この時期のポイント</h4>
                 <p
-                  className="text-xs text-gray-700 mb-3 leading-relaxed bg-white/50 p-2 rounded-lg"
+                  className="text-[10px] xs:text-xs text-gray-700 mb-2 xs:mb-3 leading-relaxed bg-white/50 p-2 rounded-lg print:mb-2"
                   dangerouslySetInnerHTML={{ __html: highlightText(devAdv?.key || '', devAdv?.keyHighlights || []) }}
                 />
 
-                <h4 className="text-sm font-bold text-blue-800 mb-2 flex items-center gap-1"><FaExclamationTriangle /> 注意点</h4>
+                <h4 className="text-xs xs:text-sm font-bold text-blue-800 mb-1 xs:mb-2 flex items-center gap-1"><FaExclamationTriangle /> 注意点</h4>
                 <p
-                  className="text-xs text-blue-800 leading-relaxed bg-blue-100 p-2 rounded-lg border border-blue-300"
+                  className="text-[10px] xs:text-xs text-blue-800 leading-relaxed bg-blue-100 p-2 rounded-lg border border-blue-300"
                   dangerouslySetInnerHTML={{ __html: highlightText(devAdv?.avoid || '', devAdv?.avoidHighlights || []) }}
                 />
               </div>
 
               {/* 継続的なサポートのご案内 */}
-              <div className="bg-blue-50 p-4 rounded-xl border-2 border-blue-200 print:p-3">
-                <h4 className="text-lg font-bold text-blue-900 border-b-2 border-blue-600 pb-1 mb-3 text-center flex items-center justify-center gap-2"><FaHandshake /> 継続的なサポートのご案内</h4>
-                <p className="text-xs text-gray-600 mb-3 text-center leading-relaxed bg-white/50 p-2 rounded-lg">
+              <div className="bg-blue-50 p-3 xs:p-4 rounded-xl border-2 border-blue-200 print:p-3">
+                <h4 className="text-sm xs:text-lg font-bold text-blue-900 border-b-2 border-blue-600 pb-1 mb-2 xs:mb-3 text-center flex items-center justify-center gap-2"><FaHandshake /> 継続的なサポートのご案内</h4>
+                <p className="text-[10px] xs:text-xs text-gray-600 mb-2 xs:mb-3 text-center leading-relaxed bg-white/50 p-2 rounded-lg print:mb-2">
                   お子様の運動能力をさらに伸ばすために、<br />
                   定期的な測定と専門的なトレーニング指導をおすすめします。
                 </p>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="text-center bg-white p-3 rounded-lg shadow-md border-2 border-blue-200">
-                    <div className="w-20 h-20 mx-auto mb-2 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-200 print:w-16 print:h-16">
+                <div className="grid grid-cols-2 gap-2 xs:gap-3 print:gap-2">
+                  <div className="text-center bg-white p-2 xs:p-3 rounded-lg shadow-md border-2 border-blue-200 print:p-2">
+                    <div className="w-14 h-14 xs:w-20 xs:h-20 mx-auto mb-1.5 xs:mb-2 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-200 print:w-14 print:h-14">
                       <img
                         src="/qr/reservation.png"
                         alt="予約QRコード"
@@ -946,10 +946,10 @@ export default function ResultPage() {
                         }}
                       />
                     </div>
-                    <p className="text-xs font-bold text-blue-700 flex items-center justify-center gap-1"><FaCalendarAlt /> 次回の測定を予約</p>
+                    <p className="text-[10px] xs:text-xs font-bold text-blue-700 flex items-center justify-center gap-1"><FaCalendarAlt /> 次回の測定を予約</p>
                   </div>
-                  <div className="text-center bg-white p-3 rounded-lg shadow-md border-2 border-blue-200">
-                    <div className="w-20 h-20 mx-auto mb-2 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-200 print:w-16 print:h-16">
+                  <div className="text-center bg-white p-2 xs:p-3 rounded-lg shadow-md border-2 border-blue-200 print:p-2">
+                    <div className="w-14 h-14 xs:w-20 xs:h-20 mx-auto mb-1.5 xs:mb-2 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-200 print:w-14 print:h-14">
                       <img
                         src="/qr/line.png"
                         alt="LINE QRコード"
@@ -961,14 +961,14 @@ export default function ResultPage() {
                         }}
                       />
                     </div>
-                    <p className="text-xs font-bold text-blue-700 flex items-center justify-center gap-1"><FaComments /> LINEで相談・質問</p>
+                    <p className="text-[10px] xs:text-xs font-bold text-blue-700 flex items-center justify-center gap-1"><FaComments /> LINEで相談・質問</p>
                   </div>
                 </div>
-                <p className="text-xs text-blue-700 mt-3 text-center font-medium bg-blue-100 p-2 rounded-lg flex items-center justify-center gap-1">
+                <p className="text-[10px] xs:text-xs text-blue-700 mt-2 xs:mt-3 text-center font-medium bg-blue-100 p-1.5 xs:p-2 rounded-lg flex items-center justify-center gap-1 print:mt-2 print:p-1.5">
                   <FaChartLine /> 1ヶ月ごとの測定で成長を実感できます！
                 </p>
                 {/* 16:9 横長画像エリア */}
-                <div className="mt-3 aspect-video bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-200">
+                <div className="mt-2 xs:mt-3 aspect-video bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-200 print:mt-2">
                   <img
                     src="/images/support-banner.jpg"
                     alt="サポートバナー"
@@ -984,16 +984,16 @@ export default function ResultPage() {
             </div>
 
             {/* フッター：店舗情報 */}
-            <div className="bg-gradient-to-r from-blue-700 to-blue-900 text-white p-5 rounded-xl text-center shadow-lg print:p-4">
-              <p className="text-xl font-bold mb-1 flex items-center justify-center gap-2"><FaSchool /> かけっこ体幹教室</p>
-              <p className="text-sm opacity-90">お子様の運動能力向上を全力でサポートします</p>
+            <div className="bg-gradient-to-r from-blue-700 to-blue-900 text-white p-3 xs:p-5 rounded-xl text-center shadow-lg print:p-3">
+              <p className="text-base xs:text-xl font-bold mb-1 flex items-center justify-center gap-2"><FaSchool /> かけっこ体幹教室</p>
+              <p className="text-xs xs:text-sm opacity-90">お子様の運動能力向上を全力でサポートします</p>
             </div>
           </div>
         </div>
 
         {/* 戻るボタン */}
         <div className="text-center pt-4 print:hidden">
-          <Link href="/" className="inline-block px-6 py-3 bg-white text-blue-900 font-bold rounded-lg shadow hover:shadow-lg transition-all">
+          <Link href="/" className="inline-block px-5 xs:px-6 py-2 xs:py-3 bg-white text-blue-900 font-bold rounded-lg shadow hover:shadow-lg transition-all text-sm xs:text-base">
             トップに戻る
           </Link>
         </div>

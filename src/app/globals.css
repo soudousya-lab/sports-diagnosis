@@ -83,4 +83,43 @@ body {
   .print\:overflow-hidden {
     overflow: hidden !important;
   }
+
+  /* ページ内での要素分割を防止（break-inside: avoid） */
+  .print\:break-inside-avoid {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* A4ページサイズ固定（高さ制限） */
+  .print\:h-\[297mm\] {
+    height: 297mm !important;
+    max-height: 297mm !important;
+    overflow: hidden !important;
+  }
+
+  .print\:w-\[210mm\] {
+    width: 210mm !important;
+    max-width: 210mm !important;
+  }
+
+  .print\:box-border {
+    box-sizing: border-box !important;
+  }
+
+  /* 印刷時のスペース調整 */
+  .print\:space-y-0 > * + * {
+    margin-top: 0 !important;
+  }
+
+  .print\:max-w-none {
+    max-width: none !important;
+  }
+
+  .print\:m-0 {
+    margin: 0 !important;
+  }
+
+  .print\:min-h-0 {
+    min-height: 0 !important;
+  }
 }
