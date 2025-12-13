@@ -27,7 +27,14 @@ body {
 
 /* 印刷用スタイル */
 @media print {
-  body {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
     background: white !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
@@ -59,9 +66,19 @@ body {
     page-break-before: always;
   }
 
+  .print\:break-before-page {
+    break-before: page !important;
+    page-break-before: always !important;
+  }
+
   /* 背景色を印刷 */
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+  }
+
+  /* ページ内での要素分割を防止 */
+  .print\:overflow-hidden {
+    overflow: hidden !important;
   }
 }

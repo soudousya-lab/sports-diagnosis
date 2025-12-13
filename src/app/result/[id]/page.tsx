@@ -251,8 +251,8 @@ export default function ResultPage() {
 
   if (viewMode === 'simple') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 py-6 px-4 print:bg-white print:py-0 print:px-0">
-        <div className="max-w-4xl mx-auto space-y-6 print:space-y-0 print:max-w-none">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 py-6 px-4 print:bg-white print:py-0 print:px-0 print:min-h-0">
+        <div className="max-w-4xl mx-auto space-y-6 print:space-y-0 print:max-w-none print:m-0">
           {/* 戻るボタン・PDF出力ボタン */}
           <div className="flex justify-between items-center print:hidden">
             <Link href="/" className="inline-flex items-center text-blue-200 hover:text-white transition-colors">
@@ -267,7 +267,7 @@ export default function ResultPage() {
           </div>
 
           {/* ページ1: サマリー結果 + 保護者の方へ（合体版） */}
-          <div ref={printRef} className="bg-white rounded-2xl shadow-2xl overflow-hidden print:shadow-none print:rounded-none print:h-[297mm] print:w-[210mm]">
+          <div ref={printRef} className="bg-white rounded-2xl shadow-2xl overflow-hidden print:shadow-none print:rounded-none print:h-[297mm] print:w-[210mm] print:overflow-hidden print:box-border">
             {/* ヘッダー */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-5 print:p-4">
               <div className="flex justify-between items-start">
@@ -452,7 +452,7 @@ export default function ResultPage() {
           </div>
 
           {/* ページ2: 詳細版プレビュー（SAMPLEオーバーレイ付き）- 2列レイアウト */}
-          <div className="relative overflow-hidden rounded-2xl print:rounded-none print:break-before-page print:h-[297mm] print:w-[210mm]">
+          <div className="relative overflow-hidden rounded-2xl print:rounded-none print:break-before-page print:h-[297mm] print:w-[210mm] print:overflow-hidden print:box-border">
             {/* SAMPLEウォーターマーク */}
             <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center overflow-hidden">
               <div
