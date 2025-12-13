@@ -776,79 +776,237 @@ export default function ResultPage() {
   )
 }
 
-// 詳細版デモセクション（サマリーページで使用）
+// 詳細版デモセクション（サマリーページで使用）- 詳細版と同じデザイン
 function DetailDemoSection({ result }: { result: MeasurementData['results'][0] }) {
-  // 実際の結果データがあれば使用、なければデモデータ
-  const sportsData = result?.recommended_sports?.slice(0, 6) || demoDetailData.sportsAptitude
-  const trainingsData = result?.recommended_trainings?.slice(0, 4) || demoDetailData.trainings
-  const goalsData = result?.goals || demoDetailData.goals
+  // サンプル用の架空データ
+  const sampleSports = [
+    { name: 'バスケットボール', icon: '🏀', aptitude: 7.8 },
+    { name: 'サッカー', icon: '⚽', aptitude: 7.5 },
+    { name: 'テニス', icon: '🎾', aptitude: 7.2 },
+    { name: 'バドミントン', icon: '🏸', aptitude: 6.9 },
+    { name: '陸上短距離', icon: '🏃', aptitude: 6.7 },
+    { name: 'ダンス', icon: '💃', aptitude: 6.5 }
+  ]
+  const sampleTrainings = [
+    { name: 'スクワットジャンプ', description: 'しゃがんでから勢いよくジャンプ', reps: '10回×3セット', category: '瞬発力' },
+    { name: 'バランスボード', description: '片足でバランスをとる練習', reps: '30秒×左右3回', category: 'バランス' },
+    { name: 'ラダートレーニング', description: '素早く足を動かす練習', reps: '5往復×3セット', category: '敏捷性' },
+    { name: 'ボール投げ練習', description: '正しいフォームでの投球', reps: '20回×2セット', category: '投力' },
+    { name: 'もも上げダッシュ', description: 'その場でもも上げ走り', reps: '20秒×3セット', category: '移動能力' },
+    { name: '握力トレーニング', description: 'テニスボールを握る', reps: '20回×左右3回', category: '筋力' },
+    { name: 'プランク', description: '体幹を鍛える姿勢保持', reps: '30秒×3セット', category: '筋持久力' },
+    { name: 'サイドステップ', description: '横方向への素早い移動', reps: '10往復×3セット', category: '敏捷性' }
+  ]
+  const sampleGoals = { grip: 15.5, jump: 148, dash: 3.42 }
 
   return (
-    <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-      <div className="p-6">
-        {/* 適性スポーツ */}
-        <div className="mb-8">
-          <div className="text-lg font-bold text-white bg-green-600 px-6 py-3 rounded-lg mb-4">
-            適性スポーツ TOP6
+    <div className="space-y-0">
+      {/* 詳細版ページ1＋ページ2を縦に並べて1ページ表示 */}
+      <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+        {/* ヘッダー */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-3">
+          <div className="flex justify-between items-center">
+            <h1 className="text-lg text-white font-extrabold tracking-wider flex items-center gap-2">
+              <FaBullseye /> トレーニング＆適性スポーツ
+            </h1>
+            <div className="text-white/80 text-xs">Training & Sports Aptitude</div>
           </div>
-          <div className="border-2 border-gray-200 p-6 rounded-xl bg-gray-50">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {sportsData.map((sport, i) => (
-                <div key={sport.name} className="flex items-center gap-3 bg-white p-4 rounded-lg shadow-sm">
-                  <span className="text-3xl">{sport.icon}</span>
-                  <div>
-                    <div className="font-bold text-gray-800">{sport.name}</div>
-                    <div className="text-sm text-green-600">適性度: {sport.aptitude?.toFixed(1) || '-'}</div>
+        </div>
+
+        <div className="p-3">
+          {/* 上段: 強み・弱み + 50m予測 + 適性スポーツ */}
+          <div className="grid grid-cols-3 gap-2 mb-3">
+            {/* 強み・弱み */}
+            <div>
+              <div className="text-xs font-bold text-blue-900 mb-1.5 flex items-center gap-1"><FaSearch className="text-[10px]" /> 強み・弱み分析</div>
+              <div className="space-y-1.5">
+                <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-1.5">
+                  <span className="text-[8px] font-bold text-blue-700 bg-blue-200 px-1 py-0.5 rounded-full">レベルアップ項目</span>
+                  <div className="font-bold text-gray-800 text-xs mt-0.5">投力（6点）</div>
+                  <p className="text-[8px] text-gray-600">ここを強化すると全体がグンと伸びる！</p>
+                </div>
+                <div className="bg-blue-50 border-2 border-blue-400 rounded-lg p-1.5">
+                  <span className="text-[8px] font-bold text-blue-800 bg-blue-300 px-1 py-0.5 rounded-full">得意項目</span>
+                  <div className="font-bold text-gray-800 text-xs mt-0.5">瞬発力（9点）</div>
+                  <p className="text-[8px] text-gray-600">この強みを活かしたスポーツで活躍しよう！</p>
+                </div>
+              </div>
+            </div>
+
+            {/* 適性スポーツ */}
+            <div className="col-span-2">
+              <div className="text-xs font-bold text-blue-900 mb-1.5 flex items-center gap-1"><FaMedal className="text-[10px]" /> キミに向いているスポーツ TOP6</div>
+              <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-2">
+                <div className="text-[8px] font-bold text-blue-800 mb-0.5">特に適性が高い</div>
+                <div className="flex flex-wrap gap-1 mb-1.5">
+                  {sampleSports.slice(0, 3).map((sport) => (
+                    <span key={sport.name} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-600 text-white rounded-full text-[9px] font-bold">
+                      <span className="text-xs">{sport.icon}</span> {sport.name}
+                    </span>
+                  ))}
+                </div>
+                <div className="text-[8px] font-bold text-blue-700 mb-0.5">適性あり</div>
+                <div className="flex flex-wrap gap-1">
+                  {sampleSports.slice(3, 6).map(sport => (
+                    <span key={sport.name} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-400 text-white rounded-full text-[9px] font-bold">
+                      <span className="text-xs">{sport.icon}</span> {sport.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              {/* 50m予測 */}
+              <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg p-1.5 text-white mt-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-xs flex items-center gap-1"><FaRunning /> 50m走予測タイム</span>
+                  <span className="text-xl font-black text-blue-200">11.5秒</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 重点トレーニング 8種目 */}
+          <div className="mb-3">
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="text-xs font-bold text-blue-900 flex items-center gap-1"><FaDumbbell /> キミの重点トレーニング</div>
+              <div className="bg-blue-100 border border-blue-300 px-1.5 py-0.5 rounded-lg text-[9px] text-blue-800 font-bold">
+                お父さん・お母さんと一緒にやろう！
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-1.5">
+              {sampleTrainings.map((t, i) => (
+                <div key={i} className="rounded-lg p-1.5 border-2 bg-blue-50 border-blue-200">
+                  <div className="flex gap-1.5">
+                    <div className="w-16 h-12 flex-shrink-0 bg-gray-200 rounded overflow-hidden border border-white shadow flex items-center justify-center">
+                      <span className="text-[8px] text-gray-400">画像</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-0.5 mb-0.5">
+                        <div className="w-4 h-4 rounded-full flex items-center justify-center text-white font-black text-[8px] shadow-md flex-shrink-0 bg-gradient-to-br from-blue-500 to-blue-700">
+                          {i + 1}
+                        </div>
+                        <strong className="text-[9px] text-gray-800 truncate">{t.name}</strong>
+                        <span className="text-[7px] font-bold px-1 py-0.5 rounded-full bg-blue-600 text-white flex-shrink-0">
+                          {t.category}
+                        </span>
+                      </div>
+                      <div className="text-[8px] text-gray-600 line-clamp-2 leading-relaxed">{t.description}</div>
+                      <div className="text-[8px] font-bold text-blue-700 flex items-center gap-0.5"><FaClipboardList className="text-[7px]" /> {t.reps}</div>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
+
+          {/* 1ヶ月目標 */}
+          <div className="bg-gradient-to-r from-blue-700 to-blue-900 text-white p-3 rounded-xl shadow-lg">
+            <div className="text-center mb-2">
+              <h4 className="text-sm font-bold flex items-center justify-center gap-2"><FaBullseye /> 1ヶ月後のキミの目標！</h4>
+              <p className="text-[9px] opacity-80">毎日10分のトレーニングで達成できる！</p>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="bg-white/20 backdrop-blur p-2 rounded-lg text-center">
+                <div className="text-[10px] opacity-90">握力</div>
+                <div className="text-[8px] opacity-70">今 14.2kg</div>
+                <div className="text-lg font-black text-blue-200">{sampleGoals.grip}kg</div>
+              </div>
+              <div className="bg-white/20 backdrop-blur p-2 rounded-lg text-center">
+                <div className="text-[10px] opacity-90">立ち幅跳び</div>
+                <div className="text-[8px] opacity-70">今 140cm</div>
+                <div className="text-lg font-black text-blue-200">{sampleGoals.jump}cm</div>
+              </div>
+              <div className="bg-white/20 backdrop-blur p-2 rounded-lg text-center">
+                <div className="text-[10px] opacity-90">15mダッシュ</div>
+                <div className="text-[8px] opacity-70">今 3.55秒</div>
+                <div className="text-lg font-black text-blue-200">{sampleGoals.dash}秒</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 保護者の方へ */}
+      <div className="bg-white rounded-2xl shadow-2xl overflow-hidden mt-4">
+        {/* ヘッダー */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-3">
+          <div className="flex justify-between items-center">
+            <h1 className="text-lg text-white font-extrabold tracking-wider flex items-center gap-2">
+              <FaFileAlt /> 保護者の方へ
+            </h1>
+            <div className="text-white/80 text-xs">Information for Parents</div>
+          </div>
         </div>
 
-        {/* 重点トレーニング */}
-        <div className="mb-8">
-          <div className="text-lg font-bold text-white bg-green-600 px-6 py-3 rounded-lg mb-4">
-            重点トレーニング提案
+        <div className="p-3">
+          {/* 初来店促進メッセージ */}
+          <div className="bg-gradient-to-r from-blue-700 to-blue-900 text-white p-4 rounded-xl mb-3 shadow-xl">
+            <h4 className="text-lg font-extrabold text-center mb-2">
+              かけっこ体幹教室で
+            </h4>
+            <div className="flex flex-wrap justify-center gap-1.5 text-center">
+              <div className="bg-white/25 backdrop-blur px-3 py-2 rounded-lg border-2 border-white/30">
+                <div className="text-sm font-extrabold">&quot;正しい骨格&quot;</div>
+              </div>
+              <div className="bg-white/25 backdrop-blur px-3 py-2 rounded-lg border-2 border-white/30">
+                <div className="text-sm font-extrabold">&quot;正しい関節&quot;</div>
+              </div>
+              <div className="bg-white/25 backdrop-blur px-3 py-2 rounded-lg border-2 border-white/30">
+                <div className="text-sm font-extrabold">&quot;正しい筋肉の使い方&quot;</div>
+              </div>
+            </div>
+            <p className="text-center mt-2 text-sm font-bold">を身につけよう！</p>
           </div>
-          <div className="border-2 border-gray-200 p-6 rounded-xl bg-gray-50">
-            <div className="grid md:grid-cols-2 gap-4">
-              {trainingsData.map((t, i) => (
-                <div key={i} className="flex gap-4 bg-white p-4 rounded-lg shadow-sm">
-                  <span className="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0">
-                    {i + 1}
-                  </span>
-                  <div>
-                    <div className="font-bold text-gray-800 text-lg">{t.name}</div>
-                    <div className="text-sm text-gray-600">{t.description}</div>
-                    <div className="text-sm text-green-600 font-semibold mt-1">{t.reps}</div>
+
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            {/* 発達段階の情報 */}
+            <div className="bg-blue-50 border-2 border-blue-200 p-3 rounded-xl">
+              <h4 className="text-sm font-bold text-blue-900 border-b-2 border-blue-900 pb-1 mb-2 flex items-center gap-1"><FaBook /> 発達段階について</h4>
+              <p className="text-[9px] text-gray-700 mb-2 leading-relaxed bg-white/50 p-1.5 rounded-lg">
+                お子様は今、運動神経が大きく発達する<strong className="text-blue-700">ゴールデンエイジ</strong>の時期にあります。この時期に習得した動きは一生忘れません。
+              </p>
+
+              <h4 className="text-xs font-bold text-blue-900 mb-1 flex items-center gap-1"><FaLightbulb /> この時期のポイント</h4>
+              <p className="text-[9px] text-gray-700 mb-2 leading-relaxed bg-white/50 p-1.5 rounded-lg">
+                <strong className="text-blue-700">多様な動き</strong>を経験することで、運動神経の土台が形成されます。楽しみながら様々なスポーツに挑戦しましょう。
+              </p>
+
+              <h4 className="text-xs font-bold text-blue-800 mb-1 flex items-center gap-1"><FaExclamationTriangle /> 注意点</h4>
+              <p className="text-[9px] text-blue-800 leading-relaxed bg-blue-100 p-1.5 rounded-lg border border-blue-300">
+                同じ動作の反復や勝ち負けへの過度なこだわりは避け、<strong>「できた！」という成功体験</strong>を積み重ねることが大切です。
+              </p>
+            </div>
+
+            {/* 初来店のご案内 */}
+            <div className="bg-blue-50 p-3 rounded-xl border-2 border-blue-200">
+              <h4 className="text-sm font-bold text-blue-900 border-b-2 border-blue-600 pb-1 mb-2 text-center flex items-center justify-center gap-1"><FaHandshake /> ぜひ教室にお越しください</h4>
+              <p className="text-[9px] text-gray-600 mb-2 text-center leading-relaxed bg-white/50 p-1.5 rounded-lg">
+                詳細な診断結果と、お子様に合った<br />
+                専門的なトレーニング指導を受けられます！
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="text-center bg-white p-2 rounded-lg shadow-md border-2 border-blue-200">
+                  <div className="w-14 h-14 mx-auto mb-1 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-200">
+                    <span className="text-[9px] text-gray-400">QR</span>
                   </div>
+                  <p className="text-[9px] font-bold text-blue-700 flex items-center justify-center gap-0.5"><FaCalendarAlt /> 体験予約</p>
                 </div>
-              ))}
+                <div className="text-center bg-white p-2 rounded-lg shadow-md border-2 border-blue-200">
+                  <div className="w-14 h-14 mx-auto mb-1 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-200">
+                    <span className="text-[9px] text-gray-400">QR</span>
+                  </div>
+                  <p className="text-[9px] font-bold text-blue-700 flex items-center justify-center gap-0.5"><FaComments /> LINE相談</p>
+                </div>
+              </div>
+              <p className="text-[9px] text-blue-700 mt-2 text-center font-medium bg-blue-100 p-1.5 rounded-lg flex items-center justify-center gap-1">
+                <FaChartLine /> 専門トレーナーが丁寧に指導します！
+              </p>
             </div>
           </div>
-        </div>
 
-        {/* 1ヶ月目標 */}
-        <div>
-          <div className="text-lg font-bold text-white bg-green-600 px-6 py-3 rounded-lg mb-4">
-            1ヶ月後の目標
-          </div>
-          <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-xl">
-            <div className="grid grid-cols-3 gap-6 text-center">
-              <div className="bg-white/20 p-4 rounded-lg">
-                <div className="text-sm opacity-90 mb-1">握力</div>
-                <div className="text-3xl font-extrabold">{goalsData.grip}kg</div>
-              </div>
-              <div className="bg-white/20 p-4 rounded-lg">
-                <div className="text-sm opacity-90 mb-1">立ち幅跳び</div>
-                <div className="text-3xl font-extrabold">{goalsData.jump}cm</div>
-              </div>
-              <div className="bg-white/20 p-4 rounded-lg">
-                <div className="text-sm opacity-90 mb-1">15mダッシュ</div>
-                <div className="text-3xl font-extrabold">{goalsData.dash}秒</div>
-              </div>
-            </div>
+          {/* フッター：店舗情報 */}
+          <div className="bg-gradient-to-r from-blue-700 to-blue-900 text-white p-3 rounded-xl text-center shadow-lg">
+            <p className="text-base font-bold mb-0.5 flex items-center justify-center gap-2"><FaSchool /> かけっこ体幹教室</p>
+            <p className="text-xs opacity-90">お子様の運動能力向上を全力でサポートします</p>
           </div>
         </div>
       </div>
