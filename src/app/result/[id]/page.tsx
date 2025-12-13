@@ -451,7 +451,7 @@ export default function ResultPage() {
             </div>
             <div className="flex gap-4 items-end">
               <div className="w-1/2 flex flex-col items-center">
-                <RadarChart scores={result.scores} keys={allKeys} labels={allLabels} size={320} averageScores={{ grip: 5, jump: 5, dash: 5, doublejump: 5, squat: 5, sidestep: 5, throw: 5 }} />
+                <RadarChart scores={result.scores} keys={allKeys} labels={allLabels} size={400} averageScores={{ grip: 5, jump: 5, dash: 5, doublejump: 5, squat: 5, sidestep: 5, throw: 5 }} />
                 {/* チャート凡例 */}
                 <div className="flex gap-4 mt-2 text-[10px]">
                   <div className="flex items-center gap-1.5">
