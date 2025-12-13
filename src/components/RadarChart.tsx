@@ -19,6 +19,14 @@ export default function RadarChart({ scores, keys, labels, size = 220 }: Props) 
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
+    // 高DPIディスプレイ対応
+    const dpr = window.devicePixelRatio || 1
+    canvas.width = size * dpr
+    canvas.height = size * dpr
+    canvas.style.width = `${size}px`
+    canvas.style.height = `${size}px`
+    ctx.scale(dpr, dpr)
+
     const cx = size / 2
     const cy = size / 2 + 5
     const maxRadius = size / 2 - 30
