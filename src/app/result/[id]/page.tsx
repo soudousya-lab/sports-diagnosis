@@ -235,6 +235,20 @@ export default function ResultPage() {
   const today = new Date(data.measured_at).toLocaleDateString('ja-JP')
 
   // 簡易版（サマリー表示）の場合 - URLパラメータのmodeで判定
+  // サマリー版用の変数を先に定義
+  const simpleAllKeys = ['grip', 'jump', 'dash', 'doublejump', 'squat', 'sidestep', 'throw']
+  const simpleAllLabels = ['筋力', '瞬発力', '移動能力', 'バランス', '筋持久力', '敏捷性', '投力']
+  const simpleMeasurementItems = [
+    { key: 'grip', name: '握力', cat: '筋力', val: `${gripAvg.toFixed(1)}kg`, avg: `${avg.grip}kg` },
+    { key: 'jump', name: '立ち幅跳び', cat: '瞬発力', val: `${data.jump}cm`, avg: `${avg.jump}cm` },
+    { key: 'dash', name: '15mダッシュ', cat: '移動能力', val: `${data.dash}秒`, avg: `${avg.dash}秒` },
+    { key: 'doublejump', name: '連続立ち幅跳び', cat: 'バランス', val: `${data.doublejump}cm`, avg: `${avg.doublejump}cm` },
+    { key: 'squat', name: '30秒スクワット', cat: '筋持久力', val: `${data.squat}回`, avg: `${avg.squat}回` },
+    { key: 'sidestep', name: '反復横跳び', cat: '敏捷性', val: `${data.sidestep}回`, avg: `${avg.sidestep}回` },
+    { key: 'throw', name: 'ボール投げ', cat: '投力', val: `${data.throw}m`, avg: `${avg.throw}m` }
+  ]
+  const simpleDevAdv = developmentAdvice[child.grade]
+
   if (viewMode === 'simple') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 py-6 px-4 print:bg-white print:py-0">
@@ -302,7 +316,7 @@ export default function ResultPage() {
 
           </div>
 
-          {/* 詳細版プレビュー（SAMPLEオーバーレイ付き） */}
+          {/* 詳細版プレビュー（SAMPLEオーバーレイ付き）- 2列レイアウト */}
           <div className="relative print:hidden overflow-hidden rounded-2xl">
             {/* SAMPLEウォーターマーク */}
             <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center overflow-hidden">
@@ -315,7 +329,177 @@ export default function ResultPage() {
             </div>
             {/* 半透明オーバーレイ */}
             <div className="absolute inset-0 bg-white/60 z-10 pointer-events-none" />
-            <DetailDemoSection result={result} />
+
+            {/* 2列レイアウト: 左=チャート・インジケータ、右=トレーニング＆適性スポーツ */}
+            <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+              <div className="grid grid-cols-2 gap-0">
+                {/* 左列: 7つの能力チェック（チャート・インジケータ） */}
+                <div className="border-r border-gray-200 p-3">
+                  <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-2 rounded-lg mb-3">
+                    <h2 className="text-sm text-white font-extrabold flex items-center gap-2">
+                      <FaChartBar /> 7つの能力チェック
+                    </h2>
+                  </div>
+
+                  {/* チャート */}
+                  <div className="flex justify-center mb-2">
+                    <RadarChart scores={result.scores} keys={simpleAllKeys} labels={simpleAllLabels} size={200} averageScores={{ grip: 5, jump: 5, dash: 5, doublejump: 5, squat: 5, sidestep: 5, throw: 5 }} />
+                  </div>
+
+                  {/* 凡例 */}
+                  <div className="flex justify-center gap-3 mb-3 text-[8px]">
+                    <div className="flex items-center gap-1">
+                      <div className="w-4 h-0.5 bg-[#003366]"></div>
+                      <span className="text-gray-700">あなたの結果</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-4 h-0.5 bg-[#FF8C00]" style={{ borderStyle: 'dashed', borderWidth: '1px', borderColor: '#FF8C00', backgroundColor: 'transparent' }}></div>
+                      <span className="text-gray-700">全国平均</span>
+                    </div>
+                  </div>
+
+                  {/* インジケータ */}
+                  <div className="space-y-1">
+                    {simpleMeasurementItems.map(item => {
+                      const score = result.scores[item.key]
+                      const grade = getGrade(score)
+                      return (
+                        <div key={item.key} className="bg-gray-50 rounded p-1.5 border border-gray-200">
+                          <div className="flex items-center justify-between mb-0.5">
+                            <div className="flex items-center gap-1">
+                              <span className="font-bold text-gray-800 text-[9px]">{item.name}</span>
+                              <span className="text-[7px] text-gray-500 bg-gray-200 px-1 py-0.5 rounded">{item.cat}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className="text-[8px] text-gray-600">{item.val}</span>
+                              <div className="w-5 h-5 rounded-full flex items-center justify-center text-white font-black text-[9px] shadow-md bg-gradient-to-br from-blue-500 to-blue-700">
+                                {score}
+                              </div>
+                              <span className={`font-black text-[9px] ${grade.colorClass}`}>{grade.grade}</span>
+                            </div>
+                          </div>
+                          <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full"
+                              style={{ width: `${score * 10}%` }}
+                            />
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* 右列: トレーニング＆適性スポーツ */}
+                <div className="p-3">
+                  <DetailDemoSectionCompact />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 保護者の方へ（SAMPLE加工なし） */}
+          <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+            {/* ヘッダー */}
+            <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-4">
+              <div className="flex justify-between items-center">
+                <h1 className="text-xl text-white font-extrabold tracking-wider flex items-center gap-2">
+                  <FaFileAlt /> 保護者の方へ
+                </h1>
+                <div className="text-white/80 text-xs">Information for Parents</div>
+              </div>
+            </div>
+
+            <div className="p-4">
+              {/* 初来店促進メッセージ */}
+              <div className="bg-gradient-to-r from-blue-700 to-blue-900 text-white p-5 rounded-xl mb-4 shadow-xl">
+                <h4 className="text-xl font-extrabold text-center mb-3">
+                  かけっこ体幹教室で
+                </h4>
+                <div className="flex flex-wrap justify-center gap-2 text-center">
+                  <div className="bg-white/25 backdrop-blur px-4 py-3 rounded-lg border-2 border-white/30">
+                    <div className="text-lg font-extrabold">&quot;正しい骨格&quot;</div>
+                  </div>
+                  <div className="bg-white/25 backdrop-blur px-4 py-3 rounded-lg border-2 border-white/30">
+                    <div className="text-lg font-extrabold">&quot;正しい関節&quot;</div>
+                  </div>
+                  <div className="bg-white/25 backdrop-blur px-4 py-3 rounded-lg border-2 border-white/30">
+                    <div className="text-lg font-extrabold">&quot;正しい筋肉の使い方&quot;</div>
+                  </div>
+                </div>
+                <p className="text-center mt-3 text-lg font-bold">を身につけよう！</p>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4 mb-4">
+                {/* 発達段階の情報 */}
+                <div className="bg-blue-50 border-2 border-blue-200 p-4 rounded-xl">
+                  <h4 className="text-base font-bold text-blue-900 border-b-2 border-blue-900 pb-1 mb-3 flex items-center gap-2"><FaBook /> 発達段階について</h4>
+                  <p className="text-xs text-gray-700 mb-3 leading-relaxed bg-white/50 p-2 rounded-lg">
+                    お子様は今、運動神経が大きく発達する<strong className="text-blue-700">ゴールデンエイジ</strong>の時期にあります。この時期に習得した動きは一生忘れません。様々なスポーツの基本技術を効率的に身につけることができる貴重な時期です。
+                  </p>
+
+                  <h4 className="text-sm font-bold text-blue-900 mb-2 flex items-center gap-1"><FaLightbulb /> この時期のポイント</h4>
+                  <p className="text-xs text-gray-700 mb-3 leading-relaxed bg-white/50 p-2 rounded-lg">
+                    <strong className="text-blue-700">多様な動き</strong>を経験することで、運動神経の土台が形成されます。楽しみながら様々なスポーツに挑戦し、お子様の可能性を広げましょう。
+                  </p>
+
+                  <h4 className="text-sm font-bold text-blue-800 mb-2 flex items-center gap-1"><FaExclamationTriangle /> 注意点</h4>
+                  <p className="text-xs text-blue-800 leading-relaxed bg-blue-100 p-2 rounded-lg border border-blue-300">
+                    同じ動作の反復や勝ち負けへの過度なこだわりは避け、<strong>「できた！」という成功体験</strong>を積み重ねることが大切です。
+                  </p>
+                </div>
+
+                {/* 初来店のご案内 */}
+                <div className="bg-blue-50 p-4 rounded-xl border-2 border-blue-200">
+                  <h4 className="text-lg font-bold text-blue-900 border-b-2 border-blue-600 pb-1 mb-3 text-center flex items-center justify-center gap-2"><FaHandshake /> ぜひ教室にお越しください</h4>
+                  <p className="text-xs text-gray-600 mb-3 text-center leading-relaxed bg-white/50 p-2 rounded-lg">
+                    詳細な診断結果と、お子様に合った<br />
+                    専門的なトレーニング指導を受けられます！
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="text-center bg-white p-3 rounded-lg shadow-md border-2 border-blue-200">
+                      <div className="w-20 h-20 mx-auto mb-2 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-200">
+                        <img
+                          src="/qr/reservation.png"
+                          alt="予約QRコード"
+                          className="w-full h-full object-contain"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.style.display = 'none'
+                            target.parentElement!.innerHTML = '<span class="text-[10px] text-gray-400">QR準備中</span>'
+                          }}
+                        />
+                      </div>
+                      <p className="text-xs font-bold text-blue-700 flex items-center justify-center gap-1"><FaCalendarAlt /> 体験予約</p>
+                    </div>
+                    <div className="text-center bg-white p-3 rounded-lg shadow-md border-2 border-blue-200">
+                      <div className="w-20 h-20 mx-auto mb-2 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-200">
+                        <img
+                          src="/qr/line.png"
+                          alt="LINE QRコード"
+                          className="w-full h-full object-contain"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.style.display = 'none'
+                            target.parentElement!.innerHTML = '<span class="text-[10px] text-gray-400">QR準備中</span>'
+                          }}
+                        />
+                      </div>
+                      <p className="text-xs font-bold text-blue-700 flex items-center justify-center gap-1"><FaComments /> LINE相談</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-blue-700 mt-3 text-center font-medium bg-blue-100 p-2 rounded-lg flex items-center justify-center gap-1">
+                    <FaChartLine /> 専門トレーナーが丁寧に指導します！
+                  </p>
+                </div>
+              </div>
+
+              {/* フッター：店舗情報 */}
+              <div className="bg-gradient-to-r from-blue-700 to-blue-900 text-white p-5 rounded-xl text-center shadow-lg">
+                <p className="text-xl font-bold mb-1 flex items-center justify-center gap-2"><FaSchool /> かけっこ体幹教室</p>
+                <p className="text-sm opacity-90">お子様の運動能力向上を全力でサポートします</p>
+              </div>
+            </div>
           </div>
 
           {/* 戻るボタン */}
@@ -1007,6 +1191,116 @@ function DetailDemoSection({ result }: { result: MeasurementData['results'][0] }
           <div className="bg-gradient-to-r from-blue-700 to-blue-900 text-white p-3 rounded-xl text-center shadow-lg">
             <p className="text-base font-bold mb-0.5 flex items-center justify-center gap-2"><FaSchool /> かけっこ体幹教室</p>
             <p className="text-xs opacity-90">お子様の運動能力向上を全力でサポートします</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// サマリー版用コンパクトなトレーニング＆適性スポーツセクション
+function DetailDemoSectionCompact() {
+  const sampleSports = [
+    { name: 'バスケ', icon: '🏀' },
+    { name: 'サッカー', icon: '⚽' },
+    { name: 'テニス', icon: '🎾' },
+    { name: 'バドミントン', icon: '🏸' },
+    { name: '陸上', icon: '🏃' },
+    { name: 'ダンス', icon: '💃' }
+  ]
+  const sampleTrainings = [
+    { name: 'スクワットジャンプ', reps: '10回×3', category: '瞬発力' },
+    { name: 'バランスボード', reps: '30秒×3', category: 'バランス' },
+    { name: 'ラダートレーニング', reps: '5往復', category: '敏捷性' },
+    { name: 'ボール投げ', reps: '20回×2', category: '投力' },
+    { name: 'もも上げダッシュ', reps: '20秒×3', category: '移動能力' },
+    { name: '握力トレーニング', reps: '20回×3', category: '筋力' },
+    { name: 'プランク', reps: '30秒×3', category: '筋持久力' },
+    { name: 'サイドステップ', reps: '10往復', category: '敏捷性' }
+  ]
+  const sampleGoals = { grip: 15.5, jump: 148, dash: 3.42 }
+
+  return (
+    <div>
+      {/* ヘッダー */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-2 rounded-lg mb-2">
+        <h2 className="text-sm text-white font-extrabold flex items-center gap-2">
+          <FaBullseye /> トレーニング＆適性スポーツ
+        </h2>
+      </div>
+
+      {/* 強み・弱み + 適性スポーツ */}
+      <div className="grid grid-cols-2 gap-1.5 mb-2">
+        {/* 強み・弱み */}
+        <div className="space-y-1">
+          <div className="bg-blue-50 border border-blue-300 rounded p-1">
+            <span className="text-[7px] font-bold text-blue-700 bg-blue-200 px-1 rounded-full">レベルアップ</span>
+            <div className="font-bold text-gray-800 text-[9px]">投力（6点）</div>
+          </div>
+          <div className="bg-blue-50 border border-blue-400 rounded p-1">
+            <span className="text-[7px] font-bold text-blue-800 bg-blue-300 px-1 rounded-full">得意項目</span>
+            <div className="font-bold text-gray-800 text-[9px]">瞬発力（9点）</div>
+          </div>
+        </div>
+
+        {/* 適性スポーツ */}
+        <div className="bg-blue-50 border border-blue-300 rounded p-1.5">
+          <div className="text-[7px] font-bold text-blue-800 mb-0.5">適性スポーツ TOP6</div>
+          <div className="flex flex-wrap gap-0.5">
+            {sampleSports.map((sport) => (
+              <span key={sport.name} className="inline-flex items-center gap-0.5 px-1 py-0.5 bg-blue-600 text-white rounded text-[7px] font-bold">
+                {sport.icon} {sport.name}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* 50m予測 */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded p-1.5 text-white mb-2">
+        <div className="flex items-center justify-between">
+          <span className="font-bold text-[9px] flex items-center gap-1"><FaRunning /> 50m走予測</span>
+          <span className="text-base font-black text-blue-200">11.5秒</span>
+        </div>
+      </div>
+
+      {/* 重点トレーニング */}
+      <div className="mb-2">
+        <div className="text-[9px] font-bold text-blue-900 mb-1 flex items-center gap-1">
+          <FaDumbbell /> 重点トレーニング
+        </div>
+        <div className="grid grid-cols-2 gap-1">
+          {sampleTrainings.map((t, i) => (
+            <div key={i} className="bg-blue-50 border border-blue-200 rounded p-1 flex items-center gap-1">
+              <div className="w-4 h-4 rounded-full flex items-center justify-center text-white font-black text-[7px] bg-gradient-to-br from-blue-500 to-blue-700 flex-shrink-0">
+                {i + 1}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[8px] font-bold text-gray-800 truncate">{t.name}</div>
+                <div className="text-[7px] text-blue-700">{t.reps}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 1ヶ月目標 */}
+      <div className="bg-gradient-to-r from-blue-700 to-blue-900 text-white p-2 rounded-lg">
+        <div className="text-center mb-1">
+          <h4 className="text-[9px] font-bold flex items-center justify-center gap-1"><FaBullseye /> 1ヶ月後の目標</h4>
+        </div>
+        <div className="grid grid-cols-3 gap-1">
+          <div className="bg-white/20 p-1 rounded text-center">
+            <div className="text-[7px] opacity-90">握力</div>
+            <div className="text-sm font-black text-blue-200">{sampleGoals.grip}kg</div>
+          </div>
+          <div className="bg-white/20 p-1 rounded text-center">
+            <div className="text-[7px] opacity-90">立ち幅跳び</div>
+            <div className="text-sm font-black text-blue-200">{sampleGoals.jump}cm</div>
+          </div>
+          <div className="bg-white/20 p-1 rounded text-center">
+            <div className="text-[7px] opacity-90">15mダッシュ</div>
+            <div className="text-sm font-black text-blue-200">{sampleGoals.dash}秒</div>
           </div>
         </div>
       </div>
