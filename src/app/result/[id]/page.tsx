@@ -222,6 +222,16 @@ export default function ResultPage() {
 
   const gripAvg = (data.grip_right + data.grip_left) / 2
   const actualAge = child.grade === 'k5' ? 6 : parseInt(child.grade) + 6
+
+  // 強調表示用のヘルパー関数
+  const highlightText = (text: string, highlights: string[]) => {
+    if (!highlights || highlights.length === 0) return text
+    let result = text
+    highlights.forEach(h => {
+      result = result.replace(h, `<strong class="text-blue-700 font-bold">${h}</strong>`)
+    })
+    return result
+  }
   const today = new Date(data.measured_at).toLocaleDateString('ja-JP')
 
   // 簡易版（サマリー表示）の場合 - URLパラメータのmodeで判定
@@ -439,11 +449,11 @@ export default function ResultPage() {
             <div className="text-base font-bold text-blue-900 mb-2 flex items-center gap-2">
               <FaChartBar /> 7つの能力チェック
             </div>
-            <div className="flex gap-6 items-start">
+            <div className="flex gap-6 items-start justify-between">
               <div className="flex-shrink-0">
-                <RadarChart scores={result.scores} keys={allKeys} labels={allLabels} size={320} />
+                <RadarChart scores={result.scores} keys={allKeys} labels={allLabels} size={320} averageScores={{ grip: 5, jump: 5, dash: 5, doublejump: 5, squat: 5, sidestep: 5, throw: 5 }} />
               </div>
-              <div className="w-1/2 space-y-1">
+              <div className="w-1/2 space-y-1 ml-auto">
                 {measurementItems.map(item => {
                   const score = result.scores[item.key]
                   const grade = getGrade(score)
@@ -555,7 +565,7 @@ export default function ResultPage() {
               </div>
             </div>
 
-            {/* 重点トレーニング 6種目 */}
+            {/* 重点トレーニング 8種目 */}
             <div className="mb-4 print:mb-3">
               <div className="flex items-center justify-between mb-2">
                 <div className="text-sm font-bold text-blue-900 flex items-center gap-1"><FaDumbbell /> キミの重点トレーニング</div>
@@ -564,7 +574,7 @@ export default function ResultPage() {
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2 print:gap-1.5">
-                {result.recommended_trainings?.slice(0, 6).map((t, i) => (
+                {result.recommended_trainings?.slice(0, 8).map((t, i) => (
                   <div key={i} className="rounded-lg p-2 border-2 bg-blue-50 border-blue-200 print:p-1.5">
                     <div className="flex gap-2">
                       <div className="w-[180px] h-36 flex-shrink-0 bg-gray-100 rounded overflow-hidden border border-white shadow print:w-[150px] print:h-28">
@@ -588,8 +598,8 @@ export default function ResultPage() {
                             {t.category}
                           </span>
                         </div>
-                        <div className="text-[9px] text-gray-600 line-clamp-2">{t.description}</div>
-                        <div className="text-[10px] font-bold text-blue-700 flex items-center gap-0.5"><FaClipboardList className="text-[8px]" /> {t.reps}</div>
+                        <div className="text-[9px] text-gray-600 line-clamp-3 leading-relaxed">{t.description}</div>
+                        <div className="text-[10px] font-bold text-blue-700 flex items-center gap-0.5 mt-0.5"><FaClipboardList className="text-[8px]" /> {t.reps}</div>
                       </div>
                     </div>
                   </div>
@@ -660,13 +670,22 @@ export default function ResultPage() {
               {/* 発達段階の情報 */}
               <div className="bg-blue-50 border-2 border-blue-200 p-4 rounded-xl print:p-3">
                 <h4 className="text-base font-bold text-blue-900 border-b-2 border-blue-900 pb-1 mb-3 flex items-center gap-2"><FaBook /> 発達段階: {devAdv?.golden}</h4>
-                <p className="text-xs text-gray-700 mb-3 leading-relaxed bg-white/50 p-2 rounded-lg">{devAdv?.focus}</p>
+                <p
+                  className="text-xs text-gray-700 mb-3 leading-relaxed bg-white/50 p-2 rounded-lg"
+                  dangerouslySetInnerHTML={{ __html: highlightText(devAdv?.focus || '', devAdv?.focusHighlights || []) }}
+                />
 
                 <h4 className="text-sm font-bold text-blue-900 mb-2 flex items-center gap-1"><FaLightbulb /> この時期のポイント</h4>
-                <p className="text-xs text-gray-700 mb-3 leading-relaxed bg-white/50 p-2 rounded-lg">{devAdv?.key}</p>
+                <p
+                  className="text-xs text-gray-700 mb-3 leading-relaxed bg-white/50 p-2 rounded-lg"
+                  dangerouslySetInnerHTML={{ __html: highlightText(devAdv?.key || '', devAdv?.keyHighlights || []) }}
+                />
 
                 <h4 className="text-sm font-bold text-blue-800 mb-2 flex items-center gap-1"><FaExclamationTriangle /> 注意点</h4>
-                <p className="text-xs text-blue-800 leading-relaxed bg-blue-100 p-2 rounded-lg border border-blue-300">{devAdv?.avoid}</p>
+                <p
+                  className="text-xs text-blue-800 leading-relaxed bg-blue-100 p-2 rounded-lg border border-blue-300"
+                  dangerouslySetInnerHTML={{ __html: highlightText(devAdv?.avoid || '', devAdv?.avoidHighlights || []) }}
+                />
               </div>
 
               {/* 継続的なサポートのご案内 */}

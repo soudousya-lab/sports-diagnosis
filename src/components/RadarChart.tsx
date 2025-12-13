@@ -7,9 +7,10 @@ type Props = {
   keys: string[]
   labels: string[]
   size?: number
+  averageScores?: Record<string, number>
 }
 
-export default function RadarChart({ scores, keys, labels, size = 220 }: Props) {
+export default function RadarChart({ scores, keys, labels, size = 220, averageScores }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -64,6 +65,33 @@ export default function RadarChart({ scores, keys, labels, size = 220 }: Props) 
       ctx.stroke()
     }
 
+    // Draw average polygon (if provided)
+    if (averageScores) {
+      ctx.fillStyle = 'rgba(255, 165, 0, 0.15)'
+      ctx.strokeStyle = '#FF8C00'
+      ctx.lineWidth = 2
+      ctx.setLineDash([5, 3])
+      ctx.beginPath()
+
+      for (let i = 0; i < n; i++) {
+        const angle = (Math.PI * 2 * i / n) - Math.PI / 2
+        const value = averageScores[keys[i]] || 5
+        const r = maxRadius * value / 10
+        const x = cx + Math.cos(angle) * r
+        const y = cy + Math.sin(angle) * r
+        if (i === 0) {
+          ctx.moveTo(x, y)
+        } else {
+          ctx.lineTo(x, y)
+        }
+      }
+
+      ctx.closePath()
+      ctx.fill()
+      ctx.stroke()
+      ctx.setLineDash([])
+    }
+
     // Draw data polygon
     ctx.fillStyle = 'rgba(0, 51, 102, 0.25)'
     ctx.strokeStyle = '#003366'
@@ -98,7 +126,7 @@ export default function RadarChart({ scores, keys, labels, size = 220 }: Props) 
       const y = cy + Math.sin(angle) * (maxRadius + 20)
       ctx.fillText(labels[i], x, y + 4)
     }
-  }, [scores, keys, labels, size])
+  }, [scores, keys, labels, size, averageScores])
 
   return (
     <canvas
