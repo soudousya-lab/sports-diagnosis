@@ -1,9 +1,15 @@
 import { createClient } from '@supabase/supabase-js'
+import { createBrowserClient } from '@supabase/ssr'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+// ブラウザ用Supabaseクライアント（認証セッション対応）
+export function createClientComponentClient() {
+  return createBrowserClient(supabaseUrl, supabaseAnonKey)
+}
 
 // 型定義
 export type Store = {
@@ -87,4 +93,65 @@ export type Training = {
   reps: string | null
   effect: string | null
   sort_order: number
+}
+
+// マルチテナント用型定義
+export type UserRole = 'master' | 'partner' | 'store'
+
+export type Partner = {
+  id: string
+  name: string
+  email: string | null
+  phone: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type UserProfile = {
+  id: string
+  email: string
+  name: string | null
+  role: UserRole
+  partner_id: string | null
+  store_id: string | null
+  created_at: string
+  updated_at: string
+}
+
+// ストア拡張型（partner_id追加）
+export type StoreWithPartner = Store & {
+  partner_id: string | null
+  partner?: Partner | null
+}
+
+// 統計ビュー用型定義
+export type StoreStatistics = {
+  store_id: string
+  store_name: string
+  slug: string
+  partner_id: string | null
+  partner_name: string | null
+  children_count: number
+  measurements_count: number
+  first_measurement_date: string | null
+  last_measurement_date: string | null
+}
+
+export type GradeGenderDistribution = {
+  store_id: string
+  grade: string
+  gender: 'male' | 'female'
+  count: number
+}
+
+export type MonthlyMeasurement = {
+  store_id: string
+  month: string
+  measurement_count: number
+}
+
+export type WeaknessStatistic = {
+  store_id: string
+  weakness_class: string
+  count: number
 }
