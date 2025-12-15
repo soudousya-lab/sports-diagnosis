@@ -57,6 +57,8 @@ export default function MasterDashboard() {
     store_id: ''
   })
   const [partnerForm, setPartnerForm] = useState({ name: '', email: '', phone: '' })
+  const [showStoreModal, setShowStoreModal] = useState(false)
+  const [storeForm, setStoreForm] = useState({ name: '', slug: '', partner_id: '', address: '', phone: '', hours: '' })
 
   const supabase = createClientComponentClient()
 
@@ -173,6 +175,35 @@ export default function MasterDashboard() {
       } else {
         setShowPartnerModal(false)
         setPartnerForm({ name: '', email: '', phone: '' })
+        fetchDashboardData()
+      }
+    } catch {
+      alert('エラーが発生しました')
+    }
+    setSaving(false)
+  }
+
+  const handleCreateStore = async () => {
+    setSaving(true)
+    try {
+      const { data, error } = await supabase
+        .from('stores')
+        .insert({
+          name: storeForm.name,
+          slug: storeForm.slug,
+          partner_id: storeForm.partner_id || null,
+          address: storeForm.address || null,
+          phone: storeForm.phone || null,
+          hours: storeForm.hours || null
+        })
+        .select()
+        .single()
+
+      if (error) {
+        alert('店舗作成に失敗しました: ' + error.message)
+      } else {
+        setShowStoreModal(false)
+        setStoreForm({ name: '', slug: '', partner_id: '', address: '', phone: '', hours: '' })
         fetchDashboardData()
       }
     } catch {
@@ -493,6 +524,13 @@ export default function MasterDashboard() {
                   <FaStore />
                   店舗一覧
                 </h3>
+                <button
+                  onClick={() => setShowStoreModal(true)}
+                  className="flex items-center gap-1 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700 transition-colors"
+                >
+                  <FaPlus />
+                  新規店舗追加
+                </button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -611,6 +649,105 @@ export default function MasterDashboard() {
                     >
                       {saving ? <FaSpinner className="animate-spin" /> : <FaSave />}
                       保存
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 店舗追加モーダル */}
+            {showStoreModal && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4">
+                  <div className="p-4 border-b flex justify-between items-center">
+                    <h3 className="font-bold text-gray-800">新規店舗追加</h3>
+                    <button
+                      onClick={() => setShowStoreModal(false)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <FaTimes />
+                    </button>
+                  </div>
+                  <div className="p-4 space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">店舗名 *</label>
+                      <input
+                        type="text"
+                        value={storeForm.name}
+                        onChange={(e) => setStoreForm({ ...storeForm, name: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        placeholder="例: 渋谷店"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">スラッグ（URL用）*</label>
+                      <input
+                        type="text"
+                        value={storeForm.slug}
+                        onChange={(e) => setStoreForm({ ...storeForm, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-mono text-sm"
+                        placeholder="例: shibuya"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        店舗ページURL: {storeForm.slug || 'xxx'}.nobishiro.kids
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">担当パートナー</label>
+                      <select
+                        value={storeForm.partner_id}
+                        onChange={(e) => setStoreForm({ ...storeForm, partner_id: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      >
+                        <option value="">なし</option>
+                        {stats?.partners.map(p => (
+                          <option key={p.id} value={p.id}>{p.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">住所</label>
+                      <input
+                        type="text"
+                        value={storeForm.address}
+                        onChange={(e) => setStoreForm({ ...storeForm, address: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">電話番号</label>
+                      <input
+                        type="text"
+                        value={storeForm.phone}
+                        onChange={(e) => setStoreForm({ ...storeForm, phone: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">営業時間</label>
+                      <input
+                        type="text"
+                        value={storeForm.hours}
+                        onChange={(e) => setStoreForm({ ...storeForm, hours: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        placeholder="例: 10:00〜18:00"
+                      />
+                    </div>
+                  </div>
+                  <div className="p-4 border-t bg-gray-50 flex justify-end gap-2">
+                    <button
+                      onClick={() => setShowStoreModal(false)}
+                      className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                    >
+                      キャンセル
+                    </button>
+                    <button
+                      onClick={handleCreateStore}
+                      disabled={saving || !storeForm.name || !storeForm.slug}
+                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                    >
+                      {saving ? <FaSpinner className="animate-spin" /> : <FaPlus />}
+                      追加
                     </button>
                   </div>
                 </div>
