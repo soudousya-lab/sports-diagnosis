@@ -2,6 +2,29 @@
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import {
+  HiOutlineChartBar,
+  HiOutlineUserGroup,
+  HiOutlineClipboardList,
+  HiOutlineClock,
+  HiOutlinePrinter,
+  HiOutlineOfficeBuilding,
+  HiOutlineQuestionMarkCircle,
+  HiOutlineTrendingDown,
+  HiOutlineRefresh,
+  HiOutlineDocumentReport,
+  HiOutlineLightningBolt,
+  HiOutlinePhone,
+  HiOutlineChevronRight,
+  HiOutlineChevronDown,
+  HiOutlineArrowDown,
+  HiOutlineStar,
+  HiOutlineCheck,
+  HiOutlinePlay,
+  HiOutlineAcademicCap,
+  HiOutlineShieldCheck,
+  HiOutlineSupport
+} from 'react-icons/hi'
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -131,9 +154,7 @@ export default function Home() {
                   className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 bg-blue-600 text-white rounded-lg font-medium text-sm sm:text-base hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20"
                 >
                   無料で相談する
-                  <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+                  <HiOutlineChevronRight className="w-4 h-4 ml-2" />
                 </Link>
                 <Link
                   href="/admin/login"
@@ -225,7 +246,7 @@ export default function Home() {
                               <div className="text-xs sm:text-sm font-bold text-gray-900">{screen.title}</div>
                               <div className="bg-blue-50 p-3 sm:p-4 rounded-xl text-center">
                                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-full mx-auto mb-2 flex items-center justify-center">
-                                  <span className="text-lg sm:text-xl">🏃</span>
+                                  <HiOutlineLightningBolt className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                                 </div>
                                 <div className="text-xs sm:text-sm font-bold text-gray-900">スピードスター型</div>
                                 <div className="text-[10px] sm:text-xs text-gray-500 mt-1">瞬発力が優れています</div>
@@ -294,15 +315,15 @@ export default function Home() {
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {[
-              { icon: '😓', title: '保護者への説明が難しい', desc: '子どもの成長を客観的に伝える方法がない' },
-              { icon: '📉', title: '新規入会が伸び悩む', desc: '体験会後の入会率が低い' },
-              { icon: '👨‍🏫', title: '指導の質にバラつき', desc: '指導者によって教え方が異なる' },
-              { icon: '🔄', title: '継続率が上がらない', desc: '成長実感がなく退会してしまう' },
-              { icon: '📊', title: 'データ管理が大変', desc: '紙での記録は管理が煩雑' },
-              { icon: '⏰', title: '診断に時間がかかる', desc: '一人ひとり測定するのが大変' },
+              { icon: HiOutlineQuestionMarkCircle, title: '保護者への説明が難しい', desc: '子どもの成長を客観的に伝える方法がない' },
+              { icon: HiOutlineTrendingDown, title: '新規入会が伸び悩む', desc: '体験会後の入会率が低い' },
+              { icon: HiOutlineUserGroup, title: '指導の質にバラつき', desc: '指導者によって教え方が異なる' },
+              { icon: HiOutlineRefresh, title: '継続率が上がらない', desc: '成長実感がなく退会してしまう' },
+              { icon: HiOutlineDocumentReport, title: 'データ管理が大変', desc: '紙での記録は管理が煩雑' },
+              { icon: HiOutlineClock, title: '診断に時間がかかる', desc: '一人ひとり測定するのが大変' },
             ].map((item, index) => (
               <div key={index} className="bg-gray-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:bg-gray-100 transition-colors">
-                <div className="text-2xl sm:text-3xl mb-2 sm:mb-3">{item.icon}</div>
+                <item.icon className="w-7 h-7 sm:w-8 sm:h-8 text-gray-400 mb-3 sm:mb-4" />
                 <h3 className="font-semibold text-gray-900 mb-1 sm:mb-2 text-sm sm:text-base">{item.title}</h3>
                 <p className="text-xs sm:text-sm text-gray-500">{item.desc}</p>
               </div>
@@ -311,9 +332,7 @@ export default function Home() {
 
           <div className="text-center mt-8 sm:mt-12">
             <div className="inline-flex items-center gap-2 text-blue-600 font-medium text-sm sm:text-base">
-              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-              </svg>
+              <HiOutlineArrowDown className="w-5 h-5 sm:w-6 sm:h-6" />
               NOBISHIRO KIDSが解決します
             </div>
           </div>
@@ -333,16 +352,16 @@ export default function Home() {
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {[
-              { icon: '📊', title: '7項目運動能力診断', desc: '握力、立ち幅跳び、15mダッシュなど7つの測定項目から総合的に分析', color: 'blue' },
-              { icon: '🎯', title: '運動タイプ診断', desc: 'お子様の運動特性を8つのタイプに分類。向いているスポーツを提案', color: 'indigo' },
-              { icon: '📝', title: 'トレーニング提案', desc: '診断結果に基づき、弱点を補強するトレーニングメニューを自動提案', color: 'violet' },
-              { icon: '⏱️', title: '運動年齢算出', desc: '実年齢と比較した「運動年齢」でお子様の発達状況を可視化', color: 'purple' },
-              { icon: '🖨️', title: 'レポート出力', desc: '保護者向けの診断レポートをワンクリックで出力。イベントにも活用', color: 'fuchsia' },
-              { icon: '🏢', title: 'マルチ店舗対応', desc: '複数店舗のデータを一元管理。スタッフ権限管理も簡単', color: 'pink' },
+              { icon: HiOutlineChartBar, title: '7項目運動能力診断', desc: '握力、立ち幅跳び、15mダッシュなど7つの測定項目から総合的に分析' },
+              { icon: HiOutlineUserGroup, title: '運動タイプ診断', desc: 'お子様の運動特性を8つのタイプに分類。向いているスポーツを提案' },
+              { icon: HiOutlineClipboardList, title: 'トレーニング提案', desc: '診断結果に基づき、弱点を補強するトレーニングメニューを自動提案' },
+              { icon: HiOutlineClock, title: '運動年齢算出', desc: '実年齢と比較した「運動年齢」でお子様の発達状況を可視化' },
+              { icon: HiOutlinePrinter, title: 'レポート出力', desc: '保護者向けの診断レポートをワンクリックで出力。イベントにも活用' },
+              { icon: HiOutlineOfficeBuilding, title: 'マルチ店舗対応', desc: '複数店舗のデータを一元管理。スタッフ権限管理も簡単' },
             ].map((item, index) => (
               <div key={index} className="bg-white rounded-xl sm:rounded-2xl p-5 sm:p-6 md:p-8 border border-gray-100 hover:border-blue-200 hover:shadow-lg transition-all group">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4 sm:mb-6 group-hover:bg-blue-100 transition-colors">
-                  <span className="text-xl sm:text-2xl">{item.icon}</span>
+                  <item.icon className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                 </div>
                 <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">{item.title}</h3>
                 <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
@@ -377,17 +396,13 @@ export default function Home() {
                   <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">{item.title}</h3>
                   <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-4">{item.desc}</p>
                   <div className="inline-flex items-center gap-1 px-2 sm:px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-medium">
-                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <HiOutlineClock className="w-3 h-3 sm:w-4 sm:h-4" />
                     {item.time}
                   </div>
                 </div>
                 {index < 2 && (
                   <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2">
-                    <svg className="w-6 h-6 sm:w-8 sm:h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
+                    <HiOutlineChevronRight className="w-6 h-6 sm:w-8 sm:h-8 text-gray-300" />
                   </div>
                 )}
               </div>
@@ -458,9 +473,7 @@ export default function Home() {
                   <div className="bg-gray-50 rounded-xl sm:rounded-2xl p-5 sm:p-6 md:p-8 max-w-2xl mx-auto">
                     <div className="flex items-center gap-1 mb-3 sm:mb-4">
                       {[1,2,3,4,5].map(i => (
-                        <svg key={i} className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
+                        <HiOutlineStar key={i} className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400 fill-yellow-400" />
                       ))}
                     </div>
                     <p className="text-gray-700 text-sm sm:text-base md:text-lg leading-relaxed mb-4 sm:mb-6">
@@ -515,9 +528,7 @@ export default function Home() {
               <details key={index} className="group bg-white rounded-xl sm:rounded-2xl border border-gray-100 overflow-hidden">
                 <summary className="flex items-center justify-between p-4 sm:p-5 md:p-6 cursor-pointer hover:bg-gray-50 transition-colors">
                   <span className="font-medium text-gray-900 text-sm sm:text-base pr-4">{item.q}</span>
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 flex-shrink-0 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
+                  <HiOutlineChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 flex-shrink-0 transition-transform group-open:rotate-180" />
                 </summary>
                 <div className="px-4 sm:px-5 md:px-6 pb-4 sm:pb-5 md:pb-6 pt-0 text-xs sm:text-sm text-gray-600 leading-relaxed">
                   {item.a}
@@ -541,13 +552,16 @@ export default function Home() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
             {[
-              { num: '01', title: 'お問い合わせ', desc: 'フォームまたはお電話で' },
-              { num: '02', title: 'ヒアリング', desc: '最適なプランをご提案' },
-              { num: '03', title: 'アカウント発行', desc: '専用URLをお渡し' },
-              { num: '04', title: '運用開始', desc: 'サポートも充実' },
+              { num: '01', title: 'お問い合わせ', desc: 'フォームまたはお電話で', icon: HiOutlinePhone },
+              { num: '02', title: 'ヒアリング', desc: '最適なプランをご提案', icon: HiOutlineSupport },
+              { num: '03', title: 'アカウント発行', desc: '専用URLをお渡し', icon: HiOutlineShieldCheck },
+              { num: '04', title: '運用開始', desc: 'サポートも充実', icon: HiOutlinePlay },
             ].map((item, index) => (
               <div key={index} className="text-center">
-                <div className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-100 mb-2 sm:mb-4">{item.num}</div>
+                <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 mx-auto mb-3 sm:mb-4 bg-blue-50 rounded-xl sm:rounded-2xl flex items-center justify-center">
+                  <item.icon className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-blue-600" />
+                </div>
+                <div className="text-xs sm:text-sm text-blue-600 font-bold mb-1">{item.num}</div>
                 <h3 className="font-semibold text-gray-900 mb-1 sm:mb-2 text-sm sm:text-base">{item.title}</h3>
                 <p className="text-xs sm:text-sm text-gray-600">{item.desc}</p>
               </div>
@@ -577,9 +591,7 @@ export default function Home() {
               href="tel:000-0000-0000"
               className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 bg-transparent text-white rounded-lg font-medium text-sm sm:text-base border-2 border-white/50 hover:bg-white/10 transition-colors"
             >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
+              <HiOutlinePhone className="w-4 h-4 mr-2" />
               お電話での相談
             </a>
           </div>
