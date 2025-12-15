@@ -90,6 +90,7 @@ export default function Home() {
               <a href="#demo" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">デモ</a>
               <a href="#benefits" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">導入メリット</a>
               <a href="#voice" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">導入事例</a>
+              <Link href="/pricing" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">料金</Link>
               <a href="#faq" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">よくある質問</a>
               <Link href="/contact" className="px-5 py-2 bg-blue-600 text-white text-sm rounded-lg font-medium hover:bg-blue-700 transition-colors">
                 お問い合わせ
@@ -117,6 +118,7 @@ export default function Home() {
             <a href="#demo" className="block text-gray-600 hover:text-blue-600 py-2 text-sm" onClick={() => setMobileMenuOpen(false)}>デモ</a>
             <a href="#benefits" className="block text-gray-600 hover:text-blue-600 py-2 text-sm" onClick={() => setMobileMenuOpen(false)}>導入メリット</a>
             <a href="#voice" className="block text-gray-600 hover:text-blue-600 py-2 text-sm" onClick={() => setMobileMenuOpen(false)}>導入事例</a>
+            <Link href="/pricing" className="block text-gray-600 hover:text-blue-600 py-2 text-sm" onClick={() => setMobileMenuOpen(false)}>料金</Link>
             <a href="#faq" className="block text-gray-600 hover:text-blue-600 py-2 text-sm" onClick={() => setMobileMenuOpen(false)}>よくある質問</a>
             <Link href="/contact" className="block w-full text-center px-6 py-3 bg-blue-600 text-white rounded-lg font-medium text-sm">
               お問い合わせ
@@ -619,6 +621,7 @@ export default function Home() {
               <ul className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-gray-500">
                 <li><a href="#features" className="hover:text-blue-600 transition-colors">機能紹介</a></li>
                 <li><a href="#benefits" className="hover:text-blue-600 transition-colors">導入メリット</a></li>
+                <li><Link href="/pricing" className="hover:text-blue-600 transition-colors">料金</Link></li>
                 <li><a href="#flow" className="hover:text-blue-600 transition-colors">導入の流れ</a></li>
               </ul>
             </div>
