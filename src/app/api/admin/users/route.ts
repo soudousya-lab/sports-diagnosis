@@ -1,17 +1,27 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
-// Service Role Key を使用してAdmin操作を行う
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
+// Service Role Key を使用してAdmin操作を行う（遅延初期化）
+let supabaseAdmin: SupabaseClient | null = null
+
+function getSupabaseAdmin(): SupabaseClient {
+  if (!supabaseAdmin) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error('Supabase environment variables are not set')
     }
+    supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
   }
-)
+  return supabaseAdmin
+}
 
 export async function POST(request: Request) {
   try {
@@ -48,8 +58,10 @@ export async function POST(request: Request) {
       )
     }
 
+    const supabase = getSupabaseAdmin()
+
     // Supabase Auth でユーザー作成
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email,
       password,
       email_confirm: true, // メール確認をスキップ
@@ -68,7 +80,7 @@ export async function POST(request: Request) {
     }
 
     // user_profiles テーブルにプロファイルを作成
-    const { error: profileError } = await supabaseAdmin
+    const { error: profileError } = await supabase
       .from('user_profiles')
       .insert({
         id: authData.user.id,
@@ -82,7 +94,7 @@ export async function POST(request: Request) {
     if (profileError) {
       console.error('Profile error:', profileError)
       // ユーザーは作成されたがプロファイルが作成できなかった場合、ユーザーを削除
-      await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
+      await supabase.auth.admin.deleteUser(authData.user.id)
       return NextResponse.json(
         { error: profileError.message },
         { status: 400 }
@@ -108,8 +120,10 @@ export async function POST(request: Request) {
 
 export async function GET() {
   try {
+    const supabase = getSupabaseAdmin()
+
     // 全ユーザープロファイルを取得
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabase
       .from('user_profiles')
       .select(`
         *,
@@ -147,8 +161,10 @@ export async function DELETE(request: Request) {
       )
     }
 
+    const supabase = getSupabaseAdmin()
+
     // user_profiles から削除（CASCADE で auth.users からも削除される）
-    const { error: profileError } = await supabaseAdmin
+    const { error: profileError } = await supabase
       .from('user_profiles')
       .delete()
       .eq('id', userId)
@@ -158,7 +174,7 @@ export async function DELETE(request: Request) {
     }
 
     // Auth からユーザーを削除
-    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId)
+    const { error: authError } = await supabase.auth.admin.deleteUser(userId)
 
     if (authError) {
       console.error('Auth delete error:', authError)

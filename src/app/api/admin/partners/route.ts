@@ -1,16 +1,27 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
+// Service Role Key を使用してAdmin操作を行う（遅延初期化）
+let supabaseAdmin: SupabaseClient | null = null
+
+function getSupabaseAdmin(): SupabaseClient {
+  if (!supabaseAdmin) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error('Supabase environment variables are not set')
     }
+    supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
   }
-)
+  return supabaseAdmin
+}
 
 export async function POST(request: Request) {
   try {
@@ -24,7 +35,9 @@ export async function POST(request: Request) {
       )
     }
 
-    const { data, error } = await supabaseAdmin
+    const supabase = getSupabaseAdmin()
+
+    const { data, error } = await supabase
       .from('partners')
       .insert({ name, email, phone })
       .select()
@@ -59,7 +72,9 @@ export async function DELETE(request: Request) {
       )
     }
 
-    const { error } = await supabaseAdmin
+    const supabase = getSupabaseAdmin()
+
+    const { error } = await supabase
       .from('partners')
       .delete()
       .eq('id', partnerId)

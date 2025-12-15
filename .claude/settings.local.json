@@ -9,7 +9,9 @@
       "Bash(npm run build:*)",
       "Bash(tree:*)",
       "Bash(npx supabase --version)",
-      "Bash(npx supabase:*)"
+      "Bash(npx supabase:*)",
+      "Bash(npx ts-node:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []
