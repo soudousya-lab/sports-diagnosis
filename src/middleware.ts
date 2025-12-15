@@ -9,11 +9,34 @@ function extractSubdomain(host: string): string | null {
     return null
   }
 
-  // 本番環境のドメイン（例: store-a.sports-diagnosis.com）
-  const parts = host.split('.')
+  // ポート番号を除去
+  const hostWithoutPort = host.split(':')[0]
+  const parts = hostWithoutPort.split('.')
 
-  // サブドメインがある場合（例: store-a.sports-diagnosis.com → ["store-a", "sports-diagnosis", "com"]）
-  // admin, www, app は除外
+  // nobishiro.kids の場合（例: store-a.nobishiro.kids → ["store-a", "nobishiro", "kids"]）
+  // vercel.app の場合（例: store-a.sports-diagnosis.vercel.app → ["store-a", "sports-diagnosis", "vercel", "app"]）
+
+  // メインドメインのみの場合はサブドメインなし
+  // nobishiro.kids (2パーツ) → サブドメインなし
+  // xxx.nobishiro.kids (3パーツ) → xxx がサブドメイン
+  // sports-diagnosis.vercel.app (3パーツ) → サブドメインなし（これがメインドメイン）
+  // xxx.sports-diagnosis.vercel.app (4パーツ) → xxx がサブドメイン
+
+  // Vercel のサブドメイン
+  if (host.includes('vercel.app')) {
+    // sports-diagnosis.vercel.app の場合は3パーツでサブドメインなし
+    // xxx.sports-diagnosis.vercel.app の場合は4パーツ以上でサブドメインあり
+    if (parts.length >= 4) {
+      const subdomain = parts[0]
+      if (!['admin', 'www', 'app', 'api'].includes(subdomain)) {
+        return subdomain
+      }
+    }
+    return null
+  }
+
+  // 独自ドメインの場合（nobishiro.kids など）
+  // xxx.nobishiro.kids → 3パーツ → xxx がサブドメイン
   if (parts.length >= 3) {
     const subdomain = parts[0]
     if (!['admin', 'www', 'app', 'api'].includes(subdomain)) {
@@ -151,9 +174,13 @@ function getRoleBasedRedirect(role: string): string {
 
 export const config = {
   matcher: [
-    // 管理画面
-    '/admin/:path*',
-    // サブドメイン用（全てのパスをチェック、静的ファイルは除外）
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+    /*
+     * Match all request paths except:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

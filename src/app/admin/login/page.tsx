@@ -67,7 +67,7 @@ export default function LoginPage() {
             <FaLock className="text-blue-600 text-2xl" />
           </div>
           <h1 className="text-2xl font-bold text-white mb-2">管理画面ログイン</h1>
-          <p className="text-blue-200 text-sm">スポーツ能力診断システム</p>
+          <p className="text-blue-200 text-sm">のびしろキッズ</p>
         </div>
 
         {/* ログインフォーム */}

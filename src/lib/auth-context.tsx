@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, useMemo, ReactNode } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { createClientComponentClient, UserProfile, UserRole } from './supabase'
 
@@ -22,7 +22,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const supabase = createClientComponentClient()
+  // supabaseクライアントをメモ化
+  const supabase = useMemo(() => createClientComponentClient(), [])
 
   useEffect(() => {
     // 初期セッション取得
@@ -55,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     )
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [supabase])
 
   const fetchProfile = async (userId: string) => {
     const { data, error } = await supabase

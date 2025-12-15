@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
-import { createClientComponentClient, StoreStatistics, GradeGenderDistribution, WeaknessStatistic, Partner } from '@/lib/supabase'
+import { createClientComponentClient, StoreStatistics, GradeGenderDistribution, WeaknessStatistic, Partner, Store } from '@/lib/supabase'
 import {
   FaUsers, FaClipboardList, FaStore, FaHandshake, FaChartBar,
   FaSignOutAlt, FaSpinner, FaDownload, FaChartLine, FaChild,
-  FaExclamationTriangle, FaCrown, FaTrophy, FaArrowUp, FaArrowDown
+  FaExclamationTriangle, FaCrown, FaTrophy, FaArrowUp, FaTimes, FaSave, FaEdit,
+  FaUserPlus, FaUserCog, FaTrash, FaPlus
 } from 'react-icons/fa'
 
 type DashboardStats = {
@@ -19,13 +20,43 @@ type DashboardStats = {
   gradeDistribution: GradeGenderDistribution[]
   weaknessStats: WeaknessStatistic[]
   partners: Partner[]
+  stores: Store[]
+}
+
+type UserProfile = {
+  id: string
+  email: string
+  name: string | null
+  role: 'master' | 'partner' | 'store'
+  partner_id: string | null
+  store_id: string | null
+  created_at: string
+  partners?: { name: string } | null
+  stores?: { name: string } | null
 }
 
 export default function MasterDashboard() {
   const { profile, signOut } = useAuth()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'overview' | 'stores' | 'partners' | 'analysis'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'stores' | 'partners' | 'users' | 'analysis'>('overview')
+  const [editingStore, setEditingStore] = useState<Store | null>(null)
+  const [editForm, setEditForm] = useState({ name: '', slug: '', address: '', phone: '', hours: '' })
+  const [saving, setSaving] = useState(false)
+
+  // ユーザー管理用state
+  const [users, setUsers] = useState<UserProfile[]>([])
+  const [showUserModal, setShowUserModal] = useState(false)
+  const [showPartnerModal, setShowPartnerModal] = useState(false)
+  const [userForm, setUserForm] = useState({
+    email: '',
+    password: '',
+    name: '',
+    role: 'store' as 'master' | 'partner' | 'store',
+    partner_id: '',
+    store_id: ''
+  })
+  const [partnerForm, setPartnerForm] = useState({ name: '', email: '', phone: '' })
 
   const supabase = createClientComponentClient()
 
@@ -39,6 +70,7 @@ export default function MasterDashboard() {
     // 並列でデータ取得
     const [
       storesRes,
+      storesDataRes,
       partnersRes,
       childrenRes,
       measurementsRes,
@@ -48,6 +80,7 @@ export default function MasterDashboard() {
       weaknessRes
     ] = await Promise.all([
       supabase.from('stores').select('id', { count: 'exact', head: true }),
+      supabase.from('stores').select('*'),
       supabase.from('partners').select('*'),
       supabase.from('children').select('id', { count: 'exact', head: true }),
       supabase.from('measurements').select('id', { count: 'exact', head: true }),
@@ -67,10 +100,121 @@ export default function MasterDashboard() {
       storeStats: storeStatsRes.data || [],
       gradeDistribution: gradeDistRes.data || [],
       weaknessStats: weaknessRes.data || [],
-      partners: partnersRes.data || []
+      partners: partnersRes.data || [],
+      stores: storesDataRes.data || []
     })
 
     setLoading(false)
+  }
+
+  const fetchUsers = async () => {
+    const res = await fetch('/api/admin/users')
+    const data = await res.json()
+    if (data.users) {
+      setUsers(data.users)
+    }
+  }
+
+  useEffect(() => {
+    if (activeTab === 'users') {
+      fetchUsers()
+    }
+  }, [activeTab])
+
+  const handleCreateUser = async () => {
+    setSaving(true)
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userForm)
+      })
+      const data = await res.json()
+      if (data.error) {
+        alert('ユーザー作成に失敗しました: ' + data.error)
+      } else {
+        setShowUserModal(false)
+        setUserForm({ email: '', password: '', name: '', role: 'store', partner_id: '', store_id: '' })
+        fetchUsers()
+        fetchDashboardData()
+      }
+    } catch {
+      alert('エラーが発生しました')
+    }
+    setSaving(false)
+  }
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm('このユーザーを削除しますか？')) return
+    try {
+      const res = await fetch(`/api/admin/users?id=${userId}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (data.error) {
+        alert('削除に失敗しました: ' + data.error)
+      } else {
+        fetchUsers()
+      }
+    } catch {
+      alert('エラーが発生しました')
+    }
+  }
+
+  const handleCreatePartner = async () => {
+    setSaving(true)
+    try {
+      const res = await fetch('/api/admin/partners', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(partnerForm)
+      })
+      const data = await res.json()
+      if (data.error) {
+        alert('パートナー作成に失敗しました: ' + data.error)
+      } else {
+        setShowPartnerModal(false)
+        setPartnerForm({ name: '', email: '', phone: '' })
+        fetchDashboardData()
+      }
+    } catch {
+      alert('エラーが発生しました')
+    }
+    setSaving(false)
+  }
+
+  const handleEditStore = (store: Store) => {
+    setEditingStore(store)
+    setEditForm({
+      name: store.name,
+      slug: store.slug,
+      address: store.address || '',
+      phone: store.phone || '',
+      hours: store.hours || ''
+    })
+  }
+
+  const handleSaveStore = async () => {
+    if (!editingStore) return
+    setSaving(true)
+
+    const { error } = await supabase
+      .from('stores')
+      .update({
+        name: editForm.name,
+        slug: editForm.slug,
+        address: editForm.address || null,
+        phone: editForm.phone || null,
+        hours: editForm.hours || null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', editingStore.id)
+
+    if (error) {
+      alert('保存に失敗しました: ' + error.message)
+    } else {
+      setEditingStore(null)
+      fetchDashboardData() // データ再取得
+    }
+    setSaving(false)
   }
 
   const handleExportCSV = async () => {
@@ -209,6 +353,7 @@ export default function MasterDashboard() {
               { id: 'overview', label: '概要', icon: FaChartBar },
               { id: 'stores', label: '店舗管理', icon: FaStore },
               { id: 'partners', label: 'パートナー', icon: FaHandshake },
+              { id: 'users', label: 'ユーザー管理', icon: FaUserCog },
               { id: 'analysis', label: '分析・インサイト', icon: FaChartLine },
             ].map(tab => (
               <button
@@ -341,95 +486,416 @@ export default function MasterDashboard() {
         )}
 
         {activeTab === 'stores' && (
-          <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-            <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
-              <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                <FaStore />
-                店舗一覧
-              </h3>
-              <button className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700 transition-colors">
-                + 新規店舗追加
-              </button>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 text-xs text-gray-600">
-                  <tr>
-                    <th className="text-left px-4 py-3">店舗名</th>
-                    <th className="text-left px-4 py-3">スラッグ</th>
-                    <th className="text-left px-4 py-3">担当パートナー</th>
-                    <th className="text-right px-4 py-3">児童数</th>
-                    <th className="text-right px-4 py-3">測定数</th>
-                    <th className="text-center px-4 py-3">操作</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {stats?.storeStats.map(store => (
-                    <tr key={store.store_id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium">{store.store_name}</td>
-                      <td className="px-4 py-3 text-gray-500 text-sm font-mono">{store.slug}</td>
-                      <td className="px-4 py-3">{store.partner_name || '-'}</td>
-                      <td className="px-4 py-3 text-right">{store.children_count}</td>
-                      <td className="px-4 py-3 text-right">{store.measurements_count}</td>
-                      <td className="px-4 py-3 text-center">
-                        <button className="text-blue-600 hover:text-blue-800 text-sm">編集</button>
-                      </td>
+          <>
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
+                <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                  <FaStore />
+                  店舗一覧
+                </h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 text-xs text-gray-600">
+                    <tr>
+                      <th className="text-left px-4 py-3">店舗名</th>
+                      <th className="text-left px-4 py-3">スラッグ</th>
+                      <th className="text-left px-4 py-3">住所</th>
+                      <th className="text-left px-4 py-3">電話番号</th>
+                      <th className="text-right px-4 py-3">児童数</th>
+                      <th className="text-right px-4 py-3">測定数</th>
+                      <th className="text-center px-4 py-3">操作</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y">
+                    {stats?.stores.map(store => {
+                      const storeStat = stats.storeStats.find(s => s.store_id === store.id)
+                      return (
+                        <tr key={store.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 font-medium">{store.name}</td>
+                          <td className="px-4 py-3 text-gray-500 text-sm font-mono">{store.slug}</td>
+                          <td className="px-4 py-3 text-gray-500 text-sm">{store.address || '-'}</td>
+                          <td className="px-4 py-3 text-gray-500 text-sm">{store.phone || '-'}</td>
+                          <td className="px-4 py-3 text-right">{storeStat?.children_count || 0}</td>
+                          <td className="px-4 py-3 text-right">{storeStat?.measurements_count || 0}</td>
+                          <td className="px-4 py-3 text-center">
+                            <button
+                              onClick={() => handleEditStore(store)}
+                              className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm"
+                            >
+                              <FaEdit />
+                              編集
+                            </button>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
+
+            {/* 編集モーダル */}
+            {editingStore && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4">
+                  <div className="p-4 border-b flex justify-between items-center">
+                    <h3 className="font-bold text-gray-800">店舗情報を編集</h3>
+                    <button
+                      onClick={() => setEditingStore(null)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <FaTimes />
+                    </button>
+                  </div>
+                  <div className="p-4 space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">店舗名</label>
+                      <input
+                        type="text"
+                        value={editForm.name}
+                        onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">スラッグ（URL用）</label>
+                      <input
+                        type="text"
+                        value={editForm.slug}
+                        onChange={(e) => setEditForm({ ...editForm, slug: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-mono text-sm"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">例: example.com/{editForm.slug}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">住所</label>
+                      <input
+                        type="text"
+                        value={editForm.address}
+                        onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">電話番号</label>
+                      <input
+                        type="text"
+                        value={editForm.phone}
+                        onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">営業時間</label>
+                      <input
+                        type="text"
+                        value={editForm.hours}
+                        onChange={(e) => setEditForm({ ...editForm, hours: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        placeholder="例: 10:00〜18:00"
+                      />
+                    </div>
+                  </div>
+                  <div className="p-4 border-t bg-gray-50 flex justify-end gap-2">
+                    <button
+                      onClick={() => setEditingStore(null)}
+                      className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                    >
+                      キャンセル
+                    </button>
+                    <button
+                      onClick={handleSaveStore}
+                      disabled={saving}
+                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                    >
+                      {saving ? <FaSpinner className="animate-spin" /> : <FaSave />}
+                      保存
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {activeTab === 'partners' && (
-          <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-            <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
-              <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                <FaHandshake />
-                パートナー一覧
-              </h3>
-              <button className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700 transition-colors">
-                + 新規パートナー追加
-              </button>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 text-xs text-gray-600">
-                  <tr>
-                    <th className="text-left px-4 py-3">パートナー名</th>
-                    <th className="text-left px-4 py-3">メール</th>
-                    <th className="text-left px-4 py-3">電話</th>
-                    <th className="text-right px-4 py-3">担当店舗数</th>
-                    <th className="text-center px-4 py-3">操作</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {stats?.partners.map(partner => {
-                    const storeCount = stats.storeStats.filter(s => s.partner_id === partner.id).length
-                    return (
-                      <tr key={partner.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 font-medium">{partner.name}</td>
-                        <td className="px-4 py-3 text-gray-500">{partner.email || '-'}</td>
-                        <td className="px-4 py-3 text-gray-500">{partner.phone || '-'}</td>
-                        <td className="px-4 py-3 text-right">{storeCount}</td>
-                        <td className="px-4 py-3 text-center">
-                          <button className="text-blue-600 hover:text-blue-800 text-sm">編集</button>
+          <>
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
+                <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                  <FaHandshake />
+                  パートナー一覧
+                </h3>
+                <button
+                  onClick={() => setShowPartnerModal(true)}
+                  className="flex items-center gap-1 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700 transition-colors"
+                >
+                  <FaPlus />
+                  新規パートナー追加
+                </button>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 text-xs text-gray-600">
+                    <tr>
+                      <th className="text-left px-4 py-3">パートナー名</th>
+                      <th className="text-left px-4 py-3">メール</th>
+                      <th className="text-left px-4 py-3">電話</th>
+                      <th className="text-right px-4 py-3">担当店舗数</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {stats?.partners.map(partner => {
+                      const storeCount = stats.storeStats.filter(s => s.partner_id === partner.id).length
+                      return (
+                        <tr key={partner.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 font-medium">{partner.name}</td>
+                          <td className="px-4 py-3 text-gray-500">{partner.email || '-'}</td>
+                          <td className="px-4 py-3 text-gray-500">{partner.phone || '-'}</td>
+                          <td className="px-4 py-3 text-right">{storeCount}</td>
+                        </tr>
+                      )
+                    })}
+                    {(!stats?.partners || stats.partners.length === 0) && (
+                      <tr>
+                        <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
+                          パートナーが登録されていません
                         </td>
                       </tr>
-                    )
-                  })}
-                  {(!stats?.partners || stats.partners.length === 0) && (
-                    <tr>
-                      <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
-                        パートナーが登録されていません
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
+
+            {/* パートナー追加モーダル */}
+            {showPartnerModal && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4">
+                  <div className="p-4 border-b flex justify-between items-center">
+                    <h3 className="font-bold text-gray-800">新規パートナー追加</h3>
+                    <button onClick={() => setShowPartnerModal(false)} className="text-gray-500 hover:text-gray-700">
+                      <FaTimes />
+                    </button>
+                  </div>
+                  <div className="p-4 space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">パートナー名 *</label>
+                      <input
+                        type="text"
+                        value={partnerForm.name}
+                        onChange={(e) => setPartnerForm({ ...partnerForm, name: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
+                      <input
+                        type="email"
+                        value={partnerForm.email}
+                        onChange={(e) => setPartnerForm({ ...partnerForm, email: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">電話番号</label>
+                      <input
+                        type="text"
+                        value={partnerForm.phone}
+                        onChange={(e) => setPartnerForm({ ...partnerForm, phone: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                  </div>
+                  <div className="p-4 border-t bg-gray-50 flex justify-end gap-2">
+                    <button onClick={() => setShowPartnerModal(false)} className="px-4 py-2 text-gray-600 hover:text-gray-800">
+                      キャンセル
+                    </button>
+                    <button
+                      onClick={handleCreatePartner}
+                      disabled={saving || !partnerForm.name}
+                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                    >
+                      {saving ? <FaSpinner className="animate-spin" /> : <FaPlus />}
+                      追加
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {activeTab === 'users' && (
+          <>
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
+                <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                  <FaUserCog />
+                  ユーザー一覧
+                </h3>
+                <button
+                  onClick={() => setShowUserModal(true)}
+                  className="flex items-center gap-1 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700 transition-colors"
+                >
+                  <FaUserPlus />
+                  新規ユーザー追加
+                </button>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 text-xs text-gray-600">
+                    <tr>
+                      <th className="text-left px-4 py-3">名前</th>
+                      <th className="text-left px-4 py-3">メール</th>
+                      <th className="text-center px-4 py-3">ロール</th>
+                      <th className="text-left px-4 py-3">パートナー/店舗</th>
+                      <th className="text-left px-4 py-3">作成日</th>
+                      <th className="text-center px-4 py-3">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {users.map(user => (
+                      <tr key={user.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 font-medium">{user.name || '-'}</td>
+                        <td className="px-4 py-3 text-gray-500">{user.email}</td>
+                        <td className="px-4 py-3 text-center">
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            user.role === 'master' ? 'bg-purple-100 text-purple-700' :
+                            user.role === 'partner' ? 'bg-blue-100 text-blue-700' :
+                            'bg-green-100 text-green-700'
+                          }`}>
+                            {user.role}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-gray-500">
+                          {user.stores?.name || user.partners?.name || '-'}
+                        </td>
+                        <td className="px-4 py-3 text-gray-500 text-sm">
+                          {new Date(user.created_at).toLocaleDateString('ja-JP')}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {user.role !== 'master' && (
+                            <button
+                              onClick={() => handleDeleteUser(user.id)}
+                              className="text-red-600 hover:text-red-800 text-sm"
+                            >
+                              <FaTrash />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                    {users.length === 0 && (
+                      <tr>
+                        <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                          ユーザーが登録されていません
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* ユーザー追加モーダル */}
+            {showUserModal && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4">
+                  <div className="p-4 border-b flex justify-between items-center">
+                    <h3 className="font-bold text-gray-800">新規ユーザー追加</h3>
+                    <button onClick={() => setShowUserModal(false)} className="text-gray-500 hover:text-gray-700">
+                      <FaTimes />
+                    </button>
+                  </div>
+                  <div className="p-4 space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">メールアドレス *</label>
+                      <input
+                        type="email"
+                        value={userForm.email}
+                        onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">パスワード *</label>
+                      <input
+                        type="password"
+                        value={userForm.password}
+                        onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">名前</label>
+                      <input
+                        type="text"
+                        value={userForm.name}
+                        onChange={(e) => setUserForm({ ...userForm, name: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">ロール *</label>
+                      <select
+                        value={userForm.role}
+                        onChange={(e) => setUserForm({ ...userForm, role: e.target.value as 'partner' | 'store', partner_id: '', store_id: '' })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                      >
+                        <option value="store">店舗スタッフ</option>
+                        <option value="partner">パートナー</option>
+                      </select>
+                    </div>
+                    {userForm.role === 'partner' && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">パートナー *</label>
+                        <select
+                          value={userForm.partner_id}
+                          onChange={(e) => setUserForm({ ...userForm, partner_id: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                        >
+                          <option value="">選択してください</option>
+                          {stats?.partners.map(p => (
+                            <option key={p.id} value={p.id}>{p.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                    {userForm.role === 'store' && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">店舗 *</label>
+                        <select
+                          value={userForm.store_id}
+                          onChange={(e) => setUserForm({ ...userForm, store_id: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                        >
+                          <option value="">選択してください</option>
+                          {stats?.stores.map(s => (
+                            <option key={s.id} value={s.id}>{s.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4 border-t bg-gray-50 flex justify-end gap-2">
+                    <button onClick={() => setShowUserModal(false)} className="px-4 py-2 text-gray-600 hover:text-gray-800">
+                      キャンセル
+                    </button>
+                    <button
+                      onClick={handleCreateUser}
+                      disabled={saving || !userForm.email || !userForm.password}
+                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                    >
+                      {saving ? <FaSpinner className="animate-spin" /> : <FaUserPlus />}
+                      追加
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {activeTab === 'analysis' && (

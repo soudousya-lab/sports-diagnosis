@@ -155,6 +155,9 @@ export default function Home() {
       <div className="max-w-5xl mx-auto">
         {/* ヘッダー */}
         <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <span className="text-xs font-medium px-2 py-0.5 bg-white/20 text-white rounded">のびしろキッズ</span>
+          </div>
           <h1 className="text-2xl xs:text-3xl sm:text-4xl font-bold text-white mb-4 tracking-wider">
             運動能力診断システム
           </h1>
@@ -287,7 +290,7 @@ export default function Home() {
 
         {/* フッター */}
         <div className="text-center mt-8 text-blue-200 text-sm">
-          © 2024 運動能力診断システム
+          © 2024 のびしろキッズ
         </div>
       </div>
 

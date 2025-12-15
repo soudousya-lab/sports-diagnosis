@@ -272,6 +272,9 @@ export default function ResultPage() {
             <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 xs:p-5 print:p-3">
               <div className="flex flex-col xs:flex-row justify-between items-start gap-2 xs:gap-0">
                 <div className="text-white">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px] xs:text-xs font-medium px-2 py-0.5 bg-white/20 rounded">のびしろキッズ</span>
+                  </div>
                   <h1 className="text-lg xs:text-2xl font-extrabold tracking-wider mb-1 flex items-center gap-2">
                     <FaTrophy /> 運動能力診断レポート
                   </h1>
@@ -597,6 +600,9 @@ export default function ResultPage() {
           <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-3 xs:p-4 print:p-3">
             <div className="flex flex-col xs:flex-row justify-between items-start gap-2 xs:gap-0">
               <div className="text-white">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[9px] xs:text-[10px] font-medium px-2 py-0.5 bg-white/20 rounded">のびしろキッズ</span>
+                </div>
                 <h1 className="text-lg xs:text-xl font-extrabold tracking-wider mb-1 flex items-center gap-2">
                   <FaTrophy /> 運動能力診断レポート
                 </h1>

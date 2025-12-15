@@ -1,0 +1,179 @@
+import { createClient } from '@supabase/supabase-js'
+import { NextResponse } from 'next/server'
+
+// Service Role Key を使用してAdmin操作を行う
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+)
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json()
+    const { email, password, name, role, partner_id, store_id } = body
+
+    // バリデーション
+    if (!email || !password || !role) {
+      return NextResponse.json(
+        { error: 'email, password, role are required' },
+        { status: 400 }
+      )
+    }
+
+    if (!['master', 'partner', 'store'].includes(role)) {
+      return NextResponse.json(
+        { error: 'Invalid role' },
+        { status: 400 }
+      )
+    }
+
+    // ロールに応じた必須フィールドチェック
+    if (role === 'partner' && !partner_id) {
+      return NextResponse.json(
+        { error: 'partner_id is required for partner role' },
+        { status: 400 }
+      )
+    }
+
+    if (role === 'store' && !store_id) {
+      return NextResponse.json(
+        { error: 'store_id is required for store role' },
+        { status: 400 }
+      )
+    }
+
+    // Supabase Auth でユーザー作成
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true, // メール確認をスキップ
+      user_metadata: {
+        name,
+        role
+      }
+    })
+
+    if (authError) {
+      console.error('Auth error:', authError)
+      return NextResponse.json(
+        { error: authError.message },
+        { status: 400 }
+      )
+    }
+
+    // user_profiles テーブルにプロファイルを作成
+    const { error: profileError } = await supabaseAdmin
+      .from('user_profiles')
+      .insert({
+        id: authData.user.id,
+        email,
+        name: name || email,
+        role,
+        partner_id: role === 'partner' ? partner_id : (role === 'store' ? partner_id : null),
+        store_id: role === 'store' ? store_id : null
+      })
+
+    if (profileError) {
+      console.error('Profile error:', profileError)
+      // ユーザーは作成されたがプロファイルが作成できなかった場合、ユーザーを削除
+      await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
+      return NextResponse.json(
+        { error: profileError.message },
+        { status: 400 }
+      )
+    }
+
+    return NextResponse.json({
+      success: true,
+      user: {
+        id: authData.user.id,
+        email: authData.user.email,
+        role
+      }
+    })
+  } catch (error) {
+    console.error('Server error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function GET() {
+  try {
+    // 全ユーザープロファイルを取得
+    const { data, error } = await supabaseAdmin
+      .from('user_profiles')
+      .select(`
+        *,
+        partners(name),
+        stores(name)
+      `)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 400 }
+      )
+    }
+
+    return NextResponse.json({ users: data })
+  } catch (error) {
+    console.error('Server error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const userId = searchParams.get('id')
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'User ID is required' },
+        { status: 400 }
+      )
+    }
+
+    // user_profiles から削除（CASCADE で auth.users からも削除される）
+    const { error: profileError } = await supabaseAdmin
+      .from('user_profiles')
+      .delete()
+      .eq('id', userId)
+
+    if (profileError) {
+      console.error('Profile delete error:', profileError)
+    }
+
+    // Auth からユーザーを削除
+    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId)
+
+    if (authError) {
+      console.error('Auth delete error:', authError)
+      return NextResponse.json(
+        { error: authError.message },
+        { status: 400 }
+      )
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Server error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}

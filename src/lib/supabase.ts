@@ -1,14 +1,22 @@
 import { createClient } from '@supabase/supabase-js'
 import { createBrowserClient } from '@supabase/ssr'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // ブラウザ用Supabaseクライアント（認証セッション対応）
 export function createClientComponentClient() {
-  return createBrowserClient(supabaseUrl, supabaseAnonKey)
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!url || !key) {
+    console.error('Supabase environment variables are missing:', { url: !!url, key: !!key })
+    throw new Error('Supabase configuration is missing')
+  }
+
+  return createBrowserClient(url, key)
 }
 
 // 型定義
