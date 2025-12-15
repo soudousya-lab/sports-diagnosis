@@ -677,15 +677,15 @@ export default function ResultPage() {
           </div>
 
           {/* 測定結果（7項目） */}
-          <div className="mx-3 xs:mx-4 mt-3 xs:mt-4 print:mx-3 print:mt-2">
-            <div className="text-sm xs:text-base font-bold text-blue-900 mb-2 flex items-center gap-2">
+          <div className="mx-3 xs:mx-4 mt-2 xs:mt-3 print:mx-3 print:mt-1">
+            <div className="text-sm xs:text-base font-bold text-blue-900 mb-1 flex items-center gap-2">
               <FaChartBar /> 7つの能力チェック
             </div>
-            <div className="flex flex-col xs:flex-row gap-3 xs:gap-4 items-center xs:items-end print:flex-row print:gap-3">
-              <div className="w-full xs:w-1/2 flex flex-col items-center print:w-1/2">
-                <RadarChart scores={result.scores} keys={allKeys} labels={allLabels} size={280} averageScores={{ grip: 5, jump: 5, dash: 5, doublejump: 5, squat: 5, sidestep: 5, throw: 5 }} />
+            <div className="flex flex-col xs:flex-row gap-2 xs:gap-4 items-center xs:items-start print:flex-row print:gap-3">
+              <div className="w-full xs:w-1/2 flex flex-col items-center print:w-1/2 -mt-2">
+                <RadarChart scores={result.scores} keys={allKeys} labels={allLabels} size={320} averageScores={{ grip: 5, jump: 5, dash: 5, doublejump: 5, squat: 5, sidestep: 5, throw: 5 }} />
                 {/* チャート凡例 */}
-                <div className="flex gap-3 xs:gap-4 mt-2 text-[9px] xs:text-[10px]">
+                <div className="flex gap-3 xs:gap-4 -mt-1 text-[9px] xs:text-[10px]">
                   <div className="flex items-center gap-1.5">
                     <div className="w-5 xs:w-6 h-0.5 bg-[#003366]"></div>
                     <span className="text-gray-700">あなたの結果</span>
@@ -696,7 +696,7 @@ export default function ResultPage() {
                   </div>
                 </div>
               </div>
-              <div className="w-full xs:w-1/2 space-y-1 print:w-1/2 print:space-y-0.5">
+              <div className="w-full xs:w-1/2 space-y-1 print:w-1/2 print:space-y-0.5 mt-2 xs:mt-0">
                 {measurementItems.map(item => {
                   const score = result.scores[item.key]
                   const grade = getGrade(score)

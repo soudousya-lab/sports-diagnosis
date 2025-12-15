@@ -1,22 +1,38 @@
-import { createClient } from '@supabase/supabase-js'
 import { createBrowserClient } from '@supabase/ssr'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// シングルトンパターンでクライアントを管理（Multiple GoTrueClient警告を防ぐ）
+let supabaseInstance: SupabaseClient | null = null
 
-// ブラウザ用Supabaseクライアント（認証セッション対応）
-export function createClientComponentClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  if (!url || !key) {
-    console.error('Supabase environment variables are missing:', { url: !!url, key: !!key })
-    throw new Error('Supabase configuration is missing')
+function getSupabaseClient(): SupabaseClient {
+  if (typeof window === 'undefined') {
+    // サーバーサイドでは毎回新しいインスタンスを作成（SSRでは問題なし）
+    return createBrowserClient(supabaseUrl, supabaseAnonKey)
   }
 
-  return createBrowserClient(url, key)
+  if (!supabaseInstance) {
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('Supabase environment variables are missing:', { url: !!supabaseUrl, key: !!supabaseAnonKey })
+      throw new Error('Supabase configuration is missing')
+    }
+    supabaseInstance = createBrowserClient(supabaseUrl, supabaseAnonKey)
+  }
+  return supabaseInstance
+}
+
+// Proxyを使って遅延初期化（後方互換性のため）
+export const supabase: SupabaseClient = new Proxy({} as SupabaseClient, {
+  get(_target, prop) {
+    return getSupabaseClient()[prop as keyof SupabaseClient]
+  }
+})
+
+// ブラウザ用Supabaseクライアント（認証セッション対応）
+export function createClientComponentClient(): SupabaseClient {
+  return getSupabaseClient()
 }
 
 // 型定義

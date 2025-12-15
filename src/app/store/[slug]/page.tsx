@@ -1,55 +1,42 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
-import { supabase, Store, Training } from '@/lib/supabase'
-import { runDiagnosis, averageData, categories } from '@/lib/diagnosis'
-import DiagnosisForm from '@/components/DiagnosisForm'
-import SimpleResult from '@/components/SimpleResult'
-import DetailResult from '@/components/DetailResult'
+import { useEffect, useState, useMemo } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { supabase, Store } from '@/lib/supabase'
+import { getGradeDisplay } from '@/lib/diagnosis'
 
-type FormData = {
-  name: string
-  furigana: string
-  grade: string
-  gender: 'male' | 'female'
-  height: number
-  weight: number
-  gripRight: number
-  gripLeft: number
-  jump: number
-  dash: number
-  doublejump?: number
-  squat?: number
-  sidestep?: number
-  throw?: number
+type MeasurementWithChild = {
+  id: string
+  measured_at: string
   mode: 'simple' | 'detail'
-}
-
-type DiagnosisResult = ReturnType<typeof runDiagnosis> & {
-  formData: FormData
-  trainings: Array<{
+  children: {
+    id: string
     name: string
-    description: string
-    reps: string
-    effect: string
-    category: string
-    priority: string
-  }>
+    furigana: string | null
+    grade: string
+    gender: 'male' | 'female'
+  }
+  results: {
+    motor_age: number
+    type_name: string
+    class_level: string
+  }[]
 }
 
 export default function StorePage() {
   const params = useParams()
+  const router = useRouter()
   const slug = params.slug as string
 
   const [store, setStore] = useState<Store | null>(null)
-  const [trainings, setTrainings] = useState<Training[]>([])
+  const [measurements, setMeasurements] = useState<MeasurementWithChild[]>([])
   const [loading, setLoading] = useState(true)
-  const [diagnosisLoading, setDiagnosisLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [result, setResult] = useState<DiagnosisResult | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
-  // 店舗データとトレーニングデータの取得
+  // 店舗データと測定データの取得
   useEffect(() => {
     async function fetchData() {
       try {
@@ -63,15 +50,33 @@ export default function StorePage() {
         if (storeError) throw new Error('店舗が見つかりません')
         setStore(storeData)
 
-        // トレーニングデータ取得
-        const { data: trainingData, error: trainingError } = await supabase
-          .from('trainings')
-          .select('*')
-          .order('ability_key')
-          .order('sort_order')
+        // この店舗の測定データを取得
+        const { data: measurementData, error: measurementError } = await supabase
+          .from('measurements')
+          .select(`
+            id,
+            measured_at,
+            mode,
+            children (
+              id,
+              name,
+              furigana,
+              grade,
+              gender
+            ),
+            results (
+              motor_age,
+              type_name,
+              class_level
+            )
+          `)
+          .eq('store_id', storeData.id)
+          .order('measured_at', { ascending: false })
+          .limit(50)
 
-        if (trainingError) throw trainingError
-        setTrainings(trainingData || [])
+        if (!measurementError && measurementData) {
+          setMeasurements(measurementData as unknown as MeasurementWithChild[])
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'エラーが発生しました')
       } finally {
@@ -82,129 +87,61 @@ export default function StorePage() {
     fetchData()
   }, [slug])
 
-  // 診断実行
-  const handleSubmit = async (formData: FormData) => {
-    if (!store) return
+  // 結果ページへ遷移
+  const handleViewResult = (measurementId: string, viewMode: 'simple' | 'detail') => {
+    router.push(`/result/${measurementId}?mode=${viewMode}`)
+  }
 
-    setDiagnosisLoading(true)
+  // 編集ページへ遷移
+  const handleEdit = (measurementId: string) => {
+    router.push(`/edit/${measurementId}`)
+  }
+
+  // 削除処理
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    setIsDeleting(true)
 
     try {
-      const gripAvg = (formData.gripRight + formData.gripLeft) / 2
-
-      // 診断ロジック実行
-      const diagnosisResult = runDiagnosis(
-        formData.grade,
-        formData.gender,
-        {
-          gripAvg,
-          jump: formData.jump,
-          dash: formData.dash,
-          doublejump: formData.doublejump,
-          squat: formData.squat,
-          sidestep: formData.sidestep,
-          throw: formData.throw
-        },
-        formData.mode
-      )
-
-      // トレーニングメニュー選定
-      const isYoung = ['k5', '1', '2'].includes(formData.grade)
-      const ageGroup = isYoung ? 'young' : 'old'
-      const sorted = Object.entries(diagnosisResult.scores).sort((a, b) => a[1] - b[1])
-      const selectedTrainings: DiagnosisResult['trainings'] = []
-
-      for (let i = 0; i < Math.min(2, sorted.length); i++) {
-        const [key] = sorted[i]
-        const matchingTrainings = trainings.filter(
-          t => t.ability_key === key && t.age_group === ageGroup
-        )
-        matchingTrainings.slice(0, 2).forEach((t, idx) => {
-          selectedTrainings.push({
-            name: t.name,
-            description: t.description || '',
-            reps: t.reps || '',
-            effect: t.effect || '',
-            category: categories[t.ability_key],
-            priority: i === 0 && idx === 0 ? 'high' : 'medium'
-          })
-        })
-      }
-
-      // データベースに保存
-      // 1. 児童データ保存
-      const { data: childData, error: childError } = await supabase
-        .from('children')
-        .insert({
-          store_id: store.id,
-          name: formData.name,
-          furigana: formData.furigana,
-          gender: formData.gender,
-          grade: formData.grade,
-          height: formData.height,
-          weight: formData.weight
-        })
-        .select()
-        .single()
-
-      if (childError) throw childError
-
-      // 2. 測定データ保存
-      const { data: measurementData, error: measurementError } = await supabase
+      const { data: measurement, error: fetchError } = await supabase
         .from('measurements')
-        .insert({
-          child_id: childData.id,
-          store_id: store.id,
-          mode: formData.mode,
-          grip_right: formData.gripRight,
-          grip_left: formData.gripLeft,
-          jump: formData.jump,
-          dash: formData.dash,
-          doublejump: formData.doublejump || null,
-          squat: formData.squat || null,
-          sidestep: formData.sidestep || null,
-          throw: formData.throw || null
-        })
-        .select()
+        .select('child_id')
+        .eq('id', deleteTarget.id)
         .single()
+
+      if (fetchError) throw fetchError
+
+      const childId = measurement?.child_id
+
+      // 1. 結果を削除
+      await supabase
+        .from('results')
+        .delete()
+        .eq('measurement_id', deleteTarget.id)
+
+      // 2. 測定データを削除
+      const { error: measurementError } = await supabase
+        .from('measurements')
+        .delete()
+        .eq('id', deleteTarget.id)
 
       if (measurementError) throw measurementError
 
-      // 3. 診断結果保存
-      const { error: resultError } = await supabase
-        .from('results')
-        .insert({
-          measurement_id: measurementData.id,
-          motor_age: diagnosisResult.motorAge,
-          motor_age_diff: diagnosisResult.motorAgeDiff,
-          type_name: diagnosisResult.type.name,
-          type_description: diagnosisResult.type.desc,
-          class_level: diagnosisResult.classLevel,
-          weakness_class: diagnosisResult.weaknessClass.name,
-          scores: diagnosisResult.scores,
-          recommended_sports: diagnosisResult.sportsAptitude.slice(0, 6),
-          recommended_trainings: selectedTrainings,
-          goals: diagnosisResult.goals
-        })
+      // 3. 子供データも削除
+      if (childId) {
+        await supabase
+          .from('children')
+          .delete()
+          .eq('id', childId)
+      }
 
-      if (resultError) throw resultError
-
-      // 結果をセット
-      setResult({
-        ...diagnosisResult,
-        formData,
-        trainings: selectedTrainings
-      })
-
-      // 結果表示位置までスクロール
-      setTimeout(() => {
-        document.getElementById('result')?.scrollIntoView({ behavior: 'smooth' })
-      }, 100)
-    } catch (err) {
-      console.error('診断エラー:', err)
-      alert('診断中にエラーが発生しました。もう一度お試しください。')
-    } finally {
-      setDiagnosisLoading(false)
+      setMeasurements(prev => prev.filter(m => m.id !== deleteTarget.id))
+      setDeleteTarget(null)
+    } catch (error) {
+      console.error('削除エラー:', error)
+      alert('削除に失敗しました')
     }
+    setIsDeleting(false)
   }
 
   if (loading) {
@@ -226,93 +163,170 @@ export default function StorePage() {
     )
   }
 
-  const avg = result ? averageData[result.formData.grade][result.formData.gender] : null
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 py-6 px-3 xs:px-4">
-      <div className="max-w-4xl mx-auto">
-        {!result ? (
-          <DiagnosisForm
-            store={store}
-            onSubmit={handleSubmit}
-            isLoading={diagnosisLoading}
-          />
-        ) : (
-          <div id="result">
-            {result.formData.mode === 'simple' ? (
-              <SimpleResult
-                store={store}
-                child={{
-                  name: result.formData.name,
-                  furigana: result.formData.furigana,
-                  grade: result.formData.grade,
-                  gender: result.formData.gender,
-                  height: result.formData.height,
-                  weight: result.formData.weight
-                }}
-                measurements={{
-                  gripAvg: (result.formData.gripRight + result.formData.gripLeft) / 2,
-                  jump: result.formData.jump,
-                  dash: result.formData.dash
-                }}
-                result={{
-                  scores: result.scores,
-                  motorAge: result.motorAge,
-                  motorAgeDiff: result.motorAgeDiff,
-                  type: result.type,
-                  classLevel: result.classLevel
-                }}
-                averageData={avg!}
-              />
-            ) : (
-              <DetailResult
-                store={store}
-                child={{
-                  name: result.formData.name,
-                  furigana: result.formData.furigana,
-                  grade: result.formData.grade,
-                  gender: result.formData.gender,
-                  height: result.formData.height,
-                  weight: result.formData.weight
-                }}
-                measurements={{
-                  gripAvg: (result.formData.gripRight + result.formData.gripLeft) / 2,
-                  gripRight: result.formData.gripRight,
-                  gripLeft: result.formData.gripLeft,
-                  jump: result.formData.jump,
-                  dash: result.formData.dash,
-                  doublejump: result.formData.doublejump!,
-                  squat: result.formData.squat!,
-                  sidestep: result.formData.sidestep!,
-                  throw: result.formData.throw!
-                }}
-                result={{
-                  scores: result.scores,
-                  motorAge: result.motorAge,
-                  motorAgeDiff: result.motorAgeDiff,
-                  type: result.type,
-                  classLevel: result.classLevel,
-                  weaknessClass: result.weaknessClass,
-                  sportsAptitude: result.sportsAptitude,
-                  goals: result.goals
-                }}
-                trainings={result.trainings}
-                averageData={avg!}
-              />
-            )}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 py-12 px-4">
+      <div className="max-w-5xl mx-auto">
+        {/* ヘッダー */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <span className="text-xs font-medium px-2 py-0.5 bg-white/20 text-white rounded">NOBISHIRO KIDS</span>
+          </div>
+          <h1 className="text-2xl xs:text-3xl sm:text-4xl font-bold text-white mb-4 tracking-wider">
+            運動能力診断システム
+          </h1>
+          <p className="text-blue-200 text-sm xs:text-base sm:text-lg">
+            {store.name}
+          </p>
+        </div>
 
-            {/* 新しい診断ボタン */}
-            <div className="text-center mt-6 xs:mt-8">
-              <button
-                onClick={() => setResult(null)}
-                className="w-full xs:w-auto px-6 xs:px-8 py-3 xs:py-4 bg-white text-blue-900 font-bold rounded-lg shadow-lg hover:transform hover:-translate-y-1 transition-all text-sm xs:text-base"
+        {/* 新規測定ボタン */}
+        <div className="mb-8">
+          <Link
+            href={`/store/${slug}/new`}
+            className="block w-full bg-gradient-to-r from-green-500 to-green-600 text-white text-center py-4 rounded-xl font-bold text-lg shadow-lg hover:from-green-600 hover:to-green-700 transition-all"
+          >
+            + 新規測定を開始する
+          </Link>
+        </div>
+
+        {/* 測定者一覧 */}
+        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+          <div className="bg-blue-900 text-white px-6 py-4">
+            <h2 className="text-xl font-bold">測定履歴</h2>
+          </div>
+
+          {measurements.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <p className="mb-4">測定データがありません</p>
+              <Link
+                href={`/store/${slug}/new`}
+                className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-all"
               >
-                新しい診断を行う
+                最初の測定を開始する
+              </Link>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-200">
+              {measurements.map(measurement => {
+                const child = measurement.children
+                const result = measurement.results?.[0]
+                const measuredDate = new Date(measurement.measured_at).toLocaleDateString('ja-JP')
+                const hasResult = !!result
+
+                return (
+                  <div
+                    key={measurement.id}
+                    className="p-4 hover:bg-blue-50 transition-all"
+                  >
+                    <div className="flex flex-col xs:flex-row xs:items-center gap-3 xs:gap-4">
+                      <div className="flex items-center gap-3 xs:gap-4 flex-1 min-w-0">
+                        <div className={`w-10 h-10 xs:w-12 xs:h-12 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 ${
+                          child?.gender === 'male' ? 'bg-blue-500' : 'bg-pink-500'
+                        }`}>
+                          {child?.name?.charAt(0) || '?'}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <span className="font-bold text-gray-900 truncate text-sm xs:text-base">
+                              {child?.name || '不明'}
+                            </span>
+                            <span className="text-xs text-gray-500 hidden xs:inline">
+                              {child?.furigana}
+                            </span>
+                            <span className="inline-block px-2 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded">
+                              入力済み
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 xs:gap-3 text-xs xs:text-sm text-gray-600 flex-wrap">
+                            <span>{child ? getGradeDisplay(child.grade) : ''}</span>
+                            <span>•</span>
+                            <span>{child?.gender === 'male' ? '男子' : '女子'}</span>
+                            <span className="hidden xs:inline">•</span>
+                            <span className="hidden xs:inline">{measuredDate}</span>
+                          </div>
+                        </div>
+
+                        {hasResult && (
+                          <div className="text-right hidden sm:block flex-shrink-0">
+                            <div className="text-sm font-bold text-blue-900">
+                              運動器年齢: {Math.round(result.motor_age)}歳
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {result.type_name}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex gap-1.5 xs:gap-2 flex-wrap justify-start xs:justify-end">
+                        <button
+                          onClick={() => handleViewResult(measurement.id, 'simple')}
+                          className="px-2 xs:px-3 py-1.5 xs:py-2 bg-blue-600 text-white text-[10px] xs:text-xs font-bold rounded-lg hover:bg-blue-700 transition-all"
+                        >
+                          サマリー
+                        </button>
+                        <button
+                          onClick={() => handleViewResult(measurement.id, 'detail')}
+                          className="px-2 xs:px-3 py-1.5 xs:py-2 bg-green-600 text-white text-[10px] xs:text-xs font-bold rounded-lg hover:bg-green-700 transition-all"
+                        >
+                          詳細
+                        </button>
+                        <button
+                          onClick={() => handleEdit(measurement.id)}
+                          className="px-2 xs:px-3 py-1.5 xs:py-2 bg-yellow-500 text-white text-[10px] xs:text-xs font-bold rounded-lg hover:bg-yellow-600 transition-all"
+                        >
+                          編集
+                        </button>
+                        <button
+                          onClick={() => setDeleteTarget({ id: measurement.id, name: child?.name || '不明' })}
+                          className="px-2 xs:px-3 py-1.5 xs:py-2 bg-red-500 text-white text-[10px] xs:text-xs font-bold rounded-lg hover:bg-red-600 transition-all"
+                        >
+                          削除
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* フッター */}
+        <div className="text-center mt-8 text-blue-200 text-sm">
+          © 2024 NOBISHIRO KIDS
+        </div>
+      </div>
+
+      {/* 削除確認ダイアログ */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">削除の確認</h3>
+            <p className="text-gray-600 mb-6">
+              <span className="font-bold text-red-600">{deleteTarget.name}</span> さんの測定データを削除しますか？<br />
+              <span className="text-sm text-red-500">※この操作は取り消せません</span>
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-300 transition-all disabled:opacity-50"
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-all disabled:opacity-50"
+              >
+                {isDeleting ? '削除中...' : '削除する'}
               </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }

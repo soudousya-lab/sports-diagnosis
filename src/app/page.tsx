@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { createClientComponentClient } from '@/lib/supabase'
 import { getGradeDisplay } from '@/lib/diagnosis'
 
 type MeasurementWithChild = {
@@ -31,6 +31,9 @@ export default function Home() {
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
+  // supabaseクライアントをメモ化
+  const supabase = useMemo(() => createClientComponentClient(), [])
+
   useEffect(() => {
     async function fetchMeasurements() {
       const { data, error } = await supabase
@@ -57,12 +60,14 @@ export default function Home() {
 
       if (!error && data) {
         setMeasurements(data as unknown as MeasurementWithChild[])
+      } else if (error) {
+        console.error('測定データ取得エラー:', error)
       }
       setLoading(false)
     }
 
     fetchMeasurements()
-  }, [])
+  }, [supabase])
 
   // 結果ページへ遷移（URLパラメータでモードを指定）
   const handleViewResult = (measurementId: string, viewMode: 'simple' | 'detail') => {
