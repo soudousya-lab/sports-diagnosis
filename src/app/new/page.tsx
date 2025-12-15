@@ -210,7 +210,7 @@ export default function NewMeasurementPage() {
             <div className="flex justify-between items-center">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-medium px-2 py-0.5 bg-white/20 rounded">のびしろキッズ</span>
+                  <span className="text-xs font-medium px-2 py-0.5 bg-white/20 rounded">NOBISHIRO KIDS</span>
                 </div>
                 <h1 className="text-lg xs:text-xl font-bold tracking-wider">新規測定入力</h1>
                 <p className="text-xs xs:text-sm opacity-80 mt-1">7項目すべて入力してください</p>

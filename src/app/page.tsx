@@ -156,7 +156,7 @@ export default function Home() {
         {/* ヘッダー */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-3">
-            <span className="text-xs font-medium px-2 py-0.5 bg-white/20 text-white rounded">のびしろキッズ</span>
+            <span className="text-xs font-medium px-2 py-0.5 bg-white/20 text-white rounded">NOBISHIRO KIDS</span>
           </div>
           <h1 className="text-2xl xs:text-3xl sm:text-4xl font-bold text-white mb-4 tracking-wider">
             運動能力診断システム
@@ -290,7 +290,7 @@ export default function Home() {
 
         {/* フッター */}
         <div className="text-center mt-8 text-blue-200 text-sm">
-          © 2024 のびしろキッズ
+          © 2024 NOBISHIRO KIDS
         </div>
       </div>
 

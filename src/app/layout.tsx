@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "のびしろキッズ | 子どもの運動能力診断",
-  description: "お子様の運動能力を科学的に診断し、適性スポーツと効果的なトレーニングを提案します。のびしろキッズで、お子様の可能性を見つけましょう。",
+  title: "NOBISHIRO KIDS | 子どもの運動能力診断",
+  description: "お子様の運動能力を科学的に診断し、適性スポーツと効果的なトレーニングを提案します。NOBISHIRO KIDSで、お子様の可能性を見つけましょう。",
 };
 
 export default function RootLayout({
