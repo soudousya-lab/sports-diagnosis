@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { averageData, getGradeDisplay, categories, developmentAdvice, getGrade, sd, calcDeviation, deviationTo10Scale } from '@/lib/diagnosis'
+import { averageData, getGradeDisplay, categories, developmentAdvice, getGrade, sd, calcDeviation, deviationTo10Scale, determineType, getWeaknessClass, calcSportsAptitude } from '@/lib/diagnosis'
 import RadarChart from '@/components/RadarChart'
 import {
   FaTrophy, FaChartBar, FaBullseye, FaSearch, FaMedal, FaRunning,
@@ -234,11 +234,10 @@ export default function ResultPage() {
     throw: data.throw ? deviationTo10Scale(calcDeviation(data.throw, avg.throw, sd.throw)) : 5
   }
 
-  // DBのスコアの代わりに再計算したスコアを使用
-  const resultWithRecalculatedScores = {
-    ...result,
-    scores: recalculatedScores
-  }
+  // 再計算したスコアから運動タイプ・弱点・適性スポーツを再計算
+  const recalculatedType = determineType(recalculatedScores)
+  const recalculatedWeakness = getWeaknessClass(recalculatedScores)
+  const recalculatedSportsAptitude = calcSportsAptitude(recalculatedScores)
 
   // 強調表示用のヘルパー関数
   const highlightText = (text: string, highlights: string[]) => {
@@ -369,10 +368,10 @@ export default function ResultPage() {
                 <div className="bg-blue-50 rounded-lg p-3 xs:p-4 text-center h-full flex flex-col justify-center print:p-3">
                   <div className="text-xs xs:text-sm text-gray-600 mb-1">あなたの運動タイプ</div>
                   <div className="text-lg xs:text-xl font-black text-blue-800 mb-2 print:text-lg">
-                    {result.type_name}
+                    {recalculatedType.name}
                   </div>
                   <div className="bg-white border-2 border-blue-200 rounded-lg px-2 xs:px-3 py-1.5 text-xs xs:text-sm text-gray-700 print:text-[10px] print:py-1">
-                    {result.type_description}
+                    {recalculatedType.desc}
                   </div>
                 </div>
               </div>
@@ -753,10 +752,10 @@ export default function ResultPage() {
               <div className="bg-blue-50 rounded-lg p-3 xs:p-4 text-center print:p-2">
                 <div className="text-xs text-gray-600 mb-1">あなたの運動タイプ</div>
                 <div className="text-xl xs:text-2xl font-black text-blue-800 mb-2 print:text-lg print:mb-1">
-                  {result.type_name}
+                  {recalculatedType.name}
                 </div>
                 <div className="inline-block bg-white border-2 border-blue-200 rounded-lg px-3 xs:px-4 py-1.5 xs:py-2 text-xs xs:text-sm text-gray-700 print:text-[10px] print:px-2 print:py-1">
-                  {result.type_description}
+                  {recalculatedType.desc}
                 </div>
               </div>
             </div>
@@ -801,7 +800,7 @@ export default function ResultPage() {
                 <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-2 xs:p-3 print:p-2">
                   <div className="text-[9px] font-bold text-blue-800 mb-1">特に適性が高い</div>
                   <div className="flex flex-wrap gap-1 xs:gap-1.5 mb-2 print:mb-1">
-                    {result.recommended_sports?.slice(0, 3).map((sport) => (
+                    {recalculatedSportsAptitude?.slice(0, 3).map((sport) => (
                       <span key={sport.name} className="inline-flex items-center gap-1 px-1.5 xs:px-2 py-0.5 xs:py-1 bg-blue-600 text-white rounded-full text-[9px] xs:text-[10px] font-bold">
                         <span className="text-xs xs:text-sm">{sport.icon}</span> {sport.name}
                       </span>
@@ -809,7 +808,7 @@ export default function ResultPage() {
                   </div>
                   <div className="text-[9px] font-bold text-blue-700 mb-1">適性あり</div>
                   <div className="flex flex-wrap gap-1 xs:gap-1.5">
-                    {result.recommended_sports?.slice(3, 6).map(sport => (
+                    {recalculatedSportsAptitude?.slice(3, 6).map(sport => (
                       <span key={sport.name} className="inline-flex items-center gap-1 px-1.5 xs:px-2 py-0.5 xs:py-1 bg-blue-400 text-white rounded-full text-[9px] xs:text-[10px] font-bold">
                         <span className="text-xs xs:text-sm">{sport.icon}</span> {sport.name}
                       </span>
