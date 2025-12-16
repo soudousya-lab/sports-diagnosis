@@ -79,6 +79,7 @@ export type Store = {
   slug: string
   logo_url: string | null
   line_qr_url: string | null
+  reservation_qr_url: string | null
   address: string | null
   phone: string | null
   hours: string | null

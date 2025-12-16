@@ -6,7 +6,8 @@ CREATE TABLE stores (
   name VARCHAR(255) NOT NULL,
   slug VARCHAR(100) UNIQUE NOT NULL, -- URL用のスラッグ (例: store-a)
   logo_url TEXT,
-  line_qr_url TEXT,
+  line_qr_url TEXT, -- LINE QRコードURL（Supabase Storage）
+  reservation_qr_url TEXT, -- 予約QRコードURL（Supabase Storage）
   address TEXT,
   phone VARCHAR(20),
   hours TEXT, -- 営業時間

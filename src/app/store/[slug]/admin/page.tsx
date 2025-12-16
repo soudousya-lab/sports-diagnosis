@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Store, createClientComponentClient } from '@/lib/supabase'
 import {
   FaUsers, FaClipboardList, FaArrowLeft,
   FaSpinner, FaChartLine, FaChild,
-  FaCalendarAlt, FaDownload
+  FaCalendarAlt, FaDownload, FaQrcode, FaUpload, FaTrash
 } from 'react-icons/fa'
 
 type GradeDistribution = {
@@ -39,6 +39,9 @@ export default function StoreAdminPage() {
   const [stats, setStats] = useState<StoreStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [uploadingQr, setUploadingQr] = useState<'line' | 'reservation' | null>(null)
+  const lineQrInputRef = useRef<HTMLInputElement>(null)
+  const reservationQrInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     let isMounted = true
@@ -271,6 +274,69 @@ export default function StoreAdminPage() {
     }
   }
 
+  // QRコードアップロード処理
+  const handleQrUpload = async (file: File, qrType: 'line' | 'reservation') => {
+    if (!store) return
+
+    setUploadingQr(qrType)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('storeId', store.id)
+      formData.append('qrType', qrType)
+
+      const response = await fetch('/api/store/qr-upload', {
+        method: 'POST',
+        body: formData
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'アップロードに失敗しました')
+      }
+
+      // ローカル状態を更新
+      setStore(prev => prev ? {
+        ...prev,
+        [qrType === 'line' ? 'line_qr_url' : 'reservation_qr_url']: result.url
+      } : null)
+
+      alert(`${qrType === 'line' ? 'LINE' : '予約'}QRコードをアップロードしました`)
+    } catch (err) {
+      console.error('QRアップロードエラー:', err)
+      alert(err instanceof Error ? err.message : 'アップロードに失敗しました')
+    } finally {
+      setUploadingQr(null)
+    }
+  }
+
+  // QRコード削除処理
+  const handleQrDelete = async (qrType: 'line' | 'reservation') => {
+    if (!store) return
+    if (!confirm(`${qrType === 'line' ? 'LINE' : '予約'}QRコードを削除しますか？`)) return
+
+    try {
+      const updateField = qrType === 'line' ? 'line_qr_url' : 'reservation_qr_url'
+      const { error: updateError } = await supabase
+        .from('stores')
+        .update({ [updateField]: null })
+        .eq('id', store.id)
+
+      if (updateError) throw updateError
+
+      setStore(prev => prev ? {
+        ...prev,
+        [updateField]: null
+      } : null)
+
+      alert(`${qrType === 'line' ? 'LINE' : '予約'}QRコードを削除しました`)
+    } catch (err) {
+      console.error('QR削除エラー:', err)
+      alert('削除に失敗しました')
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 flex items-center justify-center">
@@ -346,6 +412,146 @@ export default function StoreAdminPage() {
               <FaDownload className="text-purple-500 text-xl" />
               <span className="text-xs text-gray-600 font-medium">CSVダウンロード</span>
             </button>
+          </div>
+        </div>
+
+        {/* QRコード設定セクション */}
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
+          <div className="p-4 border-b bg-gray-50">
+            <h3 className="font-bold text-gray-800 flex items-center gap-2">
+              <FaQrcode className="text-blue-500" />
+              QRコード設定
+            </h3>
+            <p className="text-xs text-gray-500 mt-1">診断結果シートに表示されるQRコードを設定します</p>
+          </div>
+          <div className="p-4">
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* 予約QRコード */}
+              <div className="border rounded-lg p-4">
+                <h4 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
+                  <FaCalendarAlt className="text-orange-500" />
+                  予約QRコード
+                </h4>
+                <div className="flex flex-col items-center gap-3">
+                  {store.reservation_qr_url ? (
+                    <>
+                      <div className="w-32 h-32 bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-200">
+                        <img
+                          src={store.reservation_qr_url}
+                          alt="予約QRコード"
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => reservationQrInputRef.current?.click()}
+                          className="px-3 py-1.5 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-1"
+                          disabled={uploadingQr !== null}
+                        >
+                          <FaUpload /> 変更
+                        </button>
+                        <button
+                          onClick={() => handleQrDelete('reservation')}
+                          className="px-3 py-1.5 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors flex items-center gap-1"
+                          disabled={uploadingQr !== null}
+                        >
+                          <FaTrash /> 削除
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => reservationQrInputRef.current?.click()}
+                      className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                      disabled={uploadingQr !== null}
+                    >
+                      {uploadingQr === 'reservation' ? (
+                        <FaSpinner className="animate-spin text-blue-500 text-2xl" />
+                      ) : (
+                        <>
+                          <FaUpload className="text-gray-400 text-2xl" />
+                          <span className="text-xs text-gray-500">アップロード</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                  <input
+                    ref={reservationQrInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) handleQrUpload(file, 'reservation')
+                      e.target.value = ''
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* LINE QRコード */}
+              <div className="border rounded-lg p-4">
+                <h4 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
+                  <FaQrcode className="text-green-500" />
+                  LINE QRコード
+                </h4>
+                <div className="flex flex-col items-center gap-3">
+                  {store.line_qr_url ? (
+                    <>
+                      <div className="w-32 h-32 bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-200">
+                        <img
+                          src={store.line_qr_url}
+                          alt="LINE QRコード"
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => lineQrInputRef.current?.click()}
+                          className="px-3 py-1.5 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-1"
+                          disabled={uploadingQr !== null}
+                        >
+                          <FaUpload /> 変更
+                        </button>
+                        <button
+                          onClick={() => handleQrDelete('line')}
+                          className="px-3 py-1.5 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors flex items-center gap-1"
+                          disabled={uploadingQr !== null}
+                        >
+                          <FaTrash /> 削除
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => lineQrInputRef.current?.click()}
+                      className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-green-500 hover:bg-green-50 transition-colors"
+                      disabled={uploadingQr !== null}
+                    >
+                      {uploadingQr === 'line' ? (
+                        <FaSpinner className="animate-spin text-green-500 text-2xl" />
+                      ) : (
+                        <>
+                          <FaUpload className="text-gray-400 text-2xl" />
+                          <span className="text-xs text-gray-500">アップロード</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                  <input
+                    ref={lineQrInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) handleQrUpload(file, 'line')
+                      e.target.value = ''
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

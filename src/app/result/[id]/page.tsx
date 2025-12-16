@@ -56,6 +56,8 @@ type MeasurementData = {
   stores: {
     name: string
     theme_color: string
+    line_qr_url: string | null
+    reservation_qr_url: string | null
   }
 }
 
@@ -131,10 +133,10 @@ export default function ResultPage() {
           console.error('Result error:', resultError)
         }
 
-        // 店舗データを取得
+        // 店舗データを取得（QRコードURL含む）
         const { data: storeData, error: storeError } = await supabase
           .from('stores')
-          .select('name, theme_color')
+          .select('name, theme_color, line_qr_url, reservation_qr_url')
           .eq('id', measurementData.store_id)
           .single()
 
@@ -443,7 +445,7 @@ export default function ResultPage() {
                     <div className="text-center bg-white p-2 xs:p-3 rounded-lg shadow-md border-2 border-blue-200 print:p-2">
                       <div className="w-12 h-12 xs:w-16 xs:h-16 mx-auto mb-1.5 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-200 print:w-12 print:h-12">
                         <img
-                          src="/qr/reservation.png"
+                          src={data?.stores?.reservation_qr_url || '/qr/reservation.png'}
                           alt="予約QRコード"
                           className="w-full h-full object-contain"
                           onError={(e) => {
@@ -458,7 +460,7 @@ export default function ResultPage() {
                     <div className="text-center bg-white p-2 xs:p-3 rounded-lg shadow-md border-2 border-blue-200 print:p-2">
                       <div className="w-12 h-12 xs:w-16 xs:h-16 mx-auto mb-1.5 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-200 print:w-12 print:h-12">
                         <img
-                          src="/qr/line.png"
+                          src={data?.stores?.line_qr_url || '/qr/line.png'}
                           alt="LINE QRコード"
                           className="w-full h-full object-contain"
                           onError={(e) => {
@@ -976,7 +978,7 @@ export default function ResultPage() {
                   <div className="text-center bg-white p-2 xs:p-3 rounded-lg shadow-md border-2 border-blue-200 print:p-2">
                     <div className="w-14 h-14 xs:w-20 xs:h-20 mx-auto mb-1.5 xs:mb-2 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-200 print:w-14 print:h-14">
                       <img
-                        src="/qr/reservation.png"
+                        src={data?.stores?.reservation_qr_url || '/qr/reservation.png'}
                         alt="予約QRコード"
                         className="w-full h-full object-contain"
                         onError={(e) => {
@@ -991,7 +993,7 @@ export default function ResultPage() {
                   <div className="text-center bg-white p-2 xs:p-3 rounded-lg shadow-md border-2 border-blue-200 print:p-2">
                     <div className="w-14 h-14 xs:w-20 xs:h-20 mx-auto mb-1.5 xs:mb-2 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-200 print:w-14 print:h-14">
                       <img
-                        src="/qr/line.png"
+                        src={data?.stores?.line_qr_url || '/qr/line.png'}
                         alt="LINE QRコード"
                         className="w-full h-full object-contain"
                         onError={(e) => {
