@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { averageData, getGradeDisplay, categories, developmentAdvice, getGrade } from '@/lib/diagnosis'
+import { averageData, getGradeDisplay, categories, developmentAdvice, getGrade, sd, calcDeviation, deviationTo10Scale } from '@/lib/diagnosis'
 import RadarChart from '@/components/RadarChart'
 import {
   FaTrophy, FaChartBar, FaBullseye, FaSearch, FaMedal, FaRunning,
@@ -222,6 +222,23 @@ export default function ResultPage() {
 
   const gripAvg = (data.grip_right + data.grip_left) / 2
   const actualAge = child.grade === 'k5' ? 6 : parseInt(child.grade) + 6
+
+  // スコアを測定データから再計算（最新の平均値・標準偏差を使用）
+  const recalculatedScores: Record<string, number> = {
+    grip: deviationTo10Scale(calcDeviation(gripAvg, avg.grip, sd.grip)),
+    jump: deviationTo10Scale(calcDeviation(data.jump, avg.jump, sd.jump)),
+    dash: deviationTo10Scale(calcDeviation(data.dash, avg.dash, sd.dash, true)), // タイムは逆転
+    doublejump: data.doublejump ? deviationTo10Scale(calcDeviation(data.doublejump, avg.doublejump, sd.doublejump)) : 5,
+    squat: data.squat ? deviationTo10Scale(calcDeviation(data.squat, avg.squat, sd.squat)) : 5,
+    sidestep: data.sidestep ? deviationTo10Scale(calcDeviation(data.sidestep, avg.sidestep, sd.sidestep)) : 5,
+    throw: data.throw ? deviationTo10Scale(calcDeviation(data.throw, avg.throw, sd.throw)) : 5
+  }
+
+  // DBのスコアの代わりに再計算したスコアを使用
+  const resultWithRecalculatedScores = {
+    ...result,
+    scores: recalculatedScores
+  }
 
   // 強調表示用のヘルパー関数
   const highlightText = (text: string, highlights: string[]) => {
@@ -492,7 +509,7 @@ export default function ResultPage() {
 
                   {/* チャート */}
                   <div className="flex justify-center mb-3">
-                    <RadarChart scores={result.scores} keys={simpleAllKeys} labels={simpleAllLabels} size={200} averageScores={{ grip: 5, jump: 5, dash: 5, doublejump: 5, squat: 5, sidestep: 5, throw: 5 }} />
+                    <RadarChart scores={recalculatedScores} keys={simpleAllKeys} labels={simpleAllLabels} size={200} averageScores={{ grip: 5, jump: 5, dash: 5, doublejump: 5, squat: 5, sidestep: 5, throw: 5 }} />
                   </div>
 
                   {/* 凡例 */}
@@ -510,7 +527,7 @@ export default function ResultPage() {
                   {/* インジケータ */}
                   <div className="space-y-1.5 flex-1">
                     {simpleMeasurementItems.map(item => {
-                      const score = result.scores[item.key]
+                      const score = recalculatedScores[item.key]
                       const grade = getGrade(score)
                       return (
                         <div key={item.key} className="bg-gray-50 rounded-lg p-2 border border-gray-200">
@@ -573,7 +590,7 @@ export default function ResultPage() {
     { key: 'throw', name: 'ボール投げ', cat: '投力', val: `${data.throw}m`, avg: `${avg.throw}m` }
   ]
 
-  const sorted = Object.entries(result.scores).sort((a, b) => a[1] - b[1])
+  const sorted = Object.entries(recalculatedScores).sort((a, b) => a[1] - b[1])
   const weakestKey = sorted[0][0]
   const strongestKey = sorted[sorted.length - 1][0]
   // 15m走から50m走への変換（中間〜後半でスピードに乗ることを考慮）
@@ -684,7 +701,7 @@ export default function ResultPage() {
             </div>
             <div className="flex flex-col xs:flex-row gap-2 xs:gap-4 items-center xs:items-start print:flex-row print:gap-3">
               <div className="w-full xs:w-1/2 flex flex-col items-center print:w-1/2 -mt-2">
-                <RadarChart scores={result.scores} keys={allKeys} labels={allLabels} size={320} averageScores={{ grip: 5, jump: 5, dash: 5, doublejump: 5, squat: 5, sidestep: 5, throw: 5 }} />
+                <RadarChart scores={recalculatedScores} keys={allKeys} labels={allLabels} size={320} averageScores={{ grip: 5, jump: 5, dash: 5, doublejump: 5, squat: 5, sidestep: 5, throw: 5 }} />
                 {/* チャート凡例 */}
                 <div className="flex gap-3 xs:gap-4 -mt-1 text-[9px] xs:text-[10px]">
                   <div className="flex items-center gap-1.5">
@@ -699,7 +716,7 @@ export default function ResultPage() {
               </div>
               <div className="w-full xs:w-1/2 space-y-1 print:w-1/2 print:space-y-0.5 mt-2 xs:mt-0">
                 {measurementItems.map(item => {
-                  const score = result.scores[item.key]
+                  const score = recalculatedScores[item.key]
                   const grade = getGrade(score)
                   return (
                     <div key={item.key} className="bg-gray-50 rounded-lg p-2 border border-gray-200 print:p-1">
@@ -767,12 +784,12 @@ export default function ResultPage() {
                 <div className="space-y-2 print:space-y-1">
                   <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-2 print:p-1.5">
                     <span className="text-[9px] font-bold text-blue-700 bg-blue-200 px-1.5 py-0.5 rounded-full">レベルアップ項目</span>
-                    <div className="font-bold text-gray-800 text-xs xs:text-sm mt-1 print:text-[10px]">{categories[weakestKey]}（{result.scores[weakestKey]}点）</div>
+                    <div className="font-bold text-gray-800 text-xs xs:text-sm mt-1 print:text-[10px]">{categories[weakestKey]}（{recalculatedScores[weakestKey]}点）</div>
                     <p className="text-[8px] xs:text-[9px] text-gray-600">ここを強化すると全体がグンと伸びる！</p>
                   </div>
                   <div className="bg-blue-50 border-2 border-blue-400 rounded-lg p-2 print:p-1.5">
                     <span className="text-[9px] font-bold text-blue-800 bg-blue-300 px-1.5 py-0.5 rounded-full">得意項目</span>
-                    <div className="font-bold text-gray-800 text-xs xs:text-sm mt-1 print:text-[10px]">{categories[strongestKey]}（{result.scores[strongestKey]}点）</div>
+                    <div className="font-bold text-gray-800 text-xs xs:text-sm mt-1 print:text-[10px]">{categories[strongestKey]}（{recalculatedScores[strongestKey]}点）</div>
                     <p className="text-[8px] xs:text-[9px] text-gray-600">この強みを活かしたスポーツで活躍しよう！</p>
                   </div>
                 </div>
