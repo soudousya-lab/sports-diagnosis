@@ -441,38 +441,34 @@ export default function ResultPage() {
                     詳細な診断結果と、お子様に合った<br />
                     専門的なトレーニング指導を受けられます！
                   </p>
-                  <div className="grid grid-cols-2 gap-2 xs:gap-3 print:gap-2">
-                    <div className="text-center bg-white p-2 xs:p-3 rounded-lg shadow-md border-2 border-blue-200 print:p-2">
-                      <div className="w-12 h-12 xs:w-16 xs:h-16 mx-auto mb-1.5 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-200 print:w-12 print:h-12">
-                        <img
-                          src={data?.stores?.reservation_qr_url || '/qr/reservation.png'}
-                          alt="予約QRコード"
-                          className="w-full h-full object-contain"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement
-                            target.style.display = 'none'
-                            target.parentElement!.innerHTML = '<span class="text-[10px] text-gray-400">QR準備中</span>'
-                          }}
-                        />
-                      </div>
-                      <p className="text-[10px] xs:text-xs font-bold text-blue-700 flex items-center justify-center gap-1"><FaCalendarAlt /> 体験予約</p>
+                  {(data?.stores?.reservation_qr_url || data?.stores?.line_qr_url) && (
+                    <div className={`grid gap-2 xs:gap-3 print:gap-2 ${data?.stores?.reservation_qr_url && data?.stores?.line_qr_url ? 'grid-cols-2' : 'grid-cols-1 max-w-[150px] mx-auto'}`}>
+                      {data?.stores?.reservation_qr_url && (
+                        <div className="text-center bg-white p-2 xs:p-3 rounded-lg shadow-md border-2 border-blue-200 print:p-2">
+                          <div className="w-12 h-12 xs:w-16 xs:h-16 mx-auto mb-1.5 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-200 print:w-12 print:h-12">
+                            <img
+                              src={data.stores.reservation_qr_url}
+                              alt="予約QRコード"
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                          <p className="text-[10px] xs:text-xs font-bold text-blue-700 flex items-center justify-center gap-1"><FaCalendarAlt /> 体験予約</p>
+                        </div>
+                      )}
+                      {data?.stores?.line_qr_url && (
+                        <div className="text-center bg-white p-2 xs:p-3 rounded-lg shadow-md border-2 border-blue-200 print:p-2">
+                          <div className="w-12 h-12 xs:w-16 xs:h-16 mx-auto mb-1.5 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-200 print:w-12 print:h-12">
+                            <img
+                              src={data.stores.line_qr_url}
+                              alt="LINE QRコード"
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                          <p className="text-[10px] xs:text-xs font-bold text-blue-700 flex items-center justify-center gap-1"><FaComments /> LINE相談</p>
+                        </div>
+                      )}
                     </div>
-                    <div className="text-center bg-white p-2 xs:p-3 rounded-lg shadow-md border-2 border-blue-200 print:p-2">
-                      <div className="w-12 h-12 xs:w-16 xs:h-16 mx-auto mb-1.5 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-200 print:w-12 print:h-12">
-                        <img
-                          src={data?.stores?.line_qr_url || '/qr/line.png'}
-                          alt="LINE QRコード"
-                          className="w-full h-full object-contain"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement
-                            target.style.display = 'none'
-                            target.parentElement!.innerHTML = '<span class="text-[10px] text-gray-400">QR準備中</span>'
-                          }}
-                        />
-                      </div>
-                      <p className="text-[10px] xs:text-xs font-bold text-blue-700 flex items-center justify-center gap-1"><FaComments /> LINE相談</p>
-                    </div>
-                  </div>
+                  )}
                   <p className="text-[10px] xs:text-xs text-blue-700 mt-2 text-center font-medium bg-blue-100 p-1.5 rounded-lg flex items-center justify-center gap-1 print:mt-1.5 print:p-1">
                     <FaChartLine /> 専門的に丁寧に指導します！
                   </p>
@@ -974,38 +970,34 @@ export default function ResultPage() {
                   お子様の運動能力をさらに伸ばすために、<br />
                   定期的な測定と専門的なトレーニング指導をおすすめします。
                 </p>
-                <div className="grid grid-cols-2 gap-2 xs:gap-3 print:gap-2">
-                  <div className="text-center bg-white p-2 xs:p-3 rounded-lg shadow-md border-2 border-blue-200 print:p-2">
-                    <div className="w-14 h-14 xs:w-20 xs:h-20 mx-auto mb-1.5 xs:mb-2 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-200 print:w-14 print:h-14">
-                      <img
-                        src={data?.stores?.reservation_qr_url || '/qr/reservation.png'}
-                        alt="予約QRコード"
-                        className="w-full h-full object-contain"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement
-                          target.style.display = 'none'
-                          target.parentElement!.innerHTML = '<span class="text-[10px] text-gray-400">QR準備中</span>'
-                        }}
-                      />
-                    </div>
-                    <p className="text-[10px] xs:text-xs font-bold text-blue-700 flex items-center justify-center gap-1"><FaCalendarAlt /> 次回の測定を予約</p>
+                {(data?.stores?.reservation_qr_url || data?.stores?.line_qr_url) && (
+                  <div className={`grid gap-2 xs:gap-3 print:gap-2 ${data?.stores?.reservation_qr_url && data?.stores?.line_qr_url ? 'grid-cols-2' : 'grid-cols-1 max-w-[180px] mx-auto'}`}>
+                    {data?.stores?.reservation_qr_url && (
+                      <div className="text-center bg-white p-2 xs:p-3 rounded-lg shadow-md border-2 border-blue-200 print:p-2">
+                        <div className="w-14 h-14 xs:w-20 xs:h-20 mx-auto mb-1.5 xs:mb-2 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-200 print:w-14 print:h-14">
+                          <img
+                            src={data.stores.reservation_qr_url}
+                            alt="予約QRコード"
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        <p className="text-[10px] xs:text-xs font-bold text-blue-700 flex items-center justify-center gap-1"><FaCalendarAlt /> 次回の測定を予約</p>
+                      </div>
+                    )}
+                    {data?.stores?.line_qr_url && (
+                      <div className="text-center bg-white p-2 xs:p-3 rounded-lg shadow-md border-2 border-blue-200 print:p-2">
+                        <div className="w-14 h-14 xs:w-20 xs:h-20 mx-auto mb-1.5 xs:mb-2 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-200 print:w-14 print:h-14">
+                          <img
+                            src={data.stores.line_qr_url}
+                            alt="LINE QRコード"
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        <p className="text-[10px] xs:text-xs font-bold text-blue-700 flex items-center justify-center gap-1"><FaComments /> LINEで相談・質問</p>
+                      </div>
+                    )}
                   </div>
-                  <div className="text-center bg-white p-2 xs:p-3 rounded-lg shadow-md border-2 border-blue-200 print:p-2">
-                    <div className="w-14 h-14 xs:w-20 xs:h-20 mx-auto mb-1.5 xs:mb-2 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-200 print:w-14 print:h-14">
-                      <img
-                        src={data?.stores?.line_qr_url || '/qr/line.png'}
-                        alt="LINE QRコード"
-                        className="w-full h-full object-contain"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement
-                          target.style.display = 'none'
-                          target.parentElement!.innerHTML = '<span class="text-[10px] text-gray-400">QR準備中</span>'
-                        }}
-                      />
-                    </div>
-                    <p className="text-[10px] xs:text-xs font-bold text-blue-700 flex items-center justify-center gap-1"><FaComments /> LINEで相談・質問</p>
-                  </div>
-                </div>
+                )}
                 <p className="text-[10px] xs:text-xs text-blue-700 mt-2 xs:mt-3 text-center font-medium bg-blue-100 p-1.5 xs:p-2 rounded-lg flex items-center justify-center gap-1 print:mt-2 print:p-1.5">
                   <FaChartLine /> 1ヶ月ごとの測定で成長を実感できます！
                 </p>
