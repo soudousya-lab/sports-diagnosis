@@ -2,15 +2,30 @@
 
 import { useEffect, useRef } from 'react'
 
+type HistoryData = {
+  scores: Record<string, number>
+  date: string
+  label?: string
+}
+
 type Props = {
   scores: Record<string, number>
   keys: string[]
   labels: string[]
   size?: number
   averageScores?: Record<string, number>
+  historyData?: HistoryData[]  // 過去の測定データ（最大4件）
 }
 
-export default function RadarChart({ scores, keys, labels, size = 220, averageScores }: Props) {
+// 過去データの色定義（古いものほど薄い）
+const historyColors = [
+  { fill: 'rgba(34, 197, 94, 0.15)', stroke: '#22c55e' },   // 1回前: 緑
+  { fill: 'rgba(168, 85, 247, 0.12)', stroke: '#a855f7' },  // 2回前: 紫
+  { fill: 'rgba(251, 146, 60, 0.10)', stroke: '#fb923c' },  // 3回前: オレンジ
+  { fill: 'rgba(156, 163, 175, 0.08)', stroke: '#9ca3af' }, // 4回前: グレー
+]
+
+export default function RadarChart({ scores, keys, labels, size = 220, averageScores, historyData }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -63,6 +78,40 @@ export default function RadarChart({ scores, keys, labels, size = 220, averageSc
       ctx.moveTo(cx, cy)
       ctx.lineTo(cx + Math.cos(angle) * maxRadius, cy + Math.sin(angle) * maxRadius)
       ctx.stroke()
+    }
+
+    // Draw history polygons (from oldest to newest, so newest is on top)
+    if (historyData && historyData.length > 0) {
+      // 古い順（配列の後ろ）から描画
+      const reversedHistory = [...historyData].reverse()
+      reversedHistory.forEach((history, idx) => {
+        const colorIdx = Math.min(historyData.length - 1 - idx, historyColors.length - 1)
+        const color = historyColors[colorIdx]
+
+        ctx.fillStyle = color.fill
+        ctx.strokeStyle = color.stroke
+        ctx.lineWidth = 1.5
+        ctx.setLineDash([4, 2])
+        ctx.beginPath()
+
+        for (let i = 0; i < n; i++) {
+          const angle = (Math.PI * 2 * i / n) - Math.PI / 2
+          const value = history.scores[keys[i]] || 5
+          const r = maxRadius * value / 10
+          const x = cx + Math.cos(angle) * r
+          const y = cy + Math.sin(angle) * r
+          if (i === 0) {
+            ctx.moveTo(x, y)
+          } else {
+            ctx.lineTo(x, y)
+          }
+        }
+
+        ctx.closePath()
+        ctx.fill()
+        ctx.stroke()
+        ctx.setLineDash([])
+      })
     }
 
     // Draw average polygon (if provided)
@@ -126,7 +175,7 @@ export default function RadarChart({ scores, keys, labels, size = 220, averageSc
       const y = cy + Math.sin(angle) * (maxRadius + 20)
       ctx.fillText(labels[i], x, y + 4)
     }
-  }, [scores, keys, labels, size, averageScores])
+  }, [scores, keys, labels, size, averageScores, historyData])
 
   return (
     <canvas

@@ -61,6 +61,14 @@ type MeasurementData = {
   }
 }
 
+// 過去の測定履歴データ型
+type HistoryMeasurement = {
+  id: string
+  measured_at: string
+  scores: Record<string, number>
+  grade: string
+}
+
 // 詳細版デモ用のダミーデータ
 const demoDetailData = {
   sportsAptitude: [
@@ -88,6 +96,7 @@ export default function ResultPage() {
   const [data, setData] = useState<MeasurementData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [historyData, setHistoryData] = useState<HistoryMeasurement[]>([])
   const printRef = useRef<HTMLDivElement>(null)
 
   // PDF出力（印刷機能）
@@ -154,6 +163,62 @@ export default function ResultPage() {
 
         console.log('Combined data:', combinedData)
         setData(combinedData as unknown as MeasurementData)
+
+        // 同じ子ども（名前+フリガナ）の過去の測定データを取得
+        if (childData && storeData) {
+          try {
+            // 同じ店舗内で、同じ名前+フリガナの子どもを検索
+            const { data: sameChildren } = await supabase
+              .from('children')
+              .select('id')
+              .eq('store_id', measurementData.store_id)
+              .eq('name', childData.name)
+              .eq('furigana', childData.furigana || '')
+
+            if (sameChildren && sameChildren.length > 0) {
+              const childIds = sameChildren.map(c => c.id)
+
+              // これらの子どもの測定データを取得（現在のものは除く）
+              const { data: historyMeasurements } = await supabase
+                .from('measurements')
+                .select(`
+                  id,
+                  measured_at,
+                  children!inner (
+                    grade
+                  ),
+                  results (
+                    scores
+                  )
+                `)
+                .in('child_id', childIds)
+                .neq('id', measurementId)
+                .order('measured_at', { ascending: false })
+                .limit(4)
+
+              if (historyMeasurements && historyMeasurements.length > 0) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const history: HistoryMeasurement[] = (historyMeasurements as any[])
+                  .filter((m) => m.results && m.results.length > 0 && m.results[0].scores && m.children)
+                  .map((m) => {
+                    const childGrade = Array.isArray(m.children) ? m.children[0]?.grade : m.children?.grade
+                    return {
+                      id: m.id,
+                      measured_at: m.measured_at,
+                      scores: m.results[0].scores,
+                      grade: childGrade || ''
+                    }
+                  })
+
+                console.log('History data:', history)
+                setHistoryData(history)
+              }
+            }
+          } catch (historyErr) {
+            console.error('History fetch error:', historyErr)
+            // 履歴取得エラーは無視（メイン機能に影響しない）
+          }
+        }
       } catch (err) {
         console.error('Fetch error:', err)
         setError('データの取得に失敗しました')
@@ -240,6 +305,13 @@ export default function ResultPage() {
   const recalculatedType = determineType(recalculatedScores)
   const recalculatedWeakness = getWeaknessClass(recalculatedScores)
   const recalculatedSportsAptitude = calcSportsAptitude(recalculatedScores)
+
+  // 過去データをレーダーチャート用に変換
+  const historyDataForChart = historyData.map(h => ({
+    scores: h.scores,
+    date: new Date(h.measured_at).toLocaleDateString('ja-JP'),
+    label: `${getGradeDisplay(h.grade)}`
+  }))
 
   // HTMLエスケープ関数（XSS対策）
   const escapeHtml = (text: string): string => {
@@ -521,18 +593,31 @@ export default function ResultPage() {
 
                   {/* チャート */}
                   <div className="flex justify-center mb-3">
-                    <RadarChart scores={recalculatedScores} keys={simpleAllKeys} labels={simpleAllLabels} size={200} averageScores={{ grip: 5, jump: 5, dash: 5, doublejump: 5, squat: 5, sidestep: 5, throw: 5 }} />
+                    <RadarChart
+                      scores={recalculatedScores}
+                      keys={simpleAllKeys}
+                      labels={simpleAllLabels}
+                      size={200}
+                      averageScores={{ grip: 5, jump: 5, dash: 5, doublejump: 5, squat: 5, sidestep: 5, throw: 5 }}
+                      historyData={historyDataForChart}
+                    />
                   </div>
 
                   {/* 凡例 */}
-                  <div className="flex justify-center gap-4 mb-4 text-[10px]">
+                  <div className="flex flex-wrap justify-center gap-3 mb-4 text-[9px]">
                     <div className="flex items-center gap-1">
-                      <div className="w-5 h-0.5 bg-[#003366]"></div>
-                      <span className="text-gray-700">あなたの結果</span>
+                      <div className="w-4 h-0.5 bg-[#003366]"></div>
+                      <span className="text-gray-700">今回</span>
                     </div>
+                    {historyDataForChart.length > 0 && (
+                      <div className="flex items-center gap-1">
+                        <div className="w-4 h-0.5 bg-[#22c55e]" style={{ borderStyle: 'dashed', borderWidth: '1px', borderColor: '#22c55e', backgroundColor: 'transparent' }}></div>
+                        <span className="text-gray-700">前回</span>
+                      </div>
+                    )}
                     <div className="flex items-center gap-1">
-                      <div className="w-5 h-0.5 bg-[#FF8C00]" style={{ borderStyle: 'dashed', borderWidth: '1px', borderColor: '#FF8C00', backgroundColor: 'transparent' }}></div>
-                      <span className="text-gray-700">全国平均</span>
+                      <div className="w-4 h-0.5 bg-[#FF8C00]" style={{ borderStyle: 'dashed', borderWidth: '1px', borderColor: '#FF8C00', backgroundColor: 'transparent' }}></div>
+                      <span className="text-gray-700">平均</span>
                     </div>
                   </div>
 
@@ -713,16 +798,35 @@ export default function ResultPage() {
             </div>
             <div className="flex flex-col xs:flex-row gap-2 xs:gap-4 items-center xs:items-start print:flex-row print:gap-3">
               <div className="w-full xs:w-1/2 flex flex-col items-center print:w-1/2 -mt-2">
-                <RadarChart scores={recalculatedScores} keys={allKeys} labels={allLabels} size={320} averageScores={{ grip: 5, jump: 5, dash: 5, doublejump: 5, squat: 5, sidestep: 5, throw: 5 }} />
+                <RadarChart
+                  scores={recalculatedScores}
+                  keys={allKeys}
+                  labels={allLabels}
+                  size={320}
+                  averageScores={{ grip: 5, jump: 5, dash: 5, doublejump: 5, squat: 5, sidestep: 5, throw: 5 }}
+                  historyData={historyDataForChart}
+                />
                 {/* チャート凡例 */}
-                <div className="flex gap-3 xs:gap-4 -mt-1 text-[9px] xs:text-[10px]">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-5 xs:w-6 h-0.5 bg-[#003366]"></div>
-                    <span className="text-gray-700">あなたの結果</span>
+                <div className="flex flex-wrap justify-center gap-2 xs:gap-3 -mt-1 text-[8px] xs:text-[9px]">
+                  <div className="flex items-center gap-1">
+                    <div className="w-4 xs:w-5 h-0.5 bg-[#003366]"></div>
+                    <span className="text-gray-700">今回</span>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-5 xs:w-6 h-0.5 bg-[#FF8C00]" style={{ borderStyle: 'dashed', borderWidth: '1px', borderColor: '#FF8C00', backgroundColor: 'transparent' }}></div>
-                    <span className="text-gray-700">全国平均</span>
+                  {historyDataForChart.length > 0 && (
+                    <div className="flex items-center gap-1">
+                      <div className="w-4 xs:w-5 h-0.5 bg-[#22c55e]" style={{ borderStyle: 'dashed', borderWidth: '1px', borderColor: '#22c55e', backgroundColor: 'transparent' }}></div>
+                      <span className="text-gray-700">前回</span>
+                    </div>
+                  )}
+                  {historyDataForChart.length > 1 && (
+                    <div className="flex items-center gap-1">
+                      <div className="w-4 xs:w-5 h-0.5 bg-[#a855f7]" style={{ borderStyle: 'dashed', borderWidth: '1px', borderColor: '#a855f7', backgroundColor: 'transparent' }}></div>
+                      <span className="text-gray-700">2回前</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-1">
+                    <div className="w-4 xs:w-5 h-0.5 bg-[#FF8C00]" style={{ borderStyle: 'dashed', borderWidth: '1px', borderColor: '#FF8C00', backgroundColor: 'transparent' }}></div>
+                    <span className="text-gray-700">平均</span>
                   </div>
                 </div>
               </div>
