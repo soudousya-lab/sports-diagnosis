@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { createClientComponentClient, StoreStatistics, GradeGenderDistribution, MonthlyMeasurement } from '@/lib/supabase'
 import {
-  FaUsers, FaClipboardList, FaStore, FaChartBar,
+  FaUsers, FaClipboardList, FaStore,
   FaSignOutAlt, FaSpinner, FaChartLine, FaChild,
-  FaHandshake, FaCalendarAlt
+  FaHandshake, FaCalendarAlt, FaDownload
 } from 'react-icons/fa'
 
 type DashboardStats = {
@@ -104,6 +104,129 @@ export default function PartnerDashboard() {
       .map(([month, count]) => ({ month, count }))
   }
 
+  // CSVエクスポート（パートナー担当店舗のデータのみ）
+  const handleExportCSV = async () => {
+    if (!profile?.partner_id) return
+
+    try {
+      // パートナーに紐づく店舗IDを取得
+      const { data: stores } = await supabase
+        .from('stores')
+        .select('id, name')
+        .eq('partner_id', profile.partner_id)
+
+      if (!stores || stores.length === 0) {
+        alert('担当店舗がありません')
+        return
+      }
+
+      const storeIds = stores.map(s => s.id)
+      const storeMap = Object.fromEntries(stores.map(s => [s.id, s.name]))
+
+      // 担当店舗のデータを取得
+      const { data: children, error } = await supabase
+        .from('children')
+        .select(`
+          *,
+          measurements (
+            *,
+            results (*)
+          )
+        `)
+        .in('store_id', storeIds)
+
+      if (error) {
+        console.error('CSVエクスポートエラー:', error)
+        alert('データの取得に失敗しました: ' + error.message)
+        return
+      }
+
+      if (!children || children.length === 0) {
+        alert('エクスポートするデータがありません')
+        return
+      }
+
+      // CSV生成
+      const headers = [
+        '店舗名', '児童名', 'ふりがな', '学年', '性別', '身長', '体重',
+        '測定日', '運動年齢', '年齢差', '運動タイプ', '弱点分野',
+        '握力右', '握力左', '立ち幅跳び', '15mダッシュ',
+        '連続立ち幅跳び', '30秒スクワット', '反復横跳び', 'ボール投げ'
+      ]
+
+      const gradeLabels: Record<string, string> = {
+        'k5': '年長', '1': '小1', '2': '小2', '3': '小3', '4': '小4', '5': '小5', '6': '小6'
+      }
+
+      const rows = children.flatMap(child => {
+        const measurements = child.measurements || []
+        if (measurements.length === 0) {
+          return [[
+            storeMap[child.store_id] || '',
+            child.name,
+            child.furigana || '',
+            gradeLabels[child.grade] || child.grade,
+            child.gender === 'male' ? '男' : '女',
+            child.height || '',
+            child.weight || '',
+            '', '', '', '', '', '', '', '', '', '', '', '', ''
+          ]]
+        }
+
+        return measurements.map((m: Record<string, unknown>) => {
+          const result = (m.results as Record<string, unknown>[] | null)?.[0] || {}
+          return [
+            storeMap[child.store_id] || '',
+            child.name,
+            child.furigana || '',
+            gradeLabels[child.grade] || child.grade,
+            child.gender === 'male' ? '男' : '女',
+            child.height || '',
+            child.weight || '',
+            m.measured_at || '',
+            result.motor_age || '',
+            result.motor_age_diff || '',
+            result.type_name || '',
+            result.weakness_class || '',
+            m.grip_right || '',
+            m.grip_left || '',
+            m.jump || '',
+            m.dash || '',
+            m.doublejump || '',
+            m.squat || '',
+            m.sidestep || '',
+            m.throw || ''
+          ]
+        })
+      })
+
+      const escapeCSV = (val: unknown) => {
+        const str = String(val ?? '')
+        if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+          return `"${str.replace(/"/g, '""')}"`
+        }
+        return str
+      }
+
+      const csv = [headers, ...rows].map(row =>
+        (row as unknown[]).map(escapeCSV).join(',')
+      ).join('\n')
+
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `診断データ_${new Date().toISOString().split('T')[0]}.csv`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('CSVエクスポート例外:', err)
+      alert('CSVエクスポート中にエラーが発生しました')
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -170,22 +293,31 @@ export default function PartnerDashboard() {
           </div>
         </div>
 
-        {/* 店舗選択 */}
+        {/* 店舗選択 & CSVダウンロード */}
         <div className="bg-white rounded-xl p-4 shadow-sm mb-6">
-          <div className="flex items-center gap-4">
-            <label className="font-medium text-gray-700">店舗を選択:</label>
-            <select
-              value={selectedStore || ''}
-              onChange={(e) => setSelectedStore(e.target.value || null)}
-              className="flex-1 max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex items-center gap-4 flex-1">
+              <label className="font-medium text-gray-700">店舗を選択:</label>
+              <select
+                value={selectedStore || ''}
+                onChange={(e) => setSelectedStore(e.target.value || null)}
+                className="flex-1 max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">全店舗</option>
+                {stats?.stores.map(store => (
+                  <option key={store.store_id} value={store.store_id}>
+                    {store.store_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={handleExportCSV}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors whitespace-nowrap"
             >
-              <option value="">全店舗</option>
-              {stats?.stores.map(store => (
-                <option key={store.store_id} value={store.store_id}>
-                  {store.store_name}
-                </option>
-              ))}
-            </select>
+              <FaDownload />
+              CSVダウンロード
+            </button>
           </div>
         </div>
 
