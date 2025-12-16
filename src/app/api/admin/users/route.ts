@@ -156,7 +156,7 @@ export async function GET() {
 export async function PUT(request: Request) {
   try {
     const body = await request.json()
-    const { id, name, role, partner_id, store_id } = body
+    const { id, name, role, partner_id, store_id, email, password } = body
 
     if (!id) {
       return NextResponse.json(
@@ -171,15 +171,36 @@ export async function PUT(request: Request) {
     const validPartnerId = partner_id && partner_id.trim() !== '' ? partner_id : null
     const validStoreId = store_id && store_id.trim() !== '' ? store_id : null
 
+    // パスワードまたはメールアドレスの更新がある場合
+    if (password || email) {
+      const updateData: { password?: string; email?: string } = {}
+      if (password) updateData.password = password
+      if (email) updateData.email = email
+
+      const { error: authError } = await supabase.auth.admin.updateUserById(id, updateData)
+      if (authError) {
+        console.error('Auth update error:', authError)
+        return NextResponse.json(
+          { error: authError.message },
+          { status: 400 }
+        )
+      }
+    }
+
     // user_profiles を更新
+    const profileUpdate: Record<string, unknown> = {
+      name: name || null,
+      role,
+      partner_id: role === 'partner' ? validPartnerId : (role === 'store' ? validPartnerId : null),
+      store_id: role === 'store' ? validStoreId : null
+    }
+    if (email) {
+      profileUpdate.email = email
+    }
+
     const { error: profileError } = await supabase
       .from('user_profiles')
-      .update({
-        name: name || null,
-        role,
-        partner_id: role === 'partner' ? validPartnerId : (role === 'store' ? validPartnerId : null),
-        store_id: role === 'store' ? validStoreId : null
-      })
+      .update(profileUpdate)
       .eq('id', id)
 
     if (profileError) {

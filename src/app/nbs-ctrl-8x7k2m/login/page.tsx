@@ -28,9 +28,6 @@ export default function LoginPage() {
       case 'partner':
         router.push('/master/partner')
         break
-      case 'store':
-        router.push('/master/store')
-        break
       default:
         router.push('/')
     }

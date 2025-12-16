@@ -4,6 +4,26 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
+// Cookieドメインを取得（サブドメイン間で共有するため）
+function getCookieDomain(): string | undefined {
+  if (typeof window === 'undefined') return undefined
+
+  const hostname = window.location.hostname
+  // localhost や IP アドレスの場合はドメイン指定しない
+  if (hostname === 'localhost' || hostname === '127.0.0.1' || /^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
+    return undefined
+  }
+
+  // サブドメインがある場合、親ドメインを返す（例: test.nobishiro.kids → .nobishiro.kids）
+  const parts = hostname.split('.')
+  if (parts.length >= 2) {
+    // 最後の2つのパーツを取得（nobishiro.kids）
+    return '.' + parts.slice(-2).join('.')
+  }
+
+  return undefined
+}
+
 // シングルトンパターンでクライアントを管理（Multiple GoTrueClient警告を防ぐ）
 let supabaseInstance: SupabaseClient | null = null
 
@@ -18,7 +38,18 @@ function getSupabaseClient(): SupabaseClient {
       console.error('Supabase environment variables are missing:', { url: !!supabaseUrl, key: !!supabaseAnonKey })
       throw new Error('Supabase configuration is missing')
     }
-    supabaseInstance = createBrowserClient(supabaseUrl, supabaseAnonKey)
+
+    const cookieDomain = getCookieDomain()
+
+    supabaseInstance = createBrowserClient(supabaseUrl, supabaseAnonKey, {
+      cookieOptions: {
+        // Cookieドメインを設定してサブドメイン間で共有
+        domain: cookieDomain,
+        path: '/',
+        sameSite: 'lax',
+        secure: true
+      }
+    })
   }
   return supabaseInstance
 }

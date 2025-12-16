@@ -115,8 +115,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       router.push('/nbs-ctrl-8x7k2m/login')
     } else if (currentRole === 'partner') {
       router.push('/master/partner/login')
-    } else if (currentRole === 'store') {
-      router.push('/master/store/login')
     } else {
       router.push('/')
     }

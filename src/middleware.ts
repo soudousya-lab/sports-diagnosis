@@ -47,6 +47,30 @@ function extractSubdomain(host: string): string | null {
   return null
 }
 
+// Cookieドメインを取得（サブドメイン間で共有するため）
+function getCookieDomain(host: string): string | undefined {
+  // localhost や IP アドレスの場合はドメイン指定しない
+  if (host.includes('localhost') || host.includes('127.0.0.1')) {
+    return undefined
+  }
+
+  const hostWithoutPort = host.split(':')[0]
+  const parts = hostWithoutPort.split('.')
+
+  // Vercel の場合
+  if (host.includes('vercel.app')) {
+    // vercel.appドメインでは親ドメイン共有は制限される
+    return undefined
+  }
+
+  // 独自ドメインの場合（例: test.nobishiro.kids → .nobishiro.kids）
+  if (parts.length >= 2) {
+    return '.' + parts.slice(-2).join('.')
+  }
+
+  return undefined
+}
+
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
     request: {
@@ -71,6 +95,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.rewrite(url)
   }
 
+  const cookieDomain = getCookieDomain(host)
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -81,13 +107,18 @@ export async function middleware(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
-            request.cookies.set({ name, value, ...options })
+            // Cookieドメインを設定してサブドメイン間で共有
+            const cookieOptions = {
+              ...options,
+              ...(cookieDomain ? { domain: cookieDomain } : {})
+            }
+            request.cookies.set({ name, value, ...cookieOptions })
             response = NextResponse.next({
               request: {
                 headers: request.headers,
               },
             })
-            response.cookies.set({ name, value, ...options })
+            response.cookies.set({ name, value, ...cookieOptions })
           })
         },
       },
@@ -140,8 +171,24 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Partner/Store管理画面へのアクセスをチェック（/master/partner, /master/store）
-  if (pathname.startsWith('/master/partner') || pathname.startsWith('/master/store')) {
+  // Partner管理画面へのアクセスをチェック（/master/partner）
+  if (pathname.startsWith('/master/partner')) {
+    // ログインページは除外
+    if (pathname === '/master/partner/login') {
+      if (session) {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single()
+
+        if (profile) {
+          return NextResponse.redirect(new URL(getRoleBasedRedirect(profile.role), request.url))
+        }
+      }
+      return response
+    }
+
     // 未ログインの場合はログインページへリダイレクト
     if (!session) {
       return NextResponse.redirect(new URL('/master/partner/login', request.url))
@@ -159,32 +206,8 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/master/partner/login', request.url))
     }
 
-    // Partner管理画面
-    if (pathname.startsWith('/master/partner')) {
-      // ログインページは除外
-      if (pathname === '/master/partner/login') {
-        if (session && profile) {
-          return NextResponse.redirect(new URL(getRoleBasedRedirect(profile.role), request.url))
-        }
-        return response
-      }
-      if (profile.role !== 'master' && profile.role !== 'partner') {
-        return NextResponse.redirect(new URL(getRoleBasedRedirect(profile.role), request.url))
-      }
-    }
-
-    // Store管理画面
-    if (pathname.startsWith('/master/store')) {
-      // ログインページは除外
-      if (pathname === '/master/store/login') {
-        if (session && profile) {
-          return NextResponse.redirect(new URL(getRoleBasedRedirect(profile.role), request.url))
-        }
-        return response
-      }
-      if (profile.role !== 'master' && profile.role !== 'partner' && profile.role !== 'store') {
-        return NextResponse.redirect(new URL('/master/store/login', request.url))
-      }
+    if (profile.role !== 'master' && profile.role !== 'partner') {
+      return NextResponse.redirect(new URL(getRoleBasedRedirect(profile.role), request.url))
     }
   }
 
@@ -197,8 +220,6 @@ function getRoleBasedRedirect(role: string): string {
       return '/nbs-ctrl-8x7k2m/master'
     case 'partner':
       return '/master/partner'
-    case 'store':
-      return '/master/store'
     default:
       return '/master/partner/login'
   }

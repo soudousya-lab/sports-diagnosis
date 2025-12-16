@@ -68,6 +68,24 @@ export default function MasterDashboard() {
   const [showStoreModal, setShowStoreModal] = useState(false)
   const [storeForm, setStoreForm] = useState({ name: '', slug: '', partner_id: '', address: '', phone: '', hours: '' })
 
+  // パートナーユーザー管理用state
+  const [partnerUsers, setPartnerUsers] = useState<UserProfile[]>([])
+  const [showPartnerUserModal, setShowPartnerUserModal] = useState(false)
+  const [editingPartnerUser, setEditingPartnerUser] = useState<UserProfile | null>(null)
+  const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null)
+  const [partnerUserForm, setPartnerUserForm] = useState({
+    email: '',
+    password: '',
+    name: '',
+    partner_id: ''
+  })
+  const [editPartnerUserForm, setEditPartnerUserForm] = useState({
+    id: '',
+    email: '',
+    password: '',
+    name: ''
+  })
+
   const supabase = createClientComponentClient()
 
   // 認証完了後にデータ取得
@@ -239,6 +257,116 @@ export default function MasterDashboard() {
       alert('エラーが発生しました')
     }
     setSaving(false)
+  }
+
+  // パートナーユーザー関連の関数
+  const fetchPartnerUsers = async () => {
+    const res = await fetch('/api/admin/users')
+    const data = await res.json()
+    if (data.users) {
+      // partnerロールのユーザーのみをフィルタ
+      setPartnerUsers(data.users.filter((u: UserProfile) => u.role === 'partner'))
+    }
+  }
+
+  useEffect(() => {
+    if (activeTab === 'partners') {
+      fetchPartnerUsers()
+    }
+  }, [activeTab])
+
+  const handleCreatePartnerUser = async () => {
+    setSaving(true)
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: partnerUserForm.email,
+          password: partnerUserForm.password,
+          name: partnerUserForm.name,
+          role: 'partner',
+          partner_id: partnerUserForm.partner_id
+        })
+      })
+      const data = await res.json()
+      if (data.error) {
+        alert('ログインアカウント作成に失敗しました: ' + data.error)
+      } else {
+        setShowPartnerUserModal(false)
+        setPartnerUserForm({ email: '', password: '', name: '', partner_id: '' })
+        fetchPartnerUsers()
+      }
+    } catch {
+      alert('エラーが発生しました')
+    }
+    setSaving(false)
+  }
+
+  const handleEditPartnerUser = (user: UserProfile) => {
+    setEditingPartnerUser(user)
+    setEditPartnerUserForm({
+      id: user.id,
+      email: user.email,
+      password: '',
+      name: user.name || ''
+    })
+  }
+
+  const handleUpdatePartnerUser = async () => {
+    setSaving(true)
+    try {
+      const updateData: Record<string, unknown> = {
+        id: editPartnerUserForm.id,
+        name: editPartnerUserForm.name,
+        role: 'partner',
+        partner_id: editingPartnerUser?.partner_id
+      }
+      // メールアドレスが変更されている場合
+      if (editPartnerUserForm.email !== editingPartnerUser?.email) {
+        updateData.email = editPartnerUserForm.email
+      }
+      // パスワードが入力されている場合
+      if (editPartnerUserForm.password) {
+        updateData.password = editPartnerUserForm.password
+      }
+
+      const res = await fetch('/api/admin/users', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData)
+      })
+      const data = await res.json()
+      if (data.error) {
+        alert('更新に失敗しました: ' + data.error)
+      } else {
+        setEditingPartnerUser(null)
+        fetchPartnerUsers()
+      }
+    } catch {
+      alert('エラーが発生しました')
+    }
+    setSaving(false)
+  }
+
+  const handleDeletePartnerUser = async (userId: string) => {
+    if (!confirm('このログインアカウントを削除しますか？')) return
+    try {
+      const res = await fetch(`/api/admin/users?id=${userId}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (data.error) {
+        alert('削除に失敗しました: ' + data.error)
+      } else {
+        fetchPartnerUsers()
+      }
+    } catch {
+      alert('エラーが発生しました')
+    }
+  }
+
+  // パートナーに紐づくユーザーを取得
+  const getPartnerUsersByPartnerId = (partnerId: string) => {
+    return partnerUsers.filter(u => u.partner_id === partnerId)
   }
 
   const handleCreateStore = async () => {
@@ -863,37 +991,82 @@ export default function MasterDashboard() {
                   新規パートナー追加
                 </button>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 text-xs text-gray-600">
-                    <tr>
-                      <th className="text-left px-4 py-3">パートナー名</th>
-                      <th className="text-left px-4 py-3">メール</th>
-                      <th className="text-left px-4 py-3">電話</th>
-                      <th className="text-right px-4 py-3">担当店舗数</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {stats?.partners.map(partner => {
-                      const storeCount = stats.storeStats.filter(s => s.partner_id === partner.id).length
-                      return (
-                        <tr key={partner.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 font-medium">{partner.name}</td>
-                          <td className="px-4 py-3 text-gray-500">{partner.email || '-'}</td>
-                          <td className="px-4 py-3 text-gray-500">{partner.phone || '-'}</td>
-                          <td className="px-4 py-3 text-right">{storeCount}</td>
-                        </tr>
-                      )
-                    })}
-                    {(!stats?.partners || stats.partners.length === 0) && (
-                      <tr>
-                        <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
-                          パートナーが登録されていません
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+              <div className="divide-y">
+                {stats?.partners.map(partner => {
+                  const storeCount = stats.storeStats.filter(s => s.partner_id === partner.id).length
+                  const partnerUserList = getPartnerUsersByPartnerId(partner.id)
+                  return (
+                    <div key={partner.id} className="p-4 hover:bg-gray-50">
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <h4 className="font-bold text-gray-900">{partner.name}</h4>
+                          <div className="text-sm text-gray-500 mt-1">
+                            {partner.email && <span className="mr-4">{partner.email}</span>}
+                            {partner.phone && <span>{partner.phone}</span>}
+                          </div>
+                          <div className="text-xs text-gray-400 mt-1">担当店舗: {storeCount}件</div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setPartnerUserForm({ ...partnerUserForm, partner_id: partner.id })
+                            setShowPartnerUserModal(true)
+                          }}
+                          className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors"
+                        >
+                          <FaUserPlus />
+                          ログインアカウント追加
+                        </button>
+                      </div>
+
+                      {/* ログインアカウント一覧 */}
+                      {partnerUserList.length > 0 ? (
+                        <div className="mt-3 bg-gray-50 rounded-lg p-3">
+                          <h5 className="text-xs font-medium text-gray-600 mb-2 flex items-center gap-1">
+                            <FaUserCog className="text-gray-400" />
+                            ログインアカウント
+                          </h5>
+                          <div className="space-y-2">
+                            {partnerUserList.map(user => (
+                              <div key={user.id} className="flex items-center justify-between bg-white rounded px-3 py-2 text-sm">
+                                <div>
+                                  <span className="font-medium text-gray-800">{user.name || user.email}</span>
+                                  {user.name && <span className="text-gray-400 ml-2 text-xs">{user.email}</span>}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => handleEditPartnerUser(user)}
+                                    className="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1"
+                                    title="編集"
+                                  >
+                                    <FaEdit />
+                                    編集
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeletePartnerUser(user.id)}
+                                    className="text-red-600 hover:text-red-800 text-xs flex items-center gap-1"
+                                    title="削除"
+                                  >
+                                    <FaTrash />
+                                    削除
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="mt-3 bg-gray-50 rounded-lg p-3 text-center">
+                          <p className="text-xs text-gray-400">ログインアカウントが登録されていません</p>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+                {(!stats?.partners || stats.partners.length === 0) && (
+                  <div className="px-4 py-8 text-center text-gray-500">
+                    パートナーが登録されていません
+                  </div>
+                )}
               </div>
             </div>
 
@@ -947,6 +1120,139 @@ export default function MasterDashboard() {
                     >
                       {saving ? <FaSpinner className="animate-spin" /> : <FaPlus />}
                       追加
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* パートナーログインアカウント追加モーダル */}
+            {showPartnerUserModal && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4">
+                  <div className="p-4 border-b flex justify-between items-center">
+                    <h3 className="font-bold text-gray-800">ログインアカウント追加</h3>
+                    <button onClick={() => {
+                      setShowPartnerUserModal(false)
+                      setPartnerUserForm({ email: '', password: '', name: '', partner_id: '' })
+                    }} className="text-gray-500 hover:text-gray-700">
+                      <FaTimes />
+                    </button>
+                  </div>
+                  <div className="p-4 space-y-4">
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <p className="text-sm text-blue-700">
+                        パートナー: <span className="font-bold">{stats?.partners.find(p => p.id === partnerUserForm.partner_id)?.name}</span>
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">メールアドレス *</label>
+                      <input
+                        type="email"
+                        value={partnerUserForm.email}
+                        onChange={(e) => setPartnerUserForm({ ...partnerUserForm, email: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        placeholder="partner@example.com"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">パスワード *</label>
+                      <input
+                        type="password"
+                        value={partnerUserForm.password}
+                        onChange={(e) => setPartnerUserForm({ ...partnerUserForm, password: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        placeholder="6文字以上"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">表示名</label>
+                      <input
+                        type="text"
+                        value={partnerUserForm.name}
+                        onChange={(e) => setPartnerUserForm({ ...partnerUserForm, name: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        placeholder="担当者名"
+                      />
+                    </div>
+                  </div>
+                  <div className="p-4 border-t bg-gray-50 flex justify-end gap-2">
+                    <button onClick={() => {
+                      setShowPartnerUserModal(false)
+                      setPartnerUserForm({ email: '', password: '', name: '', partner_id: '' })
+                    }} className="px-4 py-2 text-gray-600 hover:text-gray-800">
+                      キャンセル
+                    </button>
+                    <button
+                      onClick={handleCreatePartnerUser}
+                      disabled={saving || !partnerUserForm.email || !partnerUserForm.password}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                    >
+                      {saving ? <FaSpinner className="animate-spin" /> : <FaUserPlus />}
+                      追加
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* パートナーログインアカウント編集モーダル */}
+            {editingPartnerUser && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4">
+                  <div className="p-4 border-b flex justify-between items-center">
+                    <h3 className="font-bold text-gray-800">ログインアカウント編集</h3>
+                    <button onClick={() => setEditingPartnerUser(null)} className="text-gray-500 hover:text-gray-700">
+                      <FaTimes />
+                    </button>
+                  </div>
+                  <div className="p-4 space-y-4">
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <p className="text-sm text-blue-700">
+                        パートナー: <span className="font-bold">{editingPartnerUser.partners?.name}</span>
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">メールアドレス *</label>
+                      <input
+                        type="email"
+                        value={editPartnerUserForm.email}
+                        onChange={(e) => setEditPartnerUserForm({ ...editPartnerUserForm, email: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">新しいパスワード</label>
+                      <input
+                        type="password"
+                        value={editPartnerUserForm.password}
+                        onChange={(e) => setEditPartnerUserForm({ ...editPartnerUserForm, password: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        placeholder="変更する場合のみ入力"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">空欄の場合はパスワードは変更されません</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">表示名</label>
+                      <input
+                        type="text"
+                        value={editPartnerUserForm.name}
+                        onChange={(e) => setEditPartnerUserForm({ ...editPartnerUserForm, name: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                  <div className="p-4 border-t bg-gray-50 flex justify-end gap-2">
+                    <button onClick={() => setEditingPartnerUser(null)} className="px-4 py-2 text-gray-600 hover:text-gray-800">
+                      キャンセル
+                    </button>
+                    <button
+                      onClick={handleUpdatePartnerUser}
+                      disabled={saving || !editPartnerUserForm.email}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                    >
+                      {saving ? <FaSpinner className="animate-spin" /> : <FaSave />}
+                      保存
                     </button>
                   </div>
                 </div>

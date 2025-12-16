@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { supabase, Store, createClientComponentClient } from '@/lib/supabase'
+import { Store, createClientComponentClient } from '@/lib/supabase'
 import { getGradeDisplay } from '@/lib/diagnosis'
-import { FaSignOutAlt } from 'react-icons/fa'
+import { FaSignOutAlt, FaCog } from 'react-icons/fa'
 
 type MeasurementWithChild = {
   id: string
@@ -30,6 +30,8 @@ export default function StorePage() {
   const router = useRouter()
   const slug = params.slug as string
 
+  const supabase = useMemo(() => createClientComponentClient(), [])
+
   const [store, setStore] = useState<Store | null>(null)
   const [measurements, setMeasurements] = useState<MeasurementWithChild[]>([])
   const [loading, setLoading] = useState(true)
@@ -39,6 +41,17 @@ export default function StorePage() {
 
   // 店舗データと測定データの取得
   useEffect(() => {
+    let isMounted = true
+
+    // タイムアウト設定（10秒で強制終了）
+    const timeoutId = setTimeout(() => {
+      if (isMounted && loading) {
+        console.log('[StorePage] Data fetch timeout - proceeding without data')
+        setLoading(false)
+        setError('データの取得がタイムアウトしました。ページを再読み込みしてください。')
+      }
+    }, 10000)
+
     async function fetchData() {
       try {
         // 店舗データ取得
@@ -48,6 +61,7 @@ export default function StorePage() {
           .eq('slug', slug)
           .single()
 
+        if (!isMounted) return
         if (storeError) throw new Error('店舗が見つかりません')
         setStore(storeData)
 
@@ -75,18 +89,29 @@ export default function StorePage() {
           .order('measured_at', { ascending: false })
           .limit(50)
 
+        if (!isMounted) return
         if (!measurementError && measurementData) {
           setMeasurements(measurementData as unknown as MeasurementWithChild[])
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'エラーが発生しました')
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : 'エラーが発生しました')
+        }
       } finally {
-        setLoading(false)
+        if (isMounted) {
+          clearTimeout(timeoutId)
+          setLoading(false)
+        }
       }
     }
 
     fetchData()
-  }, [slug])
+
+    return () => {
+      isMounted = false
+      clearTimeout(timeoutId)
+    }
+  }, [slug, supabase])
 
   // 結果ページへ遷移
   const handleViewResult = (measurementId: string, viewMode: 'simple' | 'detail') => {
@@ -165,16 +190,21 @@ export default function StorePage() {
   }
 
   const handleLogout = async () => {
-    const client = createClientComponentClient()
-    await client.auth.signOut()
+    await supabase.auth.signOut()
     router.replace(`/store/${slug}/login`)
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 py-12 px-4">
       <div className="max-w-5xl mx-auto">
-        {/* ログアウトボタン */}
-        <div className="flex justify-end mb-4">
+        {/* 管理画面・ログアウトボタン */}
+        <div className="flex justify-end gap-2 mb-4">
+          <Link
+            href={`/store/${slug}/admin`}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all text-sm font-medium"
+          >
+            <FaCog /> 管理画面
+          </Link>
           <button
             onClick={handleLogout}
             className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all text-sm"
