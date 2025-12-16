@@ -4,8 +4,8 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
-// セッション有効期限（秒）- 24時間
-const SESSION_EXPIRY_SECONDS = 60 * 60 * 24
+// セッション有効期限（秒）- 6時間
+const SESSION_EXPIRY_SECONDS = 60 * 60 * 6
 
 // Cookieドメインを取得（サブドメイン間で共有するため）
 function getCookieDomain(): string | undefined {

@@ -9,7 +9,7 @@ import { createClientComponentClient, UserProfile, UserRole } from './supabase'
 const AUTH_TIMEOUT_MS = 10000 // 10秒
 
 // セッション有効期限（秒）- Supabaseのセッションリフレッシュ間隔
-const SESSION_EXPIRY_SECONDS = 60 * 60 * 24 // 24時間
+const SESSION_EXPIRY_SECONDS = 60 * 60 * 6 // 6時間
 
 type AuthContextType = {
   user: User | null
