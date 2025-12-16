@@ -69,44 +69,68 @@ export default function MasterDashboard() {
   const fetchDashboardData = async () => {
     setLoading(true)
 
-    // 並列でデータ取得
-    const [
-      storesRes,
-      storesDataRes,
-      partnersRes,
-      childrenRes,
-      measurementsRes,
-      recentRes,
-      storeStatsRes,
-      gradeDistRes,
-      weaknessRes
-    ] = await Promise.all([
-      supabase.from('stores').select('id', { count: 'exact', head: true }),
-      supabase.from('stores').select('*'),
-      supabase.from('partners').select('*'),
-      supabase.from('children').select('id', { count: 'exact', head: true }),
-      supabase.from('measurements').select('id', { count: 'exact', head: true }),
-      supabase.from('measurements').select('id', { count: 'exact', head: true })
-        .gte('measured_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]),
-      supabase.from('store_statistics').select('*'),
-      supabase.from('grade_gender_distribution').select('*'),
-      supabase.from('weakness_statistics').select('*')
-    ])
+    try {
+      // 基本データを並列で取得
+      const [
+        storesRes,
+        storesDataRes,
+        partnersRes,
+        childrenRes,
+        measurementsRes,
+        recentRes
+      ] = await Promise.all([
+        supabase.from('stores').select('id', { count: 'exact', head: true }),
+        supabase.from('stores').select('*'),
+        supabase.from('partners').select('*'),
+        supabase.from('children').select('id', { count: 'exact', head: true }),
+        supabase.from('measurements').select('id', { count: 'exact', head: true }),
+        supabase.from('measurements').select('id', { count: 'exact', head: true })
+          .gte('measured_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+      ])
 
-    setStats({
-      totalStores: storesRes.count || 0,
-      totalPartners: partnersRes.data?.length || 0,
-      totalChildren: childrenRes.count || 0,
-      totalMeasurements: measurementsRes.count || 0,
-      recentMeasurements: recentRes.count || 0,
-      storeStats: storeStatsRes.data || [],
-      gradeDistribution: gradeDistRes.data || [],
-      weaknessStats: weaknessRes.data || [],
-      partners: partnersRes.data || [],
-      stores: storesDataRes.data || []
-    })
+      // ビューからのデータ取得（存在しない場合はエラーを無視）
+      let storeStats: StoreStatistics[] = []
+      let gradeDistribution: GradeGenderDistribution[] = []
+      let weaknessStats: WeaknessStatistic[] = []
 
-    setLoading(false)
+      try {
+        const storeStatsRes = await supabase.from('store_statistics').select('*')
+        storeStats = storeStatsRes.data || []
+      } catch {
+        console.log('store_statistics view not available')
+      }
+
+      try {
+        const gradeDistRes = await supabase.from('grade_gender_distribution').select('*')
+        gradeDistribution = gradeDistRes.data || []
+      } catch {
+        console.log('grade_gender_distribution view not available')
+      }
+
+      try {
+        const weaknessRes = await supabase.from('weakness_statistics').select('*')
+        weaknessStats = weaknessRes.data || []
+      } catch {
+        console.log('weakness_statistics view not available')
+      }
+
+      setStats({
+        totalStores: storesRes.count || 0,
+        totalPartners: partnersRes.data?.length || 0,
+        totalChildren: childrenRes.count || 0,
+        totalMeasurements: measurementsRes.count || 0,
+        recentMeasurements: recentRes.count || 0,
+        storeStats,
+        gradeDistribution,
+        weaknessStats,
+        partners: partnersRes.data || [],
+        stores: storesDataRes.data || []
+      })
+    } catch (err) {
+      console.error('Dashboard data fetch error:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const fetchUsers = async () => {
