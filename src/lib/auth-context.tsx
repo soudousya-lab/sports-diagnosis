@@ -29,8 +29,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // 初期セッション取得
     const getInitialSession = async () => {
       console.log('[AuthContext] getInitialSession started')
+
+      // タイムアウト設定（5秒で強制終了）
+      const timeoutId = setTimeout(() => {
+        console.log('[AuthContext] Session check timeout - proceeding without session')
+        setLoading(false)
+      }, 5000)
+
       try {
         const { data: { session: initialSession }, error } = await supabase.auth.getSession()
+        clearTimeout(timeoutId)
         console.log('[AuthContext] getSession result:', { session: !!initialSession, error })
 
         setSession(initialSession)
@@ -42,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.log('[AuthContext] profile fetched')
         }
       } catch (err) {
+        clearTimeout(timeoutId)
         console.error('[AuthContext] getInitialSession error:', err)
       } finally {
         console.log('[AuthContext] setting loading to false')
