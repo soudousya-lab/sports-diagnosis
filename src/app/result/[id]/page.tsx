@@ -1040,13 +1040,13 @@ function DetailDemoSection({ result }: { result: MeasurementData['results'][0] }
   ]
   const sampleTrainings = [
     { name: 'スクワットジャンプ', description: 'しゃがんでから勢いよくジャンプ', reps: '10回×3セット', category: '瞬発力' },
-    { name: 'バランスボード', description: '片足でバランスをとる練習', reps: '30秒×左右3回', category: 'バランス' },
-    { name: 'ラダートレーニング', description: '素早く足を動かす練習', reps: '5往復×3セット', category: '敏捷性' },
-    { name: 'ボール投げ練習', description: '正しいフォームでの投球', reps: '20回×2セット', category: '投力' },
-    { name: 'もも上げダッシュ', description: 'その場でもも上げ走り', reps: '20秒×3セット', category: '移動能力' },
-    { name: '握力トレーニング', description: 'テニスボールを握る', reps: '20回×左右3回', category: '筋力' },
-    { name: 'プランク', description: '体幹を鍛える姿勢保持', reps: '30秒×3セット', category: '筋持久力' },
-    { name: 'サイドステップ', description: '横方向への素早い移動', reps: '10往復×3セット', category: '敏捷性' }
+    { name: '片足立ち', description: '目を開けて片足でバランスをとる', reps: '30秒×左右3回', category: 'バランス' },
+    { name: 'サイドステップ', description: '低姿勢で素早く横移動', reps: '10往復×3セット', category: '敏捷性' },
+    { name: 'ボール投げ遊び', description: '正しいフォームでの投球', reps: '20回×2セット', category: '投力' },
+    { name: 'もも上げ', description: '膝を腰の高さまでリズムよく上げる', reps: '左右交互20回×2セット', category: '移動能力' },
+    { name: 'グーパー体操', description: '両手を力いっぱい握って開く', reps: '朝夕30回ずつ', category: '筋力' },
+    { name: 'スクワット', description: '正しいフォームでゆっくり深くしゃがむ', reps: '15回×3セット', category: '筋持久力' },
+    { name: '反復横跳び練習', description: 'テープで3本線を作り素早く跳ぶ', reps: '20秒全力×5セット', category: '敏捷性' }
   ]
   const sampleGoals = { grip: 15.5, jump: 148, dash: 3.42 }
 
