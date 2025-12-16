@@ -28,14 +28,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // 初期セッション取得
     const getInitialSession = async () => {
-      const { data: { session: initialSession } } = await supabase.auth.getSession()
-      setSession(initialSession)
-      setUser(initialSession?.user ?? null)
+      console.log('[AuthContext] getInitialSession started')
+      try {
+        const { data: { session: initialSession }, error } = await supabase.auth.getSession()
+        console.log('[AuthContext] getSession result:', { session: !!initialSession, error })
 
-      if (initialSession?.user) {
-        await fetchProfile(initialSession.user.id)
+        setSession(initialSession)
+        setUser(initialSession?.user ?? null)
+
+        if (initialSession?.user) {
+          console.log('[AuthContext] fetching profile for user:', initialSession.user.id)
+          await fetchProfile(initialSession.user.id)
+          console.log('[AuthContext] profile fetched')
+        }
+      } catch (err) {
+        console.error('[AuthContext] getInitialSession error:', err)
+      } finally {
+        console.log('[AuthContext] setting loading to false')
+        setLoading(false)
       }
-      setLoading(false)
     }
 
     getInitialSession()
