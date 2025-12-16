@@ -412,12 +412,12 @@ export default function StoreNewMeasurementPage() {
               </MeasurementCard>
 
               {/* 連続立ち幅跳び */}
-              <MeasurementCard icon="連" title="連続立ち幅跳び" category="バランス">
+              <MeasurementCard icon="連" title="連続立ち幅跳び（3回）" category="バランス">
                 <div className="flex gap-2 items-center">
                   <input
                     type="number"
                     step="1"
-                    placeholder="280"
+                    placeholder="420"
                     className="flex-1 p-2 border border-gray-300 rounded text-sm"
                     value={formData.doublejump}
                     onChange={(e) => handleChange('doublejump', parseInt(e.target.value) || '')}

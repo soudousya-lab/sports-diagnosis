@@ -13,7 +13,8 @@
       "Bash(npx ts-node:*)",
       "Bash(curl:*)",
       "Bash(vercel --version:*)",
-      "Bash(dig:*)"
+      "Bash(dig:*)",
+      "Bash(git config:*)"
     ],
     "deny": [],
     "ask": []

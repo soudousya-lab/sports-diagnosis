@@ -249,7 +249,7 @@ export default function DiagnosisForm({ store, onSubmit, isLoading }: Props) {
           {/* 詳細版のみの項目 */}
           <MeasurementCard
             icon="連"
-            title="連続立ち幅跳び"
+            title="連続立ち幅跳び（3回）"
             category="バランス"
             detailOnly
             disabled={mode === 'simple'}
@@ -258,7 +258,7 @@ export default function DiagnosisForm({ store, onSubmit, isLoading }: Props) {
               <input
                 type="number"
                 step="1"
-                placeholder="280"
+                placeholder="420"
                 className="flex-1 p-2 border border-gray-300 rounded text-sm"
                 disabled={mode === 'simple'}
                 onChange={(e) => handleChange('doublejump', parseInt(e.target.value))}
