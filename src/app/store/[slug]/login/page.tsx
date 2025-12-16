@@ -15,6 +15,7 @@ export default function StoreLoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [checkingAuth, setCheckingAuth] = useState(true)
+  const [redirecting, setRedirecting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [storeName, setStoreName] = useState<string>('')
   const [showResetForm, setShowResetForm] = useState(false)
@@ -141,10 +142,16 @@ export default function StoreLoginPage() {
         // アクセス権限チェック
         if (profile.role === 'master') {
           // masterは全店舗アクセス可能
-          router.replace(`/store/${slug}`)
+          setRedirecting(true)
+          setLoading(false)
+          window.location.href = `/store/${slug}`
+          return
         } else if (profile.role === 'store') {
           if (storeData && profile.store_id === storeData.id) {
-            router.replace(`/store/${slug}`)
+            setRedirecting(true)
+            setLoading(false)
+            window.location.href = `/store/${slug}`
+            return
           } else {
             await supabase.auth.signOut()
             throw new Error('この店舗へのアクセス権限がありません')
@@ -156,7 +163,6 @@ export default function StoreLoginPage() {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ログインに失敗しました')
-    } finally {
       setLoading(false)
     }
   }
@@ -181,10 +187,13 @@ export default function StoreLoginPage() {
     }
   }
 
-  if (checkingAuth) {
+  if (checkingAuth || redirecting) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 flex items-center justify-center">
-        <FaSpinner className="animate-spin text-white text-4xl" />
+        <div className="text-center">
+          <FaSpinner className="animate-spin text-white text-4xl mx-auto mb-4" />
+          {redirecting && <p className="text-white text-lg">リダイレクト中...</p>}
+        </div>
       </div>
     )
   }
