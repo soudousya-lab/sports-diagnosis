@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState, useMemo, ReactNode } from 'react'
+import { useRouter } from 'next/navigation'
 import { User, Session } from '@supabase/supabase-js'
 import { createClientComponentClient, UserProfile, UserRole } from './supabase'
 
@@ -21,6 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
   // supabaseクライアントをメモ化
   const supabase = useMemo(() => createClientComponentClient(), [])
@@ -102,10 +104,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signOut = async () => {
+    const currentRole = profile?.role
     await supabase.auth.signOut()
     setUser(null)
     setSession(null)
     setProfile(null)
+
+    // ロールに応じてログインページにリダイレクト
+    if (currentRole === 'master') {
+      router.push('/nbs-ctrl-8x7k2m/login')
+    } else if (currentRole === 'partner') {
+      router.push('/master/partner/login')
+    } else if (currentRole === 'store') {
+      router.push('/master/store/login')
+    } else {
+      router.push('/')
+    }
   }
 
   const isRole = (role: UserRole | UserRole[]): boolean => {

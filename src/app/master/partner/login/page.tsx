@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
-import { FaLock, FaEnvelope, FaSpinner, FaExclamationTriangle } from 'react-icons/fa'
+import { FaLock, FaEnvelope, FaSpinner, FaExclamationTriangle, FaHandshake } from 'react-icons/fa'
 
-export default function LoginPage() {
+export default function PartnerLoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -47,26 +47,25 @@ export default function LoginPage() {
       setError('メールアドレスまたはパスワードが正しくありません')
       setIsLoading(false)
     }
-    // 成功時は onAuthStateChange で profile が更新され、useEffect でリダイレクトされる
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-800 to-blue-900 flex items-center justify-center">
         <FaSpinner className="animate-spin text-white text-4xl" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-800 to-blue-900 flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         {/* ロゴ・タイトル */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full mb-4">
-            <FaLock className="text-blue-600 text-2xl" />
+            <FaHandshake className="text-blue-600 text-2xl" />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2">管理画面ログイン</h1>
+          <h1 className="text-2xl font-bold text-white mb-2">パートナー管理画面</h1>
           <p className="text-blue-200 text-sm">NOBISHIRO KIDS</p>
         </div>
 
@@ -96,7 +95,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  placeholder="admin@example.com"
+                  placeholder="partner@example.com"
                   required
                   disabled={isLoading}
                 />
@@ -148,7 +147,7 @@ export default function LoginPage() {
 
         {/* フッター */}
         <p className="text-center text-blue-200 text-xs mt-6">
-          © 2024 スポーツ能力診断システム
+          © 2024 NOBISHIRO KIDS
         </p>
       </div>
     </div>

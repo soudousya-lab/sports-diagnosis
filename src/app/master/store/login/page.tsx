@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
-import { FaLock, FaEnvelope, FaSpinner, FaExclamationTriangle } from 'react-icons/fa'
+import { FaLock, FaEnvelope, FaSpinner, FaExclamationTriangle, FaStore } from 'react-icons/fa'
 
-export default function LoginPage() {
+export default function StoreLoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -47,27 +47,26 @@ export default function LoginPage() {
       setError('メールアドレスまたはパスワードが正しくありません')
       setIsLoading(false)
     }
-    // 成功時は onAuthStateChange で profile が更新され、useEffect でリダイレクトされる
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-green-700 to-green-900 flex items-center justify-center">
         <FaSpinner className="animate-spin text-white text-4xl" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-700 to-green-900 flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         {/* ロゴ・タイトル */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full mb-4">
-            <FaLock className="text-blue-600 text-2xl" />
+            <FaStore className="text-green-600 text-2xl" />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2">管理画面ログイン</h1>
-          <p className="text-blue-200 text-sm">NOBISHIRO KIDS</p>
+          <h1 className="text-2xl font-bold text-white mb-2">店舗スタッフ管理画面</h1>
+          <p className="text-green-200 text-sm">NOBISHIRO KIDS</p>
         </div>
 
         {/* ログインフォーム */}
@@ -95,8 +94,8 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  placeholder="admin@example.com"
+                  className="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                  placeholder="store@example.com"
                   required
                   disabled={isLoading}
                 />
@@ -117,7 +116,7 @@ export default function LoginPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  className="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
                   placeholder="••••••••"
                   required
                   disabled={isLoading}
@@ -129,7 +128,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-800 text-white font-bold rounded-lg hover:from-blue-700 hover:to-blue-900 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-green-800 text-white font-bold rounded-lg hover:from-green-700 hover:to-green-900 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>
@@ -147,8 +146,8 @@ export default function LoginPage() {
         </div>
 
         {/* フッター */}
-        <p className="text-center text-blue-200 text-xs mt-6">
-          © 2024 スポーツ能力診断システム
+        <p className="text-center text-green-200 text-xs mt-6">
+          © 2024 NOBISHIRO KIDS
         </p>
       </div>
     </div>

@@ -59,9 +59,9 @@ export async function middleware(request: NextRequest) {
   const subdomain = extractSubdomain(host)
 
   // サブドメインがある場合、店舗ページにリダイレクト
-  // ただし、/result, /edit, /nbs-ctrl-8x7k2m などの共通ページはリライトしない
+  // ただし、/result, /edit, /nbs-ctrl-8x7k2m, /master などの共通ページはリライトしない
   const pathname = request.nextUrl.pathname
-  const excludedPaths = ['/store/', '/result/', '/edit/', '/nbs-ctrl-8x7k2m/', '/api/']
+  const excludedPaths = ['/store/', '/result/', '/edit/', '/nbs-ctrl-8x7k2m/', '/master/', '/api/']
   const shouldRewrite = subdomain && !excludedPaths.some(path => pathname.startsWith(path))
 
   if (shouldRewrite) {
@@ -96,7 +96,7 @@ export async function middleware(request: NextRequest) {
 
   const { data: { session } } = await supabase.auth.getSession()
 
-  // 管理画面へのアクセスをチェック
+  // Master管理画面へのアクセスをチェック（/nbs-ctrl-8x7k2m/）
   if (pathname.startsWith('/nbs-ctrl-8x7k2m')) {
     // ログインページは除外
     if (pathname === '/nbs-ctrl-8x7k2m/login') {
@@ -134,27 +134,56 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/nbs-ctrl-8x7k2m/login', request.url))
     }
 
-    // ロールベースのアクセス制御
-    const role = profile.role
+    // masterロール以外はアクセス不可
+    if (profile.role !== 'master') {
+      return NextResponse.redirect(new URL(getRoleBasedRedirect(profile.role), request.url))
+    }
+  }
 
-    // Master管理画面
-    if (pathname.startsWith('/nbs-ctrl-8x7k2m/master')) {
-      if (role !== 'master') {
-        return NextResponse.redirect(new URL(getRoleBasedRedirect(role), request.url))
-      }
+  // Partner/Store管理画面へのアクセスをチェック（/master/partner, /master/store）
+  if (pathname.startsWith('/master/partner') || pathname.startsWith('/master/store')) {
+    // 未ログインの場合はログインページへリダイレクト
+    if (!session) {
+      return NextResponse.redirect(new URL('/master/partner/login', request.url))
+    }
+
+    // ユーザープロファイルを取得
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('role, partner_id, store_id')
+      .eq('id', session.user.id)
+      .single()
+
+    if (!profile) {
+      await supabase.auth.signOut()
+      return NextResponse.redirect(new URL('/master/partner/login', request.url))
     }
 
     // Partner管理画面
-    if (pathname.startsWith('/nbs-ctrl-8x7k2m/partner')) {
-      if (role !== 'master' && role !== 'partner') {
-        return NextResponse.redirect(new URL(getRoleBasedRedirect(role), request.url))
+    if (pathname.startsWith('/master/partner')) {
+      // ログインページは除外
+      if (pathname === '/master/partner/login') {
+        if (session && profile) {
+          return NextResponse.redirect(new URL(getRoleBasedRedirect(profile.role), request.url))
+        }
+        return response
+      }
+      if (profile.role !== 'master' && profile.role !== 'partner') {
+        return NextResponse.redirect(new URL(getRoleBasedRedirect(profile.role), request.url))
       }
     }
 
     // Store管理画面
-    if (pathname.startsWith('/nbs-ctrl-8x7k2m/store')) {
-      if (role !== 'master' && role !== 'partner' && role !== 'store') {
-        return NextResponse.redirect(new URL('/nbs-ctrl-8x7k2m/login', request.url))
+    if (pathname.startsWith('/master/store')) {
+      // ログインページは除外
+      if (pathname === '/master/store/login') {
+        if (session && profile) {
+          return NextResponse.redirect(new URL(getRoleBasedRedirect(profile.role), request.url))
+        }
+        return response
+      }
+      if (profile.role !== 'master' && profile.role !== 'partner' && profile.role !== 'store') {
+        return NextResponse.redirect(new URL('/master/store/login', request.url))
       }
     }
   }
@@ -167,11 +196,11 @@ function getRoleBasedRedirect(role: string): string {
     case 'master':
       return '/nbs-ctrl-8x7k2m/master'
     case 'partner':
-      return '/nbs-ctrl-8x7k2m/partner'
+      return '/master/partner'
     case 'store':
-      return '/nbs-ctrl-8x7k2m/store'
+      return '/master/store'
     default:
-      return '/nbs-ctrl-8x7k2m/login'
+      return '/master/partner/login'
   }
 }
 
