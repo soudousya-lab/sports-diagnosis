@@ -21,6 +21,14 @@ type FormData = {
   squat: number | ''
   sidestep: number | ''
   throw: number | ''
+  ballType: '1' | '2' | '3' | ''  // ソフトボール号球
+}
+
+// ボール種類の定義（ソフトボール基準で補正）
+const ballTypes = {
+  '1': { label: '1号球（小学校低学年用・テニスボールサイズ）', correction: 1.0 },
+  '2': { label: '2号球（小学校高学年用・ドッジボールサイズ）', correction: 0.95 },
+  '3': { label: '3号球（中学生以上用・バレーボールサイズ）', correction: 0.9 }
 }
 
 export default function StoreNewMeasurementPage() {
@@ -45,7 +53,8 @@ export default function StoreNewMeasurementPage() {
     doublejump: '',
     squat: '',
     sidestep: '',
-    throw: ''
+    throw: '',
+    ballType: ''
   })
 
   // 店舗データを取得
@@ -76,7 +85,7 @@ export default function StoreNewMeasurementPage() {
 
     try {
       // バリデーション（7項目すべて必須）
-      const required = ['name', 'furigana', 'grade', 'gender', 'height', 'weight', 'gripRight', 'gripLeft', 'jump', 'dash', 'doublejump', 'squat', 'sidestep', 'throw']
+      const required = ['name', 'furigana', 'grade', 'gender', 'height', 'weight', 'gripRight', 'gripLeft', 'jump', 'dash', 'doublejump', 'squat', 'sidestep', 'throw', 'ballType']
       for (const field of required) {
         if (!formData[field as keyof FormData]) {
           alert('基本情報と測定項目（7項目すべて）を入力してください')
@@ -86,6 +95,10 @@ export default function StoreNewMeasurementPage() {
       }
 
       const gripAvg = ((formData.gripRight as number) + (formData.gripLeft as number)) / 2
+
+      // ボール投げの補正（1号球基準に換算）
+      const ballCorrection = ballTypes[formData.ballType as '1' | '2' | '3'].correction
+      const correctedThrow = Math.round((formData.throw as number) / ballCorrection * 10) / 10
 
       // 診断ロジック実行（詳細モードで計算）
       const diagnosisResult = runDiagnosis(
@@ -98,7 +111,7 @@ export default function StoreNewMeasurementPage() {
           doublejump: formData.doublejump as number,
           squat: formData.squat as number,
           sidestep: formData.sidestep as number,
-          throw: formData.throw as number
+          throw: correctedThrow  // 補正後の値を使用
         },
         'detail'
       )
@@ -173,7 +186,8 @@ export default function StoreNewMeasurementPage() {
           doublejump: formData.doublejump,
           squat: formData.squat,
           sidestep: formData.sidestep,
-          throw: formData.throw
+          throw: correctedThrow,  // 補正後の値を保存
+          ball_type: formData.ballType
         })
         .select()
         .single()
@@ -439,16 +453,28 @@ export default function StoreNewMeasurementPage() {
 
               {/* ボール投げ */}
               <MeasurementCard icon="投" title="ボール投げ" category="投力">
-                <div className="flex gap-2 items-center">
-                  <input
-                    type="number"
-                    step="0.1"
-                    placeholder="18.5"
-                    className="flex-1 p-2 border border-gray-300 rounded text-sm"
-                    value={formData.throw}
-                    onChange={(e) => handleChange('throw', parseFloat(e.target.value) || '')}
-                  />
-                  <span className="text-xs text-gray-600">m</span>
+                <div className="space-y-2">
+                  <select
+                    className="w-full p-2 border border-gray-300 rounded text-sm bg-white"
+                    value={formData.ballType}
+                    onChange={(e) => handleChange('ballType', e.target.value)}
+                  >
+                    <option value="">ボールの種類を選択</option>
+                    <option value="1">{ballTypes['1'].label}</option>
+                    <option value="2">{ballTypes['2'].label}</option>
+                    <option value="3">{ballTypes['3'].label}</option>
+                  </select>
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="number"
+                      step="0.1"
+                      placeholder="18.5"
+                      className="flex-1 p-2 border border-gray-300 rounded text-sm"
+                      value={formData.throw}
+                      onChange={(e) => handleChange('throw', parseFloat(e.target.value) || '')}
+                    />
+                    <span className="text-xs text-gray-600">m</span>
+                  </div>
                 </div>
               </MeasurementCard>
             </div>

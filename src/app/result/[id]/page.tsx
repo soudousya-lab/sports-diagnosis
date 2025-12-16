@@ -576,7 +576,8 @@ export default function ResultPage() {
   const sorted = Object.entries(result.scores).sort((a, b) => a[1] - b[1])
   const weakestKey = sorted[0][0]
   const strongestKey = sorted[sorted.length - 1][0]
-  const est50m = (data.dash * 3 + 1.2).toFixed(1)
+  // 15m走から50m走への変換（中間〜後半でスピードに乗ることを考慮）
+  const est50m = (data.dash * 2.7 + 0.5).toFixed(1)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 py-6 px-3 xs:px-4 print:bg-white print:py-0">
