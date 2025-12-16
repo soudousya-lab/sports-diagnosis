@@ -59,10 +59,15 @@ export async function middleware(request: NextRequest) {
   const subdomain = extractSubdomain(host)
 
   // サブドメインがある場合、店舗ページにリダイレクト
-  if (subdomain && !request.nextUrl.pathname.startsWith('/store/')) {
+  // ただし、/result, /edit, /admin などの共通ページはリライトしない
+  const pathname = request.nextUrl.pathname
+  const excludedPaths = ['/store/', '/result/', '/edit/', '/admin/', '/api/']
+  const shouldRewrite = subdomain && !excludedPaths.some(path => pathname.startsWith(path))
+
+  if (shouldRewrite) {
     // /store/[slug] へリライト（URLは変更せず内部でルーティング）
     const url = request.nextUrl.clone()
-    url.pathname = `/store/${subdomain}${request.nextUrl.pathname}`
+    url.pathname = `/store/${subdomain}${pathname}`
     return NextResponse.rewrite(url)
   }
 
@@ -90,8 +95,6 @@ export async function middleware(request: NextRequest) {
   )
 
   const { data: { session } } = await supabase.auth.getSession()
-
-  const pathname = request.nextUrl.pathname
 
   // 管理画面へのアクセスをチェック
   if (pathname.startsWith('/admin')) {
