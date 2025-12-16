@@ -165,15 +165,23 @@ export default function ResultPage() {
         setData(combinedData as unknown as MeasurementData)
 
         // 同じ子ども（名前+フリガナ）の過去の測定データを取得
-        if (childData && storeData) {
+        if (childData && measurementData.store_id) {
           try {
             // 同じ店舗内で、同じ名前+フリガナの子どもを検索
-            const { data: sameChildren } = await supabase
+            let childrenQuery = supabase
               .from('children')
               .select('id')
               .eq('store_id', measurementData.store_id)
               .eq('name', childData.name)
-              .eq('furigana', childData.furigana || '')
+
+            // フリガナがnullの場合はis null、それ以外はeqで比較
+            if (childData.furigana === null || childData.furigana === undefined) {
+              childrenQuery = childrenQuery.is('furigana', null)
+            } else {
+              childrenQuery = childrenQuery.eq('furigana', childData.furigana)
+            }
+
+            const { data: sameChildren } = await childrenQuery
 
             if (sameChildren && sameChildren.length > 0) {
               const childIds = sameChildren.map(c => c.id)
