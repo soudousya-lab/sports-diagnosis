@@ -2,35 +2,35 @@
 
 // 平均データ（学年・性別別）
 // doublejump: 連続立ち幅跳び3回の合計距離(cm) - 実測データに基づき調整
-// 一番高い子でも7〜8点になるよう平均値を高めに設定
+// 各人が4〜6点になるよう平均値を実測中央値付近に設定
 export const averageData: Record<string, Record<string, Record<string, number>>> = {
   'k5': {
-    male: { grip: 7, jump: 110, dash: 4.5, doublejump: 620, squat: 30, sidestep: 26, throw: 6 },
-    female: { grip: 6.5, jump: 102, dash: 4.7, doublejump: 580, squat: 28, sidestep: 24, throw: 4.5 }
+    male: { grip: 7, jump: 110, dash: 4.5, doublejump: 580, squat: 28, sidestep: 26, throw: 6 },
+    female: { grip: 6.5, jump: 102, dash: 4.7, doublejump: 550, squat: 26, sidestep: 24, throw: 4.5 }
   },
   '1': {
-    male: { grip: 7.5, jump: 130, dash: 4.1, doublejump: 700, squat: 34, sidestep: 28, throw: 7 },
-    female: { grip: 7, jump: 115, dash: 4.5, doublejump: 650, squat: 32, sidestep: 26, throw: 5 }
+    male: { grip: 7.5, jump: 130, dash: 4.1, doublejump: 650, squat: 30, sidestep: 28, throw: 7 },
+    female: { grip: 7, jump: 115, dash: 4.5, doublejump: 600, squat: 28, sidestep: 26, throw: 5 }
   },
   '2': {
-    male: { grip: 10, jump: 140, dash: 3.85, doublejump: 800, squat: 36, sidestep: 34, throw: 10 },
-    female: { grip: 9.5, jump: 125, dash: 4.1, doublejump: 740, squat: 34, sidestep: 31, throw: 7 }
+    male: { grip: 10, jump: 140, dash: 3.85, doublejump: 740, squat: 32, sidestep: 34, throw: 10 },
+    female: { grip: 9.5, jump: 125, dash: 4.1, doublejump: 680, squat: 30, sidestep: 31, throw: 7 }
   },
   '3': {
-    male: { grip: 11, jump: 140, dash: 3.9, doublejump: 720, squat: 36, sidestep: 32, throw: 10 },
-    female: { grip: 10.5, jump: 120, dash: 4.2, doublejump: 450, squat: 28, sidestep: 30, throw: 6 }
+    male: { grip: 11, jump: 140, dash: 3.9, doublejump: 650, squat: 31, sidestep: 32, throw: 10 },
+    female: { grip: 10.5, jump: 120, dash: 4.2, doublejump: 400, squat: 24, sidestep: 30, throw: 6 }
   },
   '4': {
-    male: { grip: 15, jump: 145, dash: 3.7, doublejump: 780, squat: 35, sidestep: 38, throw: 15 },
-    female: { grip: 14, jump: 135, dash: 3.9, doublejump: 720, squat: 32, sidestep: 35, throw: 10 }
+    male: { grip: 15, jump: 145, dash: 3.7, doublejump: 705, squat: 30, sidestep: 38, throw: 15 },
+    female: { grip: 14, jump: 135, dash: 3.9, doublejump: 650, squat: 28, sidestep: 35, throw: 10 }
   },
   '5': {
-    male: { grip: 18, jump: 155, dash: 3.5, doublejump: 840, squat: 38, sidestep: 42, throw: 20 },
-    female: { grip: 17, jump: 145, dash: 3.7, doublejump: 780, squat: 35, sidestep: 38, throw: 13 }
+    male: { grip: 18, jump: 155, dash: 3.5, doublejump: 760, squat: 33, sidestep: 42, throw: 20 },
+    female: { grip: 17, jump: 145, dash: 3.7, doublejump: 700, squat: 31, sidestep: 38, throw: 13 }
   },
   '6': {
-    male: { grip: 21, jump: 165, dash: 3.3, doublejump: 900, squat: 40, sidestep: 46, throw: 25 },
-    female: { grip: 19, jump: 152, dash: 3.5, doublejump: 830, squat: 37, sidestep: 42, throw: 16 }
+    male: { grip: 21, jump: 165, dash: 3.3, doublejump: 820, squat: 36, sidestep: 46, throw: 25 },
+    female: { grip: 19, jump: 152, dash: 3.5, doublejump: 760, squat: 33, sidestep: 42, throw: 16 }
   }
 }
 
