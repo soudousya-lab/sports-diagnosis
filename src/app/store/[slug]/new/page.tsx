@@ -297,18 +297,30 @@ export default function StoreNewMeasurementPage() {
       let childId: string
 
       if (selectedChild && !isNewChild) {
-        // 既存の子どもの場合、学年・身長・体重を更新
-        const { error: updateError } = await supabase
+        // 既存の子どもの場合、新しい測定用に新規childrenレコードを作成
+        // （同じ子でも測定ごとに学年・身長・体重が変わるため）
+        console.log('既存の子どもで新規測定:', selectedChild.name, selectedChild.id)
+
+        const { data: childData, error: childError } = await supabase
           .from('children')
-          .update({
+          .insert({
+            store_id: store.id,
+            name: selectedChild.name,
+            furigana: selectedChild.furigana,
+            gender: selectedChild.gender,
             grade: formData.grade,
             height: formData.height,
             weight: formData.weight
           })
-          .eq('id', selectedChild.id)
+          .select()
+          .single()
 
-        if (updateError) throw updateError
-        childId = selectedChild.id
+        if (childError) {
+          console.error('児童データ作成エラー:', childError)
+          throw childError
+        }
+        childId = childData.id
+        console.log('新規児童ID:', childId)
       } else {
         // 新規の子どもの場合
         const { data: childData, error: childError } = await supabase
@@ -349,7 +361,11 @@ export default function StoreNewMeasurementPage() {
         .select()
         .single()
 
-      if (measurementError) throw measurementError
+      if (measurementError) {
+        console.error('測定データ保存エラー:', measurementError)
+        throw measurementError
+      }
+      console.log('測定データ保存成功:', measurementData.id)
 
       // 3. 診断結果保存
       const { error: resultError } = await supabase
@@ -368,7 +384,11 @@ export default function StoreNewMeasurementPage() {
           goals: diagnosisResult.goals
         })
 
-      if (resultError) throw resultError
+      if (resultError) {
+        console.error('診断結果保存エラー:', resultError)
+        throw resultError
+      }
+      console.log('診断結果保存成功')
 
       // 店舗トップページへ遷移
       router.push(`/store/${slug}`)
