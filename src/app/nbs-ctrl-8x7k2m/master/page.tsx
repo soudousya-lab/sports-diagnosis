@@ -48,9 +48,17 @@ export default function MasterDashboard() {
   const [users, setUsers] = useState<UserProfile[]>([])
   const [showUserModal, setShowUserModal] = useState(false)
   const [showPartnerModal, setShowPartnerModal] = useState(false)
+  const [editingUser, setEditingUser] = useState<UserProfile | null>(null)
   const [userForm, setUserForm] = useState({
     email: '',
     password: '',
+    name: '',
+    role: 'store' as 'master' | 'partner' | 'store',
+    partner_id: '',
+    store_id: ''
+  })
+  const [editUserForm, setEditUserForm] = useState({
+    id: '',
     name: '',
     role: 'store' as 'master' | 'partner' | 'store',
     partner_id: '',
@@ -177,6 +185,38 @@ export default function MasterDashboard() {
     } catch {
       alert('エラーが発生しました')
     }
+  }
+
+  const handleEditUser = (user: UserProfile) => {
+    setEditingUser(user)
+    setEditUserForm({
+      id: user.id,
+      name: user.name || '',
+      role: user.role,
+      partner_id: user.partner_id || '',
+      store_id: user.store_id || ''
+    })
+  }
+
+  const handleUpdateUser = async () => {
+    setSaving(true)
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editUserForm)
+      })
+      const data = await res.json()
+      if (data.error) {
+        alert('更新に失敗しました: ' + data.error)
+      } else {
+        setEditingUser(null)
+        fetchUsers()
+      }
+    } catch {
+      alert('エラーが発生しました')
+    }
+    setSaving(false)
   }
 
   const handleCreatePartner = async () => {
@@ -958,19 +998,38 @@ export default function MasterDashboard() {
                           </span>
                         </td>
                         <td className="px-4 py-3 text-gray-500">
-                          {user.stores?.name || user.partners?.name || '-'}
+                          {user.role === 'store' ? (
+                            <div>
+                              <div>{user.stores?.name || '-'}</div>
+                              {user.partners?.name && (
+                                <div className="text-xs text-gray-400">({user.partners.name})</div>
+                              )}
+                            </div>
+                          ) : user.role === 'partner' ? (
+                            user.partners?.name || '-'
+                          ) : '-'}
                         </td>
                         <td className="px-4 py-3 text-gray-500 text-sm">
                           {new Date(user.created_at).toLocaleDateString('ja-JP')}
                         </td>
                         <td className="px-4 py-3 text-center">
                           {user.role !== 'master' && (
-                            <button
-                              onClick={() => handleDeleteUser(user.id)}
-                              className="text-red-600 hover:text-red-800 text-sm"
-                            >
-                              <FaTrash />
-                            </button>
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                onClick={() => handleEditUser(user)}
+                                className="text-blue-600 hover:text-blue-800 text-sm"
+                                title="編集"
+                              >
+                                <FaEdit />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteUser(user.id)}
+                                className="text-red-600 hover:text-red-800 text-sm"
+                                title="削除"
+                              >
+                                <FaTrash />
+                              </button>
+                            </div>
                           )}
                         </td>
                       </tr>
@@ -986,6 +1045,109 @@ export default function MasterDashboard() {
                 </table>
               </div>
             </div>
+
+            {/* ユーザー編集モーダル */}
+            {editingUser && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4">
+                  <div className="p-4 border-b flex justify-between items-center">
+                    <h3 className="font-bold text-gray-800">ユーザー編集</h3>
+                    <button onClick={() => setEditingUser(null)} className="text-gray-500 hover:text-gray-700">
+                      <FaTimes />
+                    </button>
+                  </div>
+                  <div className="p-4 space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
+                      <input
+                        type="email"
+                        value={editingUser.email}
+                        disabled
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">名前</label>
+                      <input
+                        type="text"
+                        value={editUserForm.name}
+                        onChange={(e) => setEditUserForm({ ...editUserForm, name: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">ロール</label>
+                      <select
+                        value={editUserForm.role}
+                        onChange={(e) => setEditUserForm({ ...editUserForm, role: e.target.value as 'partner' | 'store', partner_id: '', store_id: '' })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                      >
+                        <option value="store">店舗スタッフ</option>
+                        <option value="partner">パートナー</option>
+                      </select>
+                    </div>
+                    {editUserForm.role === 'partner' && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">パートナー</label>
+                        <select
+                          value={editUserForm.partner_id}
+                          onChange={(e) => setEditUserForm({ ...editUserForm, partner_id: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                        >
+                          <option value="">選択してください</option>
+                          {stats?.partners.map(p => (
+                            <option key={p.id} value={p.id}>{p.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                    {editUserForm.role === 'store' && (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">パートナー（任意）</label>
+                          <select
+                            value={editUserForm.partner_id}
+                            onChange={(e) => setEditUserForm({ ...editUserForm, partner_id: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                          >
+                            <option value="">なし</option>
+                            {stats?.partners.map(p => (
+                              <option key={p.id} value={p.id}>{p.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">店舗</label>
+                          <select
+                            value={editUserForm.store_id}
+                            onChange={(e) => setEditUserForm({ ...editUserForm, store_id: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                          >
+                            <option value="">選択してください</option>
+                            {stats?.stores.map(s => (
+                              <option key={s.id} value={s.id}>{s.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  <div className="p-4 border-t bg-gray-50 flex justify-end gap-2">
+                    <button onClick={() => setEditingUser(null)} className="px-4 py-2 text-gray-600 hover:text-gray-800">
+                      キャンセル
+                    </button>
+                    <button
+                      onClick={handleUpdateUser}
+                      disabled={saving}
+                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                    >
+                      {saving ? <FaSpinner className="animate-spin" /> : <FaSave />}
+                      保存
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* ユーザー追加モーダル */}
             {showUserModal && (
@@ -1052,19 +1214,34 @@ export default function MasterDashboard() {
                       </div>
                     )}
                     {userForm.role === 'store' && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">店舗 *</label>
-                        <select
-                          value={userForm.store_id}
-                          onChange={(e) => setUserForm({ ...userForm, store_id: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                        >
-                          <option value="">選択してください</option>
-                          {stats?.stores.map(s => (
-                            <option key={s.id} value={s.id}>{s.name}</option>
-                          ))}
-                        </select>
-                      </div>
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">パートナー（任意）</label>
+                          <select
+                            value={userForm.partner_id}
+                            onChange={(e) => setUserForm({ ...userForm, partner_id: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                          >
+                            <option value="">なし</option>
+                            {stats?.partners.map(p => (
+                              <option key={p.id} value={p.id}>{p.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">店舗 *</label>
+                          <select
+                            value={userForm.store_id}
+                            onChange={(e) => setUserForm({ ...userForm, store_id: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                          >
+                            <option value="">選択してください</option>
+                            {stats?.stores.map(s => (
+                              <option key={s.id} value={s.id}>{s.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </>
                     )}
                   </div>
                   <div className="p-4 border-t bg-gray-50 flex justify-end gap-2">

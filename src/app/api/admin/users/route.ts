@@ -153,6 +153,53 @@ export async function GET() {
   }
 }
 
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json()
+    const { id, name, role, partner_id, store_id } = body
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'User ID is required' },
+        { status: 400 }
+      )
+    }
+
+    const supabase = getSupabaseAdmin()
+
+    // 空文字をnullに変換
+    const validPartnerId = partner_id && partner_id.trim() !== '' ? partner_id : null
+    const validStoreId = store_id && store_id.trim() !== '' ? store_id : null
+
+    // user_profiles を更新
+    const { error: profileError } = await supabase
+      .from('user_profiles')
+      .update({
+        name: name || null,
+        role,
+        partner_id: role === 'partner' ? validPartnerId : (role === 'store' ? validPartnerId : null),
+        store_id: role === 'store' ? validStoreId : null
+      })
+      .eq('id', id)
+
+    if (profileError) {
+      console.error('Profile update error:', profileError)
+      return NextResponse.json(
+        { error: profileError.message },
+        { status: 400 }
+      )
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Server error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
 export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url)

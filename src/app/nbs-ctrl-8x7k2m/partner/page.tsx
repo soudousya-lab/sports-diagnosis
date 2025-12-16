@@ -36,25 +36,61 @@ export default function PartnerDashboard() {
 
     setLoading(true)
 
-    // パートナーに紐づく店舗のみ取得
-    const { data: stores } = await supabase
+    // パートナーに紐づく店舗のみ取得（store_statisticsビューを試し、なければstoresテーブルから取得）
+    let stores: StoreStatistics[] = []
+    const { data: statsData, error: statsError } = await supabase
       .from('store_statistics')
       .select('*')
       .eq('partner_id', profile.partner_id)
 
-    const storeIds = stores?.map(s => s.store_id) || []
+    if (statsError || !statsData) {
+      // ビューがない場合はstoresテーブルから直接取得
+      const { data: storesData } = await supabase
+        .from('stores')
+        .select('id, name, slug, partner_id')
+        .eq('partner_id', profile.partner_id)
+
+      if (storesData) {
+        // 各店舗の統計を手動で計算
+        for (const store of storesData) {
+          const [childrenRes, measurementsRes] = await Promise.all([
+            supabase.from('children').select('id', { count: 'exact', head: true }).eq('store_id', store.id),
+            supabase.from('measurements').select('id', { count: 'exact', head: true }).eq('store_id', store.id)
+          ])
+          stores.push({
+            store_id: store.id,
+            store_name: store.name,
+            slug: store.slug,
+            partner_id: store.partner_id,
+            partner_name: null,
+            children_count: childrenRes.count || 0,
+            measurements_count: measurementsRes.count || 0,
+            first_measurement_date: null,
+            last_measurement_date: null
+          })
+        }
+      }
+    } else {
+      stores = statsData
+    }
+
+    const storeIds = stores.map(s => s.store_id)
 
     // 担当店舗の統計情報を取得
     const [gradeDistRes, monthlyRes] = await Promise.all([
-      supabase.from('grade_gender_distribution').select('*').in('store_id', storeIds),
-      supabase.from('monthly_measurements').select('*').in('store_id', storeIds)
+      storeIds.length > 0
+        ? supabase.from('grade_gender_distribution').select('*').in('store_id', storeIds)
+        : Promise.resolve({ data: [] }),
+      storeIds.length > 0
+        ? supabase.from('monthly_measurements').select('*').in('store_id', storeIds)
+        : Promise.resolve({ data: [] })
     ])
 
-    const totalChildren = stores?.reduce((sum, s) => sum + s.children_count, 0) || 0
-    const totalMeasurements = stores?.reduce((sum, s) => sum + s.measurements_count, 0) || 0
+    const totalChildren = stores.reduce((sum, s) => sum + s.children_count, 0)
+    const totalMeasurements = stores.reduce((sum, s) => sum + s.measurements_count, 0)
 
     setStats({
-      stores: stores || [],
+      stores,
       gradeDistribution: gradeDistRes.data || [],
       monthlyData: monthlyRes.data || [],
       totalChildren,

@@ -46,6 +46,7 @@ export type Store = {
   phone: string | null
   hours: string | null
   theme_color: string
+  partner_id: string | null
   created_at: string
   updated_at: string
 }
