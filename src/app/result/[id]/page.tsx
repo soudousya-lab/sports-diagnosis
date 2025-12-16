@@ -285,7 +285,7 @@ export default function ResultPage() {
   if (viewMode === 'simple') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 py-6 px-3 xs:px-4 print:bg-white print:py-0 print:px-0 print:min-h-0">
-        <div className="max-w-4xl mx-auto space-y-6 print:space-y-0 print:max-w-none print:m-0">
+        <div className="max-w-4xl mx-auto space-y-6 print:!space-y-0 print:max-w-none print:m-0">
           {/* 戻るボタン・PDF出力ボタン */}
           <div className="flex justify-between items-center print:hidden">
             <Link href="/" className="inline-flex items-center text-blue-200 hover:text-white transition-colors text-sm xs:text-base">
@@ -484,7 +484,7 @@ export default function ResultPage() {
           </div>
 
           {/* ページ2: 詳細版プレビュー（SAMPLEオーバーレイ付き）- 2列レイアウト */}
-          <div className="relative overflow-hidden rounded-xl xs:rounded-2xl print:rounded-none print:break-before-page print:h-[297mm] print:w-[210mm] print:overflow-hidden print:box-border">
+          <div className="relative overflow-hidden rounded-xl xs:rounded-2xl print:rounded-none print:break-before-page print:h-[297mm] print:w-[210mm] print:overflow-hidden print:box-border print:!mt-0">
             {/* SAMPLEウォーターマーク */}
             <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center overflow-hidden">
               <div
@@ -609,8 +609,8 @@ export default function ResultPage() {
   const est50m = (data.dash * 2.7 + 0.5).toFixed(1)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 py-6 px-3 xs:px-4 print:bg-white print:py-0">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 py-6 px-3 xs:px-4 print:bg-white print:py-0 print:px-0 print:min-h-0">
+      <div className="max-w-4xl mx-auto space-y-6 print:!space-y-0 print:max-w-none print:m-0">
         {/* 戻るボタン・PDF出力ボタン */}
         <div className="flex justify-between items-center print:hidden">
           <Link href="/" className="inline-flex items-center text-blue-200 hover:text-white transition-colors text-sm xs:text-base">
@@ -776,7 +776,7 @@ export default function ResultPage() {
         </div>
 
         {/* ページ2: トレーニング＆適性スポーツ（〜1ヶ月目標まで） - A4サイズ最適化 */}
-        <div className="bg-white rounded-xl xs:rounded-2xl shadow-2xl overflow-hidden print:shadow-none print:rounded-none print:break-before-page print:h-[297mm] print:w-[210mm]">
+        <div className="bg-white rounded-xl xs:rounded-2xl shadow-2xl overflow-hidden print:shadow-none print:rounded-none print:break-before-page print:h-[297mm] print:w-[210mm] print:!mt-0">
           {/* ヘッダー */}
           <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-3 xs:p-4 print:p-3">
             <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-1 xs:gap-0">
@@ -910,7 +910,7 @@ export default function ResultPage() {
         </div>
 
         {/* ページ3: 保護者の方へ - A4サイズ最適化 */}
-        <div className="bg-white rounded-xl xs:rounded-2xl shadow-2xl overflow-hidden print:shadow-none print:rounded-none print:break-before-page print:h-[297mm] print:w-[210mm]">
+        <div className="bg-white rounded-xl xs:rounded-2xl shadow-2xl overflow-hidden print:shadow-none print:rounded-none print:break-before-page print:h-[297mm] print:w-[210mm] print:!mt-0">
           {/* ヘッダー */}
           <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-3 xs:p-4 print:p-3">
             <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-1 xs:gap-0">

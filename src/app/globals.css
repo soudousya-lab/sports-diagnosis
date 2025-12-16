@@ -107,7 +107,19 @@ body {
   }
 
   /* 印刷時のスペース調整 */
-  .print\:space-y-0 > * + * {
+  .print\:space-y-0 > * + *,
+  .print\:\!space-y-0 > * + * {
+    margin-top: 0 !important;
+  }
+
+  /* 印刷時のpaddingリセット */
+  .print\:px-0 {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  /* 印刷時のmargin-topリセット */
+  .print\:\!mt-0 {
     margin-top: 0 !important;
   }
 
