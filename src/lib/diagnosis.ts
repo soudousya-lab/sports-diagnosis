@@ -1,44 +1,44 @@
 // 診断ロジック
 
 // 平均データ（学年・性別別）
-// doublejump: 連続立ち幅跳び3回の合計距離(cm)
+// doublejump: 連続立ち幅跳び3回の合計距離(cm) - 実測データに基づき調整
 export const averageData: Record<string, Record<string, Record<string, number>>> = {
   'k5': {
-    male: { grip: 9.5, jump: 108, dash: 4.35, doublejump: 300, squat: 18, sidestep: 26, throw: 8 },
-    female: { grip: 8.5, jump: 100, dash: 4.5, doublejump: 278, squat: 16, sidestep: 24, throw: 5.5 }
+    male: { grip: 7, jump: 110, dash: 4.5, doublejump: 500, squat: 18, sidestep: 26, throw: 6 },
+    female: { grip: 6.5, jump: 102, dash: 4.7, doublejump: 470, squat: 16, sidestep: 24, throw: 4.5 }
   },
   '1': {
-    male: { grip: 11, jump: 118, dash: 4.05, doublejump: 330, squat: 20, sidestep: 30, throw: 11 },
-    female: { grip: 10.5, jump: 110, dash: 4.2, doublejump: 308, squat: 18, sidestep: 28, throw: 7.5 }
+    male: { grip: 7.5, jump: 130, dash: 4.1, doublejump: 600, squat: 26, sidestep: 28, throw: 7 },
+    female: { grip: 7, jump: 115, dash: 4.5, doublejump: 550, squat: 24, sidestep: 26, throw: 5 }
   },
   '2': {
-    male: { grip: 13, jump: 128, dash: 3.75, doublejump: 360, squat: 22, sidestep: 34, throw: 14 },
-    female: { grip: 12.5, jump: 120, dash: 3.9, doublejump: 338, squat: 20, sidestep: 32, throw: 9 }
+    male: { grip: 10, jump: 140, dash: 3.85, doublejump: 680, squat: 28, sidestep: 34, throw: 10 },
+    female: { grip: 9.5, jump: 125, dash: 4.1, doublejump: 620, squat: 26, sidestep: 31, throw: 7 }
   },
   '3': {
-    male: { grip: 15, jump: 138, dash: 3.53, doublejump: 390, squat: 24, sidestep: 38, throw: 18 },
-    female: { grip: 14.5, jump: 130, dash: 3.68, doublejump: 368, squat: 22, sidestep: 35, throw: 11 }
+    male: { grip: 11, jump: 140, dash: 3.9, doublejump: 650, squat: 30, sidestep: 32, throw: 10 },
+    female: { grip: 10.5, jump: 120, dash: 4.2, doublejump: 500, squat: 24, sidestep: 30, throw: 6 }
   },
   '4': {
-    male: { grip: 17.5, jump: 148, dash: 3.3, doublejump: 420, squat: 26, sidestep: 42, throw: 22 },
-    female: { grip: 17, jump: 140, dash: 3.45, doublejump: 398, squat: 24, sidestep: 39, throw: 14 }
+    male: { grip: 15, jump: 145, dash: 3.7, doublejump: 700, squat: 30, sidestep: 38, throw: 15 },
+    female: { grip: 14, jump: 135, dash: 3.9, doublejump: 640, squat: 28, sidestep: 35, throw: 10 }
   },
   '5': {
-    male: { grip: 20.5, jump: 158, dash: 3.08, doublejump: 450, squat: 28, sidestep: 46, throw: 27 },
-    female: { grip: 19.5, jump: 148, dash: 3.23, doublejump: 420, squat: 26, sidestep: 42, throw: 16 }
+    male: { grip: 18, jump: 155, dash: 3.5, doublejump: 750, squat: 32, sidestep: 42, throw: 20 },
+    female: { grip: 17, jump: 145, dash: 3.7, doublejump: 690, squat: 30, sidestep: 38, throw: 13 }
   },
   '6': {
-    male: { grip: 24, jump: 168, dash: 2.93, doublejump: 480, squat: 30, sidestep: 50, throw: 32 },
-    female: { grip: 22, jump: 155, dash: 3.08, doublejump: 443, squat: 28, sidestep: 45, throw: 19 }
+    male: { grip: 21, jump: 165, dash: 3.3, doublejump: 800, squat: 34, sidestep: 46, throw: 25 },
+    female: { grip: 19, jump: 152, dash: 3.5, doublejump: 730, squat: 32, sidestep: 42, throw: 16 }
   }
 }
 
-// 標準偏差
+// 標準偏差 - 実測データに基づき調整
 export const sd: Record<string, number> = {
-  grip: 3.5,
-  jump: 12,
-  dash: 0.26,
-  doublejump: 38,  // 3回版に調整（25 × 1.5）
+  grip: 4,
+  jump: 15,
+  dash: 0.35,
+  doublejump: 80,  // 3回版：個人差が大きい
   squat: 5,
   sidestep: 6,
   throw: 5
