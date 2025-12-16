@@ -36,9 +36,9 @@ type UserProfile = {
 }
 
 export default function MasterDashboard() {
-  const { profile, signOut } = useAuth()
+  const { profile, signOut, loading: authLoading } = useAuth()
   const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [dataLoading, setDataLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'overview' | 'stores' | 'partners' | 'users' | 'analysis'>('overview')
   const [editingStore, setEditingStore] = useState<Store | null>(null)
   const [editForm, setEditForm] = useState({ name: '', slug: '', address: '', phone: '', hours: '' })
@@ -62,12 +62,15 @@ export default function MasterDashboard() {
 
   const supabase = createClientComponentClient()
 
+  // 認証完了後にデータ取得
   useEffect(() => {
-    fetchDashboardData()
-  }, [])
+    if (!authLoading) {
+      fetchDashboardData()
+    }
+  }, [authLoading])
 
   const fetchDashboardData = async () => {
-    setLoading(true)
+    setDataLoading(true)
 
     try {
       // 基本データを並列で取得
@@ -120,7 +123,7 @@ export default function MasterDashboard() {
     } catch (err) {
       console.error('Dashboard data fetch error:', err)
     } finally {
-      setLoading(false)
+      setDataLoading(false)
     }
   }
 
@@ -394,7 +397,7 @@ export default function MasterDashboard() {
     }))
   }
 
-  if (loading) {
+  if (authLoading || dataLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <FaSpinner className="animate-spin text-blue-600 text-4xl" />
