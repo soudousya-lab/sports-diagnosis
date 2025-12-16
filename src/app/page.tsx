@@ -158,12 +158,6 @@ export default function Home() {
                   無料で相談する
                   <HiOutlineChevronRight className="w-4 h-4 ml-2" />
                 </Link>
-                <Link
-                  href="/admin/login"
-                  className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 bg-white text-gray-700 rounded-lg font-medium text-sm sm:text-base border border-gray-200 hover:border-blue-200 hover:bg-blue-50 transition-colors"
-                >
-                  管理画面ログイン
-                </Link>
               </div>
 
               {/* 実績バッジ */}
@@ -630,7 +624,6 @@ export default function Home() {
               <h4 className="font-semibold text-gray-900 mb-3 sm:mb-4 text-xs sm:text-sm">サポート</h4>
               <ul className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-gray-500">
                 <li><Link href="/contact" className="hover:text-blue-600 transition-colors">導入のご相談</Link></li>
-                <li><Link href="/admin/login" className="hover:text-blue-600 transition-colors">管理画面ログイン</Link></li>
               </ul>
             </div>
           </div>

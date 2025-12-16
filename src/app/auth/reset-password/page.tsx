@@ -58,7 +58,7 @@ export default function ResetPasswordPage() {
       // 3秒後にログアウトしてログインページへ
       setTimeout(async () => {
         await supabase.auth.signOut()
-        router.replace('/admin/login')
+        router.replace('/nbs-ctrl-8x7k2m/login')
       }, 3000)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'パスワードの更新に失敗しました')
@@ -112,7 +112,7 @@ export default function ResetPasswordPage() {
                   パスワードリセットをやり直してください。
                 </p>
                 <button
-                  onClick={() => router.push('/admin/login')}
+                  onClick={() => router.push('/nbs-ctrl-8x7k2m/login')}
                   className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-all"
                 >
                   ログイン画面へ

@@ -23,13 +23,13 @@ export default function LoginPage() {
   const redirectByRole = (role: string) => {
     switch (role) {
       case 'master':
-        router.push('/admin/master')
+        router.push('/nbs-ctrl-8x7k2m/master')
         break
       case 'partner':
-        router.push('/admin/partner')
+        router.push('/nbs-ctrl-8x7k2m/partner')
         break
       case 'store':
-        router.push('/admin/store')
+        router.push('/nbs-ctrl-8x7k2m/store')
         break
       default:
         router.push('/')

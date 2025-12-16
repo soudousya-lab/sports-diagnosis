@@ -59,9 +59,9 @@ export async function middleware(request: NextRequest) {
   const subdomain = extractSubdomain(host)
 
   // サブドメインがある場合、店舗ページにリダイレクト
-  // ただし、/result, /edit, /admin などの共通ページはリライトしない
+  // ただし、/result, /edit, /nbs-ctrl-8x7k2m などの共通ページはリライトしない
   const pathname = request.nextUrl.pathname
-  const excludedPaths = ['/store/', '/result/', '/edit/', '/admin/', '/api/']
+  const excludedPaths = ['/store/', '/result/', '/edit/', '/nbs-ctrl-8x7k2m/', '/api/']
   const shouldRewrite = subdomain && !excludedPaths.some(path => pathname.startsWith(path))
 
   if (shouldRewrite) {
@@ -97,9 +97,9 @@ export async function middleware(request: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession()
 
   // 管理画面へのアクセスをチェック
-  if (pathname.startsWith('/admin')) {
+  if (pathname.startsWith('/nbs-ctrl-8x7k2m')) {
     // ログインページは除外
-    if (pathname === '/admin/login') {
+    if (pathname === '/nbs-ctrl-8x7k2m/login') {
       // 既にログイン済みならダッシュボードへリダイレクト
       if (session) {
         const { data: profile } = await supabase
@@ -118,7 +118,7 @@ export async function middleware(request: NextRequest) {
 
     // 未ログインの場合はログインページへリダイレクト
     if (!session) {
-      return NextResponse.redirect(new URL('/admin/login', request.url))
+      return NextResponse.redirect(new URL('/nbs-ctrl-8x7k2m/login', request.url))
     }
 
     // ユーザープロファイルを取得
@@ -131,30 +131,30 @@ export async function middleware(request: NextRequest) {
     if (!profile) {
       // プロファイルがない場合はログアウトしてログインページへ
       await supabase.auth.signOut()
-      return NextResponse.redirect(new URL('/admin/login', request.url))
+      return NextResponse.redirect(new URL('/nbs-ctrl-8x7k2m/login', request.url))
     }
 
     // ロールベースのアクセス制御
     const role = profile.role
 
     // Master管理画面
-    if (pathname.startsWith('/admin/master')) {
+    if (pathname.startsWith('/nbs-ctrl-8x7k2m/master')) {
       if (role !== 'master') {
         return NextResponse.redirect(new URL(getRoleBasedRedirect(role), request.url))
       }
     }
 
     // Partner管理画面
-    if (pathname.startsWith('/admin/partner')) {
+    if (pathname.startsWith('/nbs-ctrl-8x7k2m/partner')) {
       if (role !== 'master' && role !== 'partner') {
         return NextResponse.redirect(new URL(getRoleBasedRedirect(role), request.url))
       }
     }
 
     // Store管理画面
-    if (pathname.startsWith('/admin/store')) {
+    if (pathname.startsWith('/nbs-ctrl-8x7k2m/store')) {
       if (role !== 'master' && role !== 'partner' && role !== 'store') {
-        return NextResponse.redirect(new URL('/admin/login', request.url))
+        return NextResponse.redirect(new URL('/nbs-ctrl-8x7k2m/login', request.url))
       }
     }
   }
@@ -165,13 +165,13 @@ export async function middleware(request: NextRequest) {
 function getRoleBasedRedirect(role: string): string {
   switch (role) {
     case 'master':
-      return '/admin/master'
+      return '/nbs-ctrl-8x7k2m/master'
     case 'partner':
-      return '/admin/partner'
+      return '/nbs-ctrl-8x7k2m/partner'
     case 'store':
-      return '/admin/store'
+      return '/nbs-ctrl-8x7k2m/store'
     default:
-      return '/admin/login'
+      return '/nbs-ctrl-8x7k2m/login'
   }
 }
 
