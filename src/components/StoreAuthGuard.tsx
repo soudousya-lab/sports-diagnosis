@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation'
 import { createClientComponentClient } from '@/lib/supabase'
 import { FaSpinner } from 'react-icons/fa'
 
+// 認証タイムアウト（ミリ秒）
+const AUTH_TIMEOUT_MS = 10000 // 10秒
+
 type Props = {
   slug: string
   children: React.ReactNode
@@ -27,10 +30,23 @@ export default function StoreAuthGuard({ slug, children }: Props) {
 
     let isMounted = true
 
+    // タイムアウト付きPromise
+    const withTimeout = <T,>(promise: PromiseLike<T>, timeoutMs: number): Promise<T> => {
+      return Promise.race([
+        Promise.resolve(promise),
+        new Promise<T>((_, reject) =>
+          setTimeout(() => reject(new Error('認証タイムアウト')), timeoutMs)
+        )
+      ])
+    }
+
     async function checkAuth() {
       try {
-        // セッションチェック
-        const { data: { session } } = await supabase.auth.getSession()
+        // セッションチェック（タイムアウト付き）
+        const { data: { session } } = await withTimeout(
+          supabase.auth.getSession(),
+          AUTH_TIMEOUT_MS
+        )
 
         if (!isMounted) return
 
@@ -39,12 +55,24 @@ export default function StoreAuthGuard({ slug, children }: Props) {
           return
         }
 
-        // 店舗情報取得
-        const { data: storeData } = await supabase
-          .from('stores')
-          .select('id')
-          .eq('slug', slug)
-          .single()
+        // セッションの有効期限をチェック
+        if (session.expires_at && session.expires_at * 1000 < Date.now()) {
+          console.log('[StoreAuthGuard] Session expired, signing out')
+          await supabase.auth.signOut()
+          router.replace(`/store/${slug}/login`)
+          return
+        }
+
+        // 店舗情報取得（タイムアウト付き）
+        const storeResult = await withTimeout(
+          supabase
+            .from('stores')
+            .select('id')
+            .eq('slug', slug)
+            .single(),
+          AUTH_TIMEOUT_MS
+        )
+        const storeData = storeResult?.data
 
         if (!isMounted) return
 
@@ -53,12 +81,16 @@ export default function StoreAuthGuard({ slug, children }: Props) {
           return
         }
 
-        // プロファイル確認
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('role, store_id')
-          .eq('id', session.user.id)
-          .single()
+        // プロファイル確認（タイムアウト付き）
+        const profileResult = await withTimeout(
+          supabase
+            .from('user_profiles')
+            .select('role, store_id')
+            .eq('id', session.user.id)
+            .single(),
+          AUTH_TIMEOUT_MS
+        )
+        const profile = profileResult?.data
 
         if (!isMounted) return
 
@@ -84,6 +116,7 @@ export default function StoreAuthGuard({ slug, children }: Props) {
       } catch (err) {
         console.error('Auth check error:', err)
         if (isMounted) {
+          // タイムアウトの場合もログインページへ
           router.replace(`/store/${slug}/login`)
         }
       } finally {

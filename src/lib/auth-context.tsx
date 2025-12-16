@@ -5,6 +5,12 @@ import { useRouter } from 'next/navigation'
 import { User, Session } from '@supabase/supabase-js'
 import { createClientComponentClient, UserProfile, UserRole } from './supabase'
 
+// セッションタイムアウト（ミリ秒）- 認証チェックが完了しない場合のフォールバック
+const AUTH_TIMEOUT_MS = 10000 // 10秒
+
+// セッション有効期限（秒）- Supabaseのセッションリフレッシュ間隔
+const SESSION_EXPIRY_SECONDS = 60 * 60 * 24 // 24時間
+
 type AuthContextType = {
   user: User | null
   session: Session | null
@@ -67,27 +73,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     let isMounted = true
 
+    // タイムアウト付きPromise
+    const withTimeout = <T,>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
+      return Promise.race([
+        promise,
+        new Promise<T>((_, reject) =>
+          setTimeout(() => reject(new Error('認証タイムアウト')), timeoutMs)
+        )
+      ])
+    }
+
     // 初期セッション取得
     const getInitialSession = async () => {
       console.log('[AuthContext] getInitialSession started')
 
       try {
-        const { data: { session: initialSession }, error } = await supabase.auth.getSession()
+        const { data: { session: initialSession }, error } = await withTimeout(
+          supabase.auth.getSession(),
+          AUTH_TIMEOUT_MS
+        )
 
         if (!isMounted) return
 
         console.log('[AuthContext] getSession result:', { session: !!initialSession, error })
+
+        // セッションの有効期限をチェック
+        if (initialSession) {
+          const expiresAt = initialSession.expires_at
+          if (expiresAt && expiresAt * 1000 < Date.now()) {
+            console.log('[AuthContext] Session expired, signing out')
+            await supabase.auth.signOut()
+            setSession(null)
+            setUser(null)
+            setProfile(null)
+            return
+          }
+        }
 
         setSession(initialSession)
         setUser(initialSession?.user ?? null)
 
         if (initialSession?.user) {
           console.log('[AuthContext] fetching profile for user:', initialSession.user.id)
-          await fetchProfile(initialSession.user.id)
+          await withTimeout(fetchProfile(initialSession.user.id), AUTH_TIMEOUT_MS)
           console.log('[AuthContext] profile fetched')
         }
       } catch (err) {
         console.error('[AuthContext] getInitialSession error:', err)
+        // タイムアウトの場合はセッションをクリアしてログイン画面へ
+        if (err instanceof Error && err.message === '認証タイムアウト') {
+          console.log('[AuthContext] Auth timeout, clearing session')
+          setSession(null)
+          setUser(null)
+          setProfile(null)
+        }
       } finally {
         if (isMounted) {
           console.log('[AuthContext] setting loading to false')

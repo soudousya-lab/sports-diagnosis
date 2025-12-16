@@ -4,6 +4,9 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
+// セッション有効期限（秒）- 24時間
+const SESSION_EXPIRY_SECONDS = 60 * 60 * 24
+
 // Cookieドメインを取得（サブドメイン間で共有するため）
 function getCookieDomain(): string | undefined {
   if (typeof window === 'undefined') return undefined
@@ -47,7 +50,9 @@ function getSupabaseClient(): SupabaseClient {
         domain: cookieDomain,
         path: '/',
         sameSite: 'lax',
-        secure: true
+        secure: true,
+        // セッションCookieの有効期限を設定
+        maxAge: SESSION_EXPIRY_SECONDS
       }
     })
   }
