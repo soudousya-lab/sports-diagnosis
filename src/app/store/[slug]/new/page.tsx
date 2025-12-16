@@ -21,14 +21,18 @@ type FormData = {
   squat: number | ''
   sidestep: number | ''
   throw: number | ''
-  ballType: '1' | '2' | '3' | ''  // ソフトボール号球
+  ballType: '9' | '16' | '20' | '22' | '24' | ''  // ボール直径(cm)
 }
 
-// ボール種類の定義（ソフトボール基準で補正）
+// ボール種類の定義（直径ベース、9cmソフトボールを基準に補正）
+// 補正ロジック: 大きいボールほど握りにくく飛距離が出にくいため、
+// 基準(9cm)との比率で補正し、同じ投力なら同じ評価になるよう換算
 const ballTypes = {
-  '1': { label: '1号球（小学校低学年用・テニスボールサイズ）', correction: 1.0 },
-  '2': { label: '2号球（小学校高学年用・ドッジボールサイズ）', correction: 0.95 },
-  '3': { label: '3号球（中学生以上用・バレーボールサイズ）', correction: 0.9 }
+  '9':  { label: '9cm（ソフトボール）', diameter: 9, correction: 1.0 },
+  '16': { label: '16cm（ハンドボール）', diameter: 16, correction: 1.10 },
+  '20': { label: '20cm（フットサルボール）', diameter: 20, correction: 1.18 },
+  '22': { label: '22cm（バレーボール）', diameter: 22, correction: 1.22 },
+  '24': { label: '24cm（バスケットボール）', diameter: 24, correction: 1.26 }
 }
 
 export default function StoreNewMeasurementPage() {
@@ -96,9 +100,10 @@ export default function StoreNewMeasurementPage() {
 
       const gripAvg = ((formData.gripRight as number) + (formData.gripLeft as number)) / 2
 
-      // ボール投げの補正（1号球基準に換算）
-      const ballCorrection = ballTypes[formData.ballType as '1' | '2' | '3'].correction
-      const correctedThrow = Math.round((formData.throw as number) / ballCorrection * 10) / 10
+      // ボール投げの補正（9cmソフトボール基準に換算）
+      // 大きいボールで投げた距離に補正係数を掛けて、ソフトボール換算の飛距離に変換
+      const ballCorrection = ballTypes[formData.ballType as '9' | '16' | '20' | '22' | '24'].correction
+      const correctedThrow = Math.round((formData.throw as number) * ballCorrection * 10) / 10
 
       // 診断ロジック実行（詳細モードで計算）
       const diagnosisResult = runDiagnosis(
@@ -459,10 +464,12 @@ export default function StoreNewMeasurementPage() {
                     value={formData.ballType}
                     onChange={(e) => handleChange('ballType', e.target.value)}
                   >
-                    <option value="">ボールの種類を選択</option>
-                    <option value="1">{ballTypes['1'].label}</option>
-                    <option value="2">{ballTypes['2'].label}</option>
-                    <option value="3">{ballTypes['3'].label}</option>
+                    <option value="">ボールの直径を選択</option>
+                    <option value="9">{ballTypes['9'].label}</option>
+                    <option value="16">{ballTypes['16'].label}</option>
+                    <option value="20">{ballTypes['20'].label}</option>
+                    <option value="22">{ballTypes['22'].label}</option>
+                    <option value="24">{ballTypes['24'].label}</option>
                   </select>
                   <div className="flex gap-2 items-center">
                     <input
