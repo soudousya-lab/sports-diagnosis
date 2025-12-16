@@ -24,6 +24,16 @@ export default function StoreLoginPage() {
 
   // 店舗情報取得と認証チェック
   useEffect(() => {
+    let isMounted = true
+
+    // タイムアウト（8秒でローディング解除）
+    const timeoutId = setTimeout(() => {
+      if (isMounted) {
+        console.log('[StoreLogin] Auth check timeout')
+        setCheckingAuth(false)
+      }
+    }, 8000)
+
     async function checkAuth() {
       try {
         // 店舗情報取得
@@ -33,41 +43,64 @@ export default function StoreLoginPage() {
           .eq('slug', slug)
           .single()
 
+        if (!isMounted) return
+
         if (storeData) {
           setStoreName(storeData.name)
         }
 
-        // 既存セッションチェック
-        const { data: { session } } = await supabase.auth.getSession()
-        if (session) {
-          // プロファイル確認
-          const { data: profile } = await supabase
-            .from('user_profiles')
-            .select('role, store_id')
-            .eq('id', session.user.id)
-            .single()
+        // 既存セッションチェック（onAuthStateChangeで処理）
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            console.log('[StoreLogin] onAuthStateChange:', event)
 
-          if (profile) {
-            // masterは全店舗アクセス可能
-            if (profile.role === 'master') {
-              router.replace(`/store/${slug}`)
-              return
+            if (!isMounted) return
+
+            if (session) {
+              // プロファイル確認
+              const { data: profile } = await supabase
+                .from('user_profiles')
+                .select('role, store_id')
+                .eq('id', session.user.id)
+                .single()
+
+              if (profile) {
+                // masterは全店舗アクセス可能
+                if (profile.role === 'master') {
+                  router.replace(`/store/${slug}`)
+                  return
+                }
+                // 店舗ユーザーは自分の店舗のみアクセス可能
+                if (profile.role === 'store' && storeData && profile.store_id === storeData.id) {
+                  router.replace(`/store/${slug}`)
+                  return
+                }
+              }
             }
-            // 店舗ユーザーは自分の店舗のみアクセス可能
-            if (profile.role === 'store' && storeData && profile.store_id === storeData.id) {
-              router.replace(`/store/${slug}`)
-              return
-            }
+
+            // セッションがない、またはアクセス権がない場合はログインフォームを表示
+            setCheckingAuth(false)
           }
+        )
+
+        // クリーンアップ用にsubscriptionを保存
+        return () => {
+          subscription.unsubscribe()
         }
       } catch (err) {
         console.error('Auth check error:', err)
-      } finally {
-        setCheckingAuth(false)
+        if (isMounted) {
+          setCheckingAuth(false)
+        }
       }
     }
 
     checkAuth()
+
+    return () => {
+      isMounted = false
+      clearTimeout(timeoutId)
+    }
   }, [slug, supabase, router])
 
   const handleLogin = async (e: React.FormEvent) => {
