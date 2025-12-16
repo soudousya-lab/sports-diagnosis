@@ -22,84 +22,87 @@ export default function StoreLoginPage() {
   const [resetSent, setResetSent] = useState(false)
   const [resetLoading, setResetLoading] = useState(false)
 
-  // 店舗情報取得と認証チェック
+  // 店舗情報取得
+  useEffect(() => {
+    async function fetchStoreName() {
+      const { data: storeData } = await supabase
+        .from('stores')
+        .select('id, name')
+        .eq('slug', slug)
+        .single()
+
+      if (storeData) {
+        setStoreName(storeData.name)
+      }
+    }
+    fetchStoreName()
+  }, [slug, supabase])
+
+  // 認証チェック
   useEffect(() => {
     let isMounted = true
+    let authHandled = false
 
     // タイムアウト（8秒でローディング解除）
     const timeoutId = setTimeout(() => {
-      if (isMounted) {
+      if (isMounted && !authHandled) {
         console.log('[StoreLogin] Auth check timeout')
         setCheckingAuth(false)
+        authHandled = true
       }
     }, 8000)
 
-    async function checkAuth() {
-      try {
-        // 店舗情報取得
-        const { data: storeData } = await supabase
-          .from('stores')
-          .select('id, name')
-          .eq('slug', slug)
-          .single()
+    // onAuthStateChangeを先にセットアップ
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('[StoreLogin] onAuthStateChange:', event)
 
         if (!isMounted) return
 
-        if (storeData) {
-          setStoreName(storeData.name)
+        // 既に処理済みの場合はスキップ（ただしSIGNED_INは常に処理）
+        if (authHandled && event !== 'SIGNED_IN') {
+          return
         }
 
-        // 既存セッションチェック（onAuthStateChangeで処理）
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          async (event, session) => {
-            console.log('[StoreLogin] onAuthStateChange:', event)
+        if (session) {
+          // 店舗情報取得
+          const { data: storeData } = await supabase
+            .from('stores')
+            .select('id')
+            .eq('slug', slug)
+            .single()
 
-            if (!isMounted) return
+          // プロファイル確認
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('role, store_id')
+            .eq('id', session.user.id)
+            .single()
 
-            if (session) {
-              // プロファイル確認
-              const { data: profile } = await supabase
-                .from('user_profiles')
-                .select('role, store_id')
-                .eq('id', session.user.id)
-                .single()
-
-              if (profile) {
-                // masterは全店舗アクセス可能
-                if (profile.role === 'master') {
-                  router.replace(`/store/${slug}`)
-                  return
-                }
-                // 店舗ユーザーは自分の店舗のみアクセス可能
-                if (profile.role === 'store' && storeData && profile.store_id === storeData.id) {
-                  router.replace(`/store/${slug}`)
-                  return
-                }
-              }
+          if (profile) {
+            // masterは全店舗アクセス可能
+            if (profile.role === 'master') {
+              router.replace(`/store/${slug}`)
+              return
             }
-
-            // セッションがない、またはアクセス権がない場合はログインフォームを表示
-            setCheckingAuth(false)
+            // 店舗ユーザーは自分の店舗のみアクセス可能
+            if (profile.role === 'store' && storeData && profile.store_id === storeData.id) {
+              router.replace(`/store/${slug}`)
+              return
+            }
           }
-        )
+        }
 
-        // クリーンアップ用にsubscriptionを保存
-        return () => {
-          subscription.unsubscribe()
-        }
-      } catch (err) {
-        console.error('Auth check error:', err)
-        if (isMounted) {
-          setCheckingAuth(false)
-        }
+        // セッションがない、またはアクセス権がない場合はログインフォームを表示
+        authHandled = true
+        setCheckingAuth(false)
       }
-    }
-
-    checkAuth()
+    )
 
     return () => {
       isMounted = false
       clearTimeout(timeoutId)
+      subscription.unsubscribe()
     }
   }, [slug, supabase, router])
 
