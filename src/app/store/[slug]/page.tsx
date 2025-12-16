@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { supabase, Store } from '@/lib/supabase'
+import { supabase, Store, createClientComponentClient } from '@/lib/supabase'
 import { getGradeDisplay } from '@/lib/diagnosis'
+import { FaSignOutAlt } from 'react-icons/fa'
 
 type MeasurementWithChild = {
   id: string
@@ -163,9 +164,25 @@ export default function StorePage() {
     )
   }
 
+  const handleLogout = async () => {
+    const client = createClientComponentClient()
+    await client.auth.signOut()
+    router.replace(`/store/${slug}/login`)
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 py-12 px-4">
       <div className="max-w-5xl mx-auto">
+        {/* ログアウトボタン */}
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all text-sm"
+          >
+            <FaSignOutAlt /> ログアウト
+          </button>
+        </div>
+
         {/* ヘッダー */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-3">
