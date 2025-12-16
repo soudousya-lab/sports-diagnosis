@@ -43,6 +43,7 @@ export default function StoreNewMeasurementPage() {
   const [store, setStore] = useState<Store | null>(null)
   const [loading, setLoading] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
+  const [consentChecked, setConsentChecked] = useState(false)
   const [formData, setFormData] = useState<FormData>({
     name: '',
     furigana: '',
@@ -88,6 +89,13 @@ export default function StoreNewMeasurementPage() {
     setIsLoading(true)
 
     try {
+      // 保護者同意チェック
+      if (!consentChecked) {
+        alert('個人情報の取り扱いに同意してください')
+        setIsLoading(false)
+        return
+      }
+
       // バリデーション（7項目すべて必須）
       const required = ['name', 'furigana', 'grade', 'gender', 'height', 'weight', 'gripRight', 'gripLeft', 'jump', 'dash', 'doublejump', 'squat', 'sidestep', 'throw', 'ballType']
       for (const field of required) {
@@ -487,6 +495,40 @@ export default function StoreNewMeasurementPage() {
             </div>
           </div>
 
+          {/* 保護者同意チェック */}
+          <div className="p-4 xs:p-7 bg-blue-50 border-t border-blue-100">
+            <h2 className="text-sm font-bold text-blue-900 mb-3 pl-3 border-l-4 border-blue-600">個人情報の取り扱いについて</h2>
+            <div className="bg-white rounded-lg p-4 mb-4 text-xs text-gray-600 leading-relaxed max-h-32 overflow-y-auto border border-gray-200">
+              <p className="mb-2">
+                当サービスでは、お子様の運動能力診断を行うため、以下の個人情報を収集・利用いたします。
+              </p>
+              <ul className="list-disc list-inside space-y-1 mb-2">
+                <li>お子様の氏名、学年、性別</li>
+                <li>身体測定データ（身長、体重）</li>
+                <li>運動能力測定データ</li>
+              </ul>
+              <p className="mb-2">
+                収集した個人情報は、運動能力診断サービスの提供、診断結果レポートの作成、
+                お子様の成長記録の管理のみに使用し、第三者への提供は行いません。
+              </p>
+              <p>
+                詳細は<a href="/privacy" target="_blank" className="text-blue-600 underline">プライバシーポリシー</a>をご確認ください。
+              </p>
+            </div>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={consentChecked}
+                onChange={(e) => setConsentChecked(e.target.checked)}
+                className="w-5 h-5 mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-sm text-gray-700">
+                <span className="font-semibold text-blue-900">保護者として</span>、上記の個人情報の取り扱いに同意し、
+                お子様の測定データを登録することに同意します。
+              </span>
+            </label>
+          </div>
+
           {/* 送信ボタン */}
           <div className="p-4 xs:p-7 text-center bg-gray-50 border-t border-gray-200">
             <p className="text-xs xs:text-sm text-gray-600 mb-4">
@@ -494,11 +536,14 @@ export default function StoreNewMeasurementPage() {
             </p>
             <button
               type="submit"
-              disabled={isLoading}
-              className="w-full xs:w-auto px-8 xs:px-12 py-3 xs:py-4 text-sm xs:text-base font-bold text-white rounded-lg shadow-lg hover:transform hover:-translate-y-1 transition-all disabled:opacity-50 bg-gradient-to-r from-blue-800 to-blue-900"
+              disabled={isLoading || !consentChecked}
+              className="w-full xs:w-auto px-8 xs:px-12 py-3 xs:py-4 text-sm xs:text-base font-bold text-white rounded-lg shadow-lg hover:transform hover:-translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-blue-800 to-blue-900"
             >
               {isLoading ? '保存中...' : '測定データを保存'}
             </button>
+            {!consentChecked && (
+              <p className="text-xs text-red-500 mt-2">※ 個人情報の取り扱いに同意してください</p>
+            )}
           </div>
         </form>
       </div>

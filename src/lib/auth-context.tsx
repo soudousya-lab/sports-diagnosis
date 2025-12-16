@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, useMemo, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, useMemo, useRef, useCallback, ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { User, Session } from '@supabase/supabase-js'
 import { createClientComponentClient, UserProfile, UserRole } from './supabase'
@@ -24,23 +24,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
+  // 初期化完了フラグ（重複実行防止）
+  const initializedRef = useRef(false)
+  const fetchingProfileRef = useRef(false)
+
   // supabaseクライアントをメモ化
   const supabase = useMemo(() => createClientComponentClient(), [])
 
+  // fetchProfileをuseCallbackでメモ化
+  const fetchProfile = useCallback(async (userId: string) => {
+    // 既に取得中の場合はスキップ
+    if (fetchingProfileRef.current) {
+      console.log('[AuthContext] fetchProfile already in progress, skipping')
+      return
+    }
+
+    fetchingProfileRef.current = true
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
+
+      if (error) {
+        console.error('Error fetching profile:', error)
+        setProfile(null)
+      } else {
+        setProfile(data as UserProfile)
+      }
+    } finally {
+      fetchingProfileRef.current = false
+    }
+  }, [supabase])
+
   useEffect(() => {
+    // 既に初期化済みの場合はスキップ
+    if (initializedRef.current) {
+      return
+    }
+    initializedRef.current = true
+
+    let isMounted = true
+
     // 初期セッション取得
     const getInitialSession = async () => {
       console.log('[AuthContext] getInitialSession started')
 
-      // タイムアウト設定（5秒で強制終了）
-      const timeoutId = setTimeout(() => {
-        console.log('[AuthContext] Session check timeout - proceeding without session')
-        setLoading(false)
-      }, 5000)
-
       try {
         const { data: { session: initialSession }, error } = await supabase.auth.getSession()
-        clearTimeout(timeoutId)
+
+        if (!isMounted) return
+
         console.log('[AuthContext] getSession result:', { session: !!initialSession, error })
 
         setSession(initialSession)
@@ -52,19 +87,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.log('[AuthContext] profile fetched')
         }
       } catch (err) {
-        clearTimeout(timeoutId)
         console.error('[AuthContext] getInitialSession error:', err)
       } finally {
-        console.log('[AuthContext] setting loading to false')
-        setLoading(false)
+        if (isMounted) {
+          console.log('[AuthContext] setting loading to false')
+          setLoading(false)
+        }
       }
     }
 
     getInitialSession()
 
-    // セッション変更を監視
+    // セッション変更を監視（ログイン/ログアウト時のみ反応）
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
+        console.log('[AuthContext] onAuthStateChange:', event)
+
+        // INITIAL_SESSIONイベントは getInitialSession で処理済みなのでスキップ
+        if (event === 'INITIAL_SESSION') {
+          return
+        }
+
+        if (!isMounted) return
+
         setSession(currentSession)
         setUser(currentSession?.user ?? null)
 
@@ -77,23 +122,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     )
 
-    return () => subscription.unsubscribe()
-  }, [supabase])
-
-  const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-
-    if (error) {
-      console.error('Error fetching profile:', error)
-      setProfile(null)
-    } else {
-      setProfile(data as UserProfile)
+    return () => {
+      isMounted = false
+      subscription.unsubscribe()
     }
-  }
+  }, [supabase, fetchProfile])
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({

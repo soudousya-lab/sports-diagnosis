@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClientComponentClient } from '@/lib/supabase'
 import { FaSpinner } from 'react-icons/fa'
@@ -12,15 +12,27 @@ type Props = {
 
 export default function StoreAuthGuard({ slug, children }: Props) {
   const router = useRouter()
-  const supabase = createClientComponentClient()
+  // supabaseクライアントをメモ化
+  const supabase = useMemo(() => createClientComponentClient(), [])
   const [isAuthorized, setIsAuthorized] = useState(false)
   const [checking, setChecking] = useState(true)
+  const checkedRef = useRef(false)
 
   useEffect(() => {
+    // 既にチェック済みの場合はスキップ
+    if (checkedRef.current) {
+      return
+    }
+    checkedRef.current = true
+
+    let isMounted = true
+
     async function checkAuth() {
       try {
         // セッションチェック
         const { data: { session } } = await supabase.auth.getSession()
+
+        if (!isMounted) return
 
         if (!session) {
           router.replace(`/store/${slug}/login`)
@@ -34,6 +46,8 @@ export default function StoreAuthGuard({ slug, children }: Props) {
           .eq('slug', slug)
           .single()
 
+        if (!isMounted) return
+
         if (!storeData) {
           router.replace(`/store/${slug}/login`)
           return
@@ -45,6 +59,8 @@ export default function StoreAuthGuard({ slug, children }: Props) {
           .select('role, store_id')
           .eq('id', session.user.id)
           .single()
+
+        if (!isMounted) return
 
         if (!profile) {
           await supabase.auth.signOut()
@@ -67,9 +83,13 @@ export default function StoreAuthGuard({ slug, children }: Props) {
         }
       } catch (err) {
         console.error('Auth check error:', err)
-        router.replace(`/store/${slug}/login`)
+        if (isMounted) {
+          router.replace(`/store/${slug}/login`)
+        }
       } finally {
-        setChecking(false)
+        if (isMounted) {
+          setChecking(false)
+        }
       }
     }
 
@@ -84,7 +104,10 @@ export default function StoreAuthGuard({ slug, children }: Props) {
       }
     )
 
-    return () => subscription.unsubscribe()
+    return () => {
+      isMounted = false
+      subscription.unsubscribe()
+    }
   }, [slug, supabase, router])
 
   if (checking) {

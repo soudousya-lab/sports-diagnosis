@@ -77,11 +77,12 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-14 sm:h-16 md:h-20">
             {/* ロゴ */}
-            <Link href="/" className="flex items-center gap-2 sm:gap-3">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xs sm:text-sm md:text-base">N</span>
-              </div>
-              <span className="font-semibold text-sm sm:text-base md:text-lg text-gray-900 tracking-tight">NOBISHIRO KIDS</span>
+            <Link href="/" className="flex items-center">
+              <img
+                src="/images/logo-wide.png"
+                alt="NOBISHIRO KIDS"
+                className="h-8 sm:h-10 md:h-12 w-auto"
+              />
             </Link>
 
             {/* デスクトップナビゲーション */}
@@ -599,11 +600,12 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 mb-6 sm:mb-8">
             <div className="col-span-2">
-              <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-xs sm:text-sm">N</span>
-                </div>
-                <span className="font-semibold text-sm sm:text-base md:text-lg text-gray-900">NOBISHIRO KIDS</span>
+              <div className="mb-3 sm:mb-4">
+                <img
+                  src="/images/logo-wide.png"
+                  alt="NOBISHIRO KIDS"
+                  className="h-8 sm:h-10 w-auto"
+                />
               </div>
               <p className="text-xs sm:text-sm text-gray-500 leading-relaxed max-w-sm">
                 子どもの運動能力を科学的に診断し、一人ひとりの「のびしろ」を見つけるシステム。
@@ -624,11 +626,17 @@ export default function Home() {
               <h4 className="font-semibold text-gray-900 mb-3 sm:mb-4 text-xs sm:text-sm">サポート</h4>
               <ul className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-gray-500">
                 <li><Link href="/contact" className="hover:text-blue-600 transition-colors">導入のご相談</Link></li>
+                <li><Link href="/privacy" className="hover:text-blue-600 transition-colors">プライバシーポリシー</Link></li>
+                <li><Link href="/terms" className="hover:text-blue-600 transition-colors">利用規約</Link></li>
               </ul>
             </div>
           </div>
 
           <div className="border-t border-gray-100 pt-6 sm:pt-8 text-center text-xs sm:text-sm text-gray-400">
+            <div className="flex justify-center gap-4 mb-2">
+              <Link href="/privacy" className="hover:text-gray-600 transition-colors">プライバシーポリシー</Link>
+              <Link href="/terms" className="hover:text-gray-600 transition-colors">利用規約</Link>
+            </div>
             <p>&copy; 2024 NOBISHIRO KIDS. All rights reserved.</p>
           </div>
         </div>

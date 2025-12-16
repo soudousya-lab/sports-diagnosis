@@ -239,12 +239,27 @@ export default function ResultPage() {
   const recalculatedWeakness = getWeaknessClass(recalculatedScores)
   const recalculatedSportsAptitude = calcSportsAptitude(recalculatedScores)
 
-  // 強調表示用のヘルパー関数
+  // HTMLエスケープ関数（XSS対策）
+  const escapeHtml = (text: string): string => {
+    const map: Record<string, string> = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    }
+    return text.replace(/[&<>"']/g, (char) => map[char])
+  }
+
+  // 強調表示用のヘルパー関数（XSS対策済み）
   const highlightText = (text: string, highlights: string[]) => {
-    if (!highlights || highlights.length === 0) return text
-    let result = text
+    if (!highlights || highlights.length === 0) return escapeHtml(text)
+    // まずテキスト全体をエスケープ
+    let result = escapeHtml(text)
+    // ハイライト対象もエスケープしてから置換
     highlights.forEach(h => {
-      result = result.replace(h, `<strong class="text-blue-700 font-bold">${h}</strong>`)
+      const escapedHighlight = escapeHtml(h)
+      result = result.replace(escapedHighlight, `<strong class="text-blue-700 font-bold">${escapedHighlight}</strong>`)
     })
     return result
   }

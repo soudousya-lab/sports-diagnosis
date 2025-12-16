@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { verifyAdminAuth, validatePassword, validateEmail } from '@/lib/api-auth'
 
 // Service Role Key を使用してAdmin操作を行う（遅延初期化）
 let supabaseAdmin: SupabaseClient | null = null
@@ -25,6 +26,15 @@ function getSupabaseAdmin(): SupabaseClient {
 
 export async function POST(request: Request) {
   try {
+    // 認証チェック
+    const auth = await verifyAdminAuth()
+    if (!auth.authenticated) {
+      return NextResponse.json(
+        { error: auth.error },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
     const { email, password, name, role, partner_id, store_id } = body
 
@@ -32,6 +42,23 @@ export async function POST(request: Request) {
     if (!email || !password || !role) {
       return NextResponse.json(
         { error: 'email, password, role are required' },
+        { status: 400 }
+      )
+    }
+
+    // メールアドレス形式チェック
+    if (!validateEmail(email)) {
+      return NextResponse.json(
+        { error: 'メールアドレスの形式が正しくありません' },
+        { status: 400 }
+      )
+    }
+
+    // パスワード強度チェック
+    const passwordValidation = validatePassword(password)
+    if (!passwordValidation.valid) {
+      return NextResponse.json(
+        { error: passwordValidation.errors.join(', ') },
         { status: 400 }
       )
     }
@@ -124,6 +151,15 @@ export async function POST(request: Request) {
 
 export async function GET() {
   try {
+    // 認証チェック
+    const auth = await verifyAdminAuth()
+    if (!auth.authenticated) {
+      return NextResponse.json(
+        { error: auth.error },
+        { status: 401 }
+      )
+    }
+
     const supabase = getSupabaseAdmin()
 
     // 全ユーザープロファイルを取得
@@ -155,12 +191,40 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
+    // 認証チェック
+    const auth = await verifyAdminAuth()
+    if (!auth.authenticated) {
+      return NextResponse.json(
+        { error: auth.error },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
     const { id, name, role, partner_id, store_id, email, password } = body
 
     if (!id) {
       return NextResponse.json(
         { error: 'User ID is required' },
+        { status: 400 }
+      )
+    }
+
+    // パスワード更新時は強度チェック
+    if (password) {
+      const passwordValidation = validatePassword(password)
+      if (!passwordValidation.valid) {
+        return NextResponse.json(
+          { error: passwordValidation.errors.join(', ') },
+          { status: 400 }
+        )
+      }
+    }
+
+    // メールアドレス更新時は形式チェック
+    if (email && !validateEmail(email)) {
+      return NextResponse.json(
+        { error: 'メールアドレスの形式が正しくありません' },
         { status: 400 }
       )
     }
@@ -223,6 +287,15 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
+    // 認証チェック
+    const auth = await verifyAdminAuth()
+    if (!auth.authenticated) {
+      return NextResponse.json(
+        { error: auth.error },
+        { status: 401 }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('id')
 

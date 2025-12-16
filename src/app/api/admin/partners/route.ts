@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { verifyAdminAuth } from '@/lib/api-auth'
 
 // Service Role Key を使用してAdmin操作を行う（遅延初期化）
 let supabaseAdmin: SupabaseClient | null = null
@@ -25,6 +26,15 @@ function getSupabaseAdmin(): SupabaseClient {
 
 export async function POST(request: Request) {
   try {
+    // 認証チェック
+    const auth = await verifyAdminAuth()
+    if (!auth.authenticated) {
+      return NextResponse.json(
+        { error: auth.error },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
     const { name, email, phone } = body
 
@@ -62,6 +72,15 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
+    // 認証チェック
+    const auth = await verifyAdminAuth()
+    if (!auth.authenticated) {
+      return NextResponse.json(
+        { error: auth.error },
+        { status: 401 }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
     const partnerId = searchParams.get('id')
 
