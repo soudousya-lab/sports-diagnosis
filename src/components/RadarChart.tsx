@@ -17,12 +17,12 @@ type Props = {
   historyData?: HistoryData[]  // 過去の測定データ（最大4件）
 }
 
-// 過去データの色定義（古いものほど薄い）
+// 前回データの色定義（1回前のみ強調、それ以外は薄く）
 const historyColors = [
-  { fill: 'rgba(34, 197, 94, 0.15)', stroke: '#22c55e' },   // 1回前: 緑
-  { fill: 'rgba(168, 85, 247, 0.12)', stroke: '#a855f7' },  // 2回前: 紫
-  { fill: 'rgba(251, 146, 60, 0.10)', stroke: '#fb923c' },  // 3回前: オレンジ
-  { fill: 'rgba(156, 163, 175, 0.08)', stroke: '#9ca3af' }, // 4回前: グレー
+  { fill: 'rgba(34, 197, 94, 0.20)', stroke: '#16a34a', lineWidth: 2.5 },   // 1回前: 緑（強調）
+  { fill: 'rgba(156, 163, 175, 0.08)', stroke: '#9ca3af', lineWidth: 1 },   // 2回前: グレー（薄い）
+  { fill: 'rgba(156, 163, 175, 0.05)', stroke: '#d1d5db', lineWidth: 1 },   // 3回前: グレー（より薄い）
+  { fill: 'rgba(156, 163, 175, 0.03)', stroke: '#e5e7eb', lineWidth: 1 },   // 4回前: グレー（最も薄い）
 ]
 
 export default function RadarChart({ scores, keys, labels, size = 220, averageScores, historyData }: Props) {
@@ -81,37 +81,67 @@ export default function RadarChart({ scores, keys, labels, size = 220, averageSc
     }
 
     // Draw history polygons (from oldest to newest, so newest is on top)
+    // 1回前のデータは最後に描画（今回のデータの直前）して重なりを見やすく
     if (historyData && historyData.length > 0) {
-      // 古い順（配列の後ろ）から描画
-      const reversedHistory = [...historyData].reverse()
-      reversedHistory.forEach((history, idx) => {
-        const colorIdx = Math.min(historyData.length - 1 - idx, historyColors.length - 1)
-        const color = historyColors[colorIdx]
+      // 2回前以降を先に描画（薄いグレー）
+      if (historyData.length > 1) {
+        const olderHistory = historyData.slice(1).reverse()
+        olderHistory.forEach((history, idx) => {
+          const colorIdx = Math.min(idx + 1, historyColors.length - 1)
+          const color = historyColors[colorIdx]
 
-        ctx.fillStyle = color.fill
-        ctx.strokeStyle = color.stroke
-        ctx.lineWidth = 1.5
-        ctx.setLineDash([4, 2])
-        ctx.beginPath()
+          ctx.fillStyle = color.fill
+          ctx.strokeStyle = color.stroke
+          ctx.lineWidth = color.lineWidth
+          ctx.setLineDash([3, 3])
+          ctx.beginPath()
 
-        for (let i = 0; i < n; i++) {
-          const angle = (Math.PI * 2 * i / n) - Math.PI / 2
-          const value = history.scores[keys[i]] || 5
-          const r = maxRadius * value / 10
-          const x = cx + Math.cos(angle) * r
-          const y = cy + Math.sin(angle) * r
-          if (i === 0) {
-            ctx.moveTo(x, y)
-          } else {
-            ctx.lineTo(x, y)
+          for (let i = 0; i < n; i++) {
+            const angle = (Math.PI * 2 * i / n) - Math.PI / 2
+            const value = history.scores[keys[i]] || 5
+            const r = maxRadius * value / 10
+            const x = cx + Math.cos(angle) * r
+            const y = cy + Math.sin(angle) * r
+            if (i === 0) {
+              ctx.moveTo(x, y)
+            } else {
+              ctx.lineTo(x, y)
+            }
           }
-        }
 
-        ctx.closePath()
-        ctx.fill()
-        ctx.stroke()
-        ctx.setLineDash([])
-      })
+          ctx.closePath()
+          ctx.fill()
+          ctx.stroke()
+          ctx.setLineDash([])
+        })
+      }
+
+      // 1回前（前回）のデータを描画（緑で強調）
+      const prevHistory = historyData[0]
+      const prevColor = historyColors[0]
+
+      ctx.fillStyle = prevColor.fill
+      ctx.strokeStyle = prevColor.stroke
+      ctx.lineWidth = prevColor.lineWidth
+      ctx.setLineDash([])  // 実線で描画
+      ctx.beginPath()
+
+      for (let i = 0; i < n; i++) {
+        const angle = (Math.PI * 2 * i / n) - Math.PI / 2
+        const value = prevHistory.scores[keys[i]] || 5
+        const r = maxRadius * value / 10
+        const x = cx + Math.cos(angle) * r
+        const y = cy + Math.sin(angle) * r
+        if (i === 0) {
+          ctx.moveTo(x, y)
+        } else {
+          ctx.lineTo(x, y)
+        }
+      }
+
+      ctx.closePath()
+      ctx.fill()
+      ctx.stroke()
     }
 
     // Draw average polygon (if provided)
@@ -141,10 +171,10 @@ export default function RadarChart({ scores, keys, labels, size = 220, averageSc
       ctx.setLineDash([])
     }
 
-    // Draw data polygon
-    ctx.fillStyle = 'rgba(0, 51, 102, 0.25)'
-    ctx.strokeStyle = '#003366'
-    ctx.lineWidth = 2.5
+    // Draw data polygon (今回のデータ - 青で強調)
+    ctx.fillStyle = 'rgba(37, 99, 235, 0.25)'
+    ctx.strokeStyle = '#1d4ed8'
+    ctx.lineWidth = 3
     ctx.beginPath()
 
     for (let i = 0; i < n; i++) {
