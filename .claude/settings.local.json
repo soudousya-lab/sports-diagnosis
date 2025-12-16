@@ -15,7 +15,9 @@
       "Bash(vercel --version:*)",
       "Bash(dig:*)",
       "Bash(git config:*)",
-      "Bash(npx vercel:*)"
+      "Bash(npx vercel:*)",
+      "Bash(find:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": [],
     "ask": []

@@ -72,97 +72,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initializedRef.current = true
 
     let isMounted = true
+    let sessionHandled = false // セッションが既に処理されたかどうか
 
-    // タイムアウト付きPromise
-    const withTimeout = <T,>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
-      return Promise.race([
-        promise,
-        new Promise<T>((_, reject) =>
-          setTimeout(() => reject(new Error('認証タイムアウト')), timeoutMs)
-        )
-      ])
-    }
-
-    // 初期セッション取得
-    const getInitialSession = async () => {
-      console.log('[AuthContext] getInitialSession started')
-
-      try {
-        const { data: { session: initialSession }, error } = await withTimeout(
-          supabase.auth.getSession(),
-          AUTH_TIMEOUT_MS
-        )
+    // セッション変更を監視（onAuthStateChangeを先にセットアップ）
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, currentSession) => {
+        console.log('[AuthContext] onAuthStateChange:', event)
 
         if (!isMounted) return
 
-        console.log('[AuthContext] getSession result:', { session: !!initialSession, error })
+        // セッションが既に処理された場合はログイン/ログアウトイベントのみ反応
+        if (sessionHandled && event !== 'SIGNED_IN' && event !== 'SIGNED_OUT' && event !== 'TOKEN_REFRESHED') {
+          return
+        }
 
-        // セッションの有効期限をチェック
-        if (initialSession) {
-          const expiresAt = initialSession.expires_at
+        setSession(currentSession)
+        setUser(currentSession?.user ?? null)
+
+        if (currentSession?.user) {
+          // セッションの有効期限をチェック
+          const expiresAt = currentSession.expires_at
           if (expiresAt && expiresAt * 1000 < Date.now()) {
             console.log('[AuthContext] Session expired, signing out')
             await supabase.auth.signOut()
             setSession(null)
             setUser(null)
             setProfile(null)
+            sessionHandled = true
+            setLoading(false)
             return
           }
-        }
 
-        setSession(initialSession)
-        setUser(initialSession?.user ?? null)
-
-        if (initialSession?.user) {
-          console.log('[AuthContext] fetching profile for user:', initialSession.user.id)
-          await withTimeout(fetchProfile(initialSession.user.id), AUTH_TIMEOUT_MS)
-          console.log('[AuthContext] profile fetched')
-        }
-      } catch (err) {
-        console.error('[AuthContext] getInitialSession error:', err)
-        // タイムアウトの場合はセッションをクリアしてログイン画面へ
-        if (err instanceof Error && err.message === '認証タイムアウト') {
-          console.log('[AuthContext] Auth timeout, clearing session')
-          setSession(null)
-          setUser(null)
-          setProfile(null)
-        }
-      } finally {
-        if (isMounted) {
-          console.log('[AuthContext] setting loading to false')
-          setLoading(false)
-        }
-      }
-    }
-
-    getInitialSession()
-
-    // セッション変更を監視（ログイン/ログアウト時のみ反応）
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
-        console.log('[AuthContext] onAuthStateChange:', event)
-
-        // INITIAL_SESSIONイベントは getInitialSession で処理済みなのでスキップ
-        if (event === 'INITIAL_SESSION') {
-          return
-        }
-
-        if (!isMounted) return
-
-        setSession(currentSession)
-        setUser(currentSession?.user ?? null)
-
-        if (currentSession?.user) {
-          await fetchProfile(currentSession.user.id)
+          // プロファイル取得
+          try {
+            await fetchProfile(currentSession.user.id)
+          } catch (err) {
+            console.error('[AuthContext] fetchProfile error:', err)
+          }
         } else {
           setProfile(null)
         }
+
+        sessionHandled = true
         setLoading(false)
       }
     )
 
+    // フォールバックとしてタイムアウト後にローディングを解除
+    const timeoutId = setTimeout(() => {
+      if (isMounted && !sessionHandled) {
+        console.log('[AuthContext] Auth timeout, setting loading to false')
+        setLoading(false)
+        sessionHandled = true
+      }
+    }, AUTH_TIMEOUT_MS)
+
     return () => {
       isMounted = false
+      clearTimeout(timeoutId)
       subscription.unsubscribe()
     }
   }, [supabase, fetchProfile])
