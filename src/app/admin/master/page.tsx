@@ -249,73 +249,106 @@ export default function MasterDashboard() {
   }
 
   const handleExportCSV = async () => {
-    // 全データをCSVエクスポート
-    const { data: children } = await supabase
-      .from('children')
-      .select(`
-        *,
-        stores(name),
-        measurements(
+    try {
+      // 全データをCSVエクスポート
+      const { data: children, error } = await supabase
+        .from('children')
+        .select(`
           *,
-          results(*)
-        )
-      `)
+          stores(name),
+          measurements(
+            *,
+            results(*)
+          )
+        `)
 
-    if (!children) return
-
-    // CSV生成
-    const headers = [
-      '店舗名', '児童名', 'ふりがな', '学年', '性別', '身長', '体重',
-      '測定日', '運動年齢', '年齢差', '運動タイプ', '弱点分野',
-      '握力右', '握力左', '立ち幅跳び', '15mダッシュ'
-    ]
-
-    const rows = children.flatMap((child: Record<string, unknown>) => {
-      const measurements = child.measurements as Record<string, unknown>[]
-      if (!measurements || measurements.length === 0) {
-        return [[
-          (child.stores as { name: string })?.name || '',
-          child.name,
-          child.furigana || '',
-          child.grade,
-          child.gender === 'male' ? '男' : '女',
-          child.height || '',
-          child.weight || '',
-          '', '', '', '', '', '', '', '', ''
-        ]]
+      if (error) {
+        console.error('CSVエクスポートエラー:', error)
+        alert('データの取得に失敗しました: ' + error.message)
+        return
       }
-      return measurements.map((m: Record<string, unknown>) => {
-        const results = m.results as Record<string, unknown>[] | null
-        const r = results?.[0]
-        return [
-          (child.stores as { name: string })?.name || '',
-          child.name,
-          child.furigana || '',
-          child.grade,
-          child.gender === 'male' ? '男' : '女',
-          child.height || '',
-          child.weight || '',
-          m.measured_at,
-          r?.motor_age || '',
-          r?.motor_age_diff || '',
-          r?.type_name || '',
-          r?.weakness_class || '',
-          m.grip_right || '',
-          m.grip_left || '',
-          m.jump || '',
-          m.dash || ''
-        ]
-      })
-    })
 
-    const csv = [headers, ...rows].map(row => row.join(',')).join('\n')
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `診断データ_${new Date().toISOString().split('T')[0]}.csv`
-    link.click()
-    URL.revokeObjectURL(url)
+      if (!children || children.length === 0) {
+        alert('エクスポートするデータがありません')
+        return
+      }
+
+      // CSV生成（全7項目対応）
+      const headers = [
+        '店舗名', '児童名', 'ふりがな', '学年', '性別', '身長', '体重',
+        '測定日', '運動年齢', '年齢差', '運動タイプ', '弱点分野',
+        '握力右', '握力左', '立ち幅跳び', '15mダッシュ',
+        '連続立ち幅跳び', '30秒スクワット', '反復横跳び', 'ボール投げ'
+      ]
+
+      const rows = children.flatMap((child: Record<string, unknown>) => {
+        const measurements = child.measurements as Record<string, unknown>[]
+        if (!measurements || measurements.length === 0) {
+          return [[
+            (child.stores as { name: string })?.name || '',
+            child.name,
+            child.furigana || '',
+            child.grade,
+            child.gender === 'male' ? '男' : '女',
+            child.height || '',
+            child.weight || '',
+            '', '', '', '', '', '', '', '', '', '', '', '', ''
+          ]]
+        }
+        return measurements.map((m: Record<string, unknown>) => {
+          const results = m.results as Record<string, unknown>[] | null
+          const r = results?.[0]
+          return [
+            (child.stores as { name: string })?.name || '',
+            child.name,
+            child.furigana || '',
+            child.grade,
+            child.gender === 'male' ? '男' : '女',
+            child.height || '',
+            child.weight || '',
+            m.measured_at || '',
+            r?.motor_age || '',
+            r?.motor_age_diff || '',
+            r?.type_name || '',
+            r?.weakness_class || '',
+            m.grip_right || '',
+            m.grip_left || '',
+            m.jump || '',
+            m.dash || '',
+            m.doublejump || '',
+            m.squat || '',
+            m.sidestep || '',
+            m.throw || ''
+          ]
+        })
+      })
+
+      // カンマを含む値をエスケープ
+      const escapeCSV = (val: unknown) => {
+        const str = String(val ?? '')
+        if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+          return `"${str.replace(/"/g, '""')}"`
+        }
+        return str
+      }
+
+      const csv = [headers, ...rows].map(row =>
+        (row as unknown[]).map(escapeCSV).join(',')
+      ).join('\n')
+
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `診断データ_${new Date().toISOString().split('T')[0]}.csv`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('CSVエクスポート例外:', err)
+      alert('CSVエクスポート中にエラーが発生しました')
+    }
   }
 
   // 弱点分野の集計
