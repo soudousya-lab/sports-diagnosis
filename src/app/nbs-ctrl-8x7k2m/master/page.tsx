@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import { useAuth } from '@/lib/auth-context'
 import { createClientComponentClient, StoreStatistics, GradeGenderDistribution, WeaknessStatistic, Partner, Store } from '@/lib/supabase'
 import {
@@ -9,6 +10,12 @@ import {
   FaExclamationTriangle, FaCrown, FaTrophy, FaArrowUp, FaTimes, FaSave, FaEdit,
   FaUserPlus, FaUserCog, FaTrash, FaPlus
 } from 'react-icons/fa'
+
+// 分析ダッシュボードは動的インポート（Rechartsがクライアントサイドのみ対応のため）
+const AnalyticsDashboard = dynamic(
+  () => import('@/components/analytics/AnalyticsDashboard'),
+  { ssr: false, loading: () => <div className="flex justify-center py-20"><FaSpinner className="animate-spin text-purple-600 text-3xl" /></div> }
+)
 
 type DashboardStats = {
   totalStores: number
@@ -1569,82 +1576,8 @@ export default function MasterDashboard() {
           </>
         )}
 
-        {activeTab === 'analysis' && (
-          <div className="space-y-6">
-            {/* 弱点分野ランキング */}
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <div className="p-4 border-b bg-gray-50">
-                <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                  <FaExclamationTriangle className="text-orange-500" />
-                  弱点分野ランキング（全体）
-                </h3>
-                <p className="text-sm text-gray-500 mt-1">多くの児童が苦手としている分野</p>
-              </div>
-              <div className="p-4">
-                <div className="space-y-3">
-                  {getWeaknessRanking().map(([weakness, count], i) => (
-                    <div key={weakness} className="flex items-center gap-3">
-                      <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
-                        i === 0 ? 'bg-red-500' : i === 1 ? 'bg-orange-500' : 'bg-yellow-500'
-                      }`}>
-                        {i + 1}
-                      </span>
-                      <span className="flex-1 font-medium">{weakness}</span>
-                      <div className="w-32 bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-gradient-to-r from-orange-400 to-red-500 h-2 rounded-full"
-                          style={{ width: `${(count / (getWeaknessRanking()[0]?.[1] || 1)) * 100}%` }}
-                        />
-                      </div>
-                      <span className="text-sm text-gray-600 w-12 text-right">{count}人</span>
-                    </div>
-                  ))}
-                  {getWeaknessRanking().length === 0 && (
-                    <p className="text-center text-gray-500 py-4">データがありません</p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* 学年分布 */}
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <div className="p-4 border-b bg-gray-50">
-                <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                  <FaUsers className="text-blue-500" />
-                  学年・性別分布
-                </h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 text-xs text-gray-600">
-                    <tr>
-                      <th className="text-left px-4 py-3">学年</th>
-                      <th className="text-right px-4 py-3">男子</th>
-                      <th className="text-right px-4 py-3">女子</th>
-                      <th className="text-right px-4 py-3">合計</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {getGradeStats().map(g => (
-                      <tr key={g.grade} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 font-medium">{g.grade}</td>
-                        <td className="px-4 py-3 text-right text-blue-600">{g.male}</td>
-                        <td className="px-4 py-3 text-right text-pink-600">{g.female}</td>
-                        <td className="px-4 py-3 text-right font-bold">{g.total}</td>
-                      </tr>
-                    ))}
-                    {getGradeStats().length === 0 && (
-                      <tr>
-                        <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
-                          データがありません
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+        {activeTab === 'analysis' && stats && (
+          <AnalyticsDashboard stores={stats.stores} />
         )}
       </main>
     </div>

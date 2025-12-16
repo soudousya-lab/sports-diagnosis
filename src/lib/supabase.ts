@@ -1,5 +1,6 @@
-import { createBrowserClient } from '@supabase/ssr'
+import { createBrowserClient, createServerClient } from '@supabase/ssr'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import type { cookies as cookiesFunc } from 'next/headers'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
@@ -215,4 +216,28 @@ export type WeaknessStatistic = {
   store_id: string
   weakness_class: string
   count: number
+}
+
+// サーバーコンポーネント用Supabaseクライアント（API Routes用）
+export function createServerComponentClient(cookieStore: Awaited<ReturnType<typeof cookiesFunc>>): SupabaseClient {
+  return createServerClient(
+    supabaseUrl,
+    supabaseAnonKey,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {
+            // サーバーコンポーネントから呼び出された場合は無視
+          }
+        },
+      },
+    }
+  )
 }
