@@ -875,6 +875,7 @@ export default function ResultPage() {
                   <div className="text-lg xs:text-2xl font-black text-blue-200 print:text-lg">{result.goals?.dash}秒</div>
                 </div>
               </div>
+              <p className="text-[8px] xs:text-[9px] text-center mt-2 opacity-60">※測定結果による評価・予測は統計データに基づく推定値です</p>
             </div>
           </div>
         </div>
@@ -1155,6 +1156,7 @@ function DetailDemoSection({ result }: { result: MeasurementData['results'][0] }
                 <div className="text-lg font-black text-blue-200">{sampleGoals.dash}秒</div>
               </div>
             </div>
+            <p className="text-[8px] text-center mt-2 opacity-60">※測定結果による評価・予測は統計データに基づく推定値です</p>
           </div>
         </div>
       </div>
@@ -1368,6 +1370,7 @@ function DetailDemoSectionCompact() {
             <div className="text-lg font-black text-blue-200">{sampleGoals.dash}秒</div>
           </div>
         </div>
+        <p className="text-[8px] text-center mt-2 opacity-60">※測定結果による評価・予測は統計データに基づく推定値です</p>
       </div>
     </div>
   )
