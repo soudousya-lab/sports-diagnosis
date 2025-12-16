@@ -88,31 +88,22 @@ export default function MasterDashboard() {
           .gte('measured_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
       ])
 
+      // エラーチェック
+      if (storesRes.error) console.error('stores error:', storesRes.error)
+      if (storesDataRes.error) console.error('storesData error:', storesDataRes.error)
+      if (partnersRes.error) console.error('partners error:', partnersRes.error)
+      if (childrenRes.error) console.error('children error:', childrenRes.error)
+      if (measurementsRes.error) console.error('measurements error:', measurementsRes.error)
+
       // ビューからのデータ取得（存在しない場合はエラーを無視）
-      let storeStats: StoreStatistics[] = []
-      let gradeDistribution: GradeGenderDistribution[] = []
-      let weaknessStats: WeaknessStatistic[] = []
+      const storeStatsRes = await supabase.from('store_statistics').select('*')
+      const gradeDistRes = await supabase.from('grade_gender_distribution').select('*')
+      const weaknessRes = await supabase.from('weakness_statistics').select('*')
 
-      try {
-        const storeStatsRes = await supabase.from('store_statistics').select('*')
-        storeStats = storeStatsRes.data || []
-      } catch {
-        console.log('store_statistics view not available')
-      }
-
-      try {
-        const gradeDistRes = await supabase.from('grade_gender_distribution').select('*')
-        gradeDistribution = gradeDistRes.data || []
-      } catch {
-        console.log('grade_gender_distribution view not available')
-      }
-
-      try {
-        const weaknessRes = await supabase.from('weakness_statistics').select('*')
-        weaknessStats = weaknessRes.data || []
-      } catch {
-        console.log('weakness_statistics view not available')
-      }
+      // ビューのエラーは無視（存在しない可能性があるため）
+      if (storeStatsRes.error) console.log('store_statistics not available:', storeStatsRes.error.message)
+      if (gradeDistRes.error) console.log('grade_gender_distribution not available:', gradeDistRes.error.message)
+      if (weaknessRes.error) console.log('weakness_statistics not available:', weaknessRes.error.message)
 
       setStats({
         totalStores: storesRes.count || 0,
@@ -120,9 +111,9 @@ export default function MasterDashboard() {
         totalChildren: childrenRes.count || 0,
         totalMeasurements: measurementsRes.count || 0,
         recentMeasurements: recentRes.count || 0,
-        storeStats,
-        gradeDistribution,
-        weaknessStats,
+        storeStats: storeStatsRes.data || [],
+        gradeDistribution: gradeDistRes.data || [],
+        weaknessStats: weaknessRes.data || [],
         partners: partnersRes.data || [],
         stores: storesDataRes.data || []
       })

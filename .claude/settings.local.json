@@ -14,7 +14,8 @@
       "Bash(curl:*)",
       "Bash(vercel --version:*)",
       "Bash(dig:*)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(npx vercel:*)"
     ],
     "deny": [],
     "ask": []
