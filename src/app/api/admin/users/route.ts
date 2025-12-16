@@ -80,6 +80,10 @@ export async function POST(request: Request) {
     }
 
     // user_profiles テーブルにプロファイルを作成
+    // 空文字をnullに変換
+    const validPartnerId = partner_id && partner_id.trim() !== '' ? partner_id : null
+    const validStoreId = store_id && store_id.trim() !== '' ? store_id : null
+
     const { error: profileError } = await supabase
       .from('user_profiles')
       .insert({
@@ -87,8 +91,8 @@ export async function POST(request: Request) {
         email,
         name: name || email,
         role,
-        partner_id: role === 'partner' ? partner_id : (role === 'store' ? partner_id : null),
-        store_id: role === 'store' ? store_id : null
+        partner_id: role === 'partner' ? validPartnerId : (role === 'store' ? validPartnerId : null),
+        store_id: role === 'store' ? validStoreId : null
       })
 
     if (profileError) {
