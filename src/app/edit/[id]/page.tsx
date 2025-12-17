@@ -21,6 +21,16 @@ type FormData = {
   squat: number | ''
   sidestep: number | ''
   throw: number | ''
+  ballType: '9' | '16' | '20' | '22' | '24' | ''
+}
+
+// ボール種類の定義（直径ベース、9cmソフトボールを基準に補正）
+const ballTypes = {
+  '9':  { label: '9cm（ソフトボール）', diameter: 9, correction: 1.0 },
+  '16': { label: '16cm（ハンドボール）', diameter: 16, correction: 1.10 },
+  '20': { label: '20cm（フットサルボール）', diameter: 20, correction: 1.18 },
+  '22': { label: '22cm（バレーボール）', diameter: 22, correction: 1.22 },
+  '24': { label: '24cm（バスケットボール）', diameter: 24, correction: 1.26 }
 }
 
 export default function EditMeasurementPage() {
@@ -46,7 +56,8 @@ export default function EditMeasurementPage() {
     doublejump: '',
     squat: '',
     sidestep: '',
-    throw: ''
+    throw: '',
+    ballType: ''
   })
 
   // 既存データを取得
@@ -97,7 +108,8 @@ export default function EditMeasurementPage() {
           doublejump: measurement.doublejump || '',
           squat: measurement.squat || '',
           sidestep: measurement.sidestep || '',
-          throw: measurement.throw || ''
+          throw: measurement.throw || '',
+          ballType: measurement.ball_type || ''
         })
       } catch (error) {
         console.error('データ取得エラー:', error)
@@ -122,8 +134,8 @@ export default function EditMeasurementPage() {
     setIsLoading(true)
 
     try {
-      // バリデーション（7項目すべて必須）
-      const required = ['name', 'furigana', 'grade', 'gender', 'height', 'weight', 'gripRight', 'gripLeft', 'jump', 'dash', 'doublejump', 'squat', 'sidestep', 'throw']
+      // バリデーション（7項目すべて必須 + ボール種類）
+      const required = ['name', 'furigana', 'grade', 'gender', 'height', 'weight', 'gripRight', 'gripLeft', 'jump', 'dash', 'doublejump', 'squat', 'sidestep', 'throw', 'ballType']
       for (const field of required) {
         if (!formData[field as keyof FormData]) {
           alert('基本情報と測定項目（7項目すべて）を入力してください')
@@ -215,7 +227,8 @@ export default function EditMeasurementPage() {
           doublejump: formData.doublejump,
           squat: formData.squat,
           sidestep: formData.sidestep,
-          throw: formData.throw
+          throw: formData.throw,
+          ball_type: formData.ballType
         })
         .eq('id', measurementId)
 
@@ -468,7 +481,7 @@ export default function EditMeasurementPage() {
 
               {/* ボール投げ */}
               <MeasurementCard icon="投" title="ボール投げ" category="投力">
-                <div className="flex gap-2 items-center">
+                <div className="flex gap-2 items-center mb-2">
                   <input
                     type="number"
                     step="0.1"
@@ -478,6 +491,21 @@ export default function EditMeasurementPage() {
                     onChange={(e) => handleChange('throw', parseFloat(e.target.value) || '')}
                   />
                   <span className="text-xs text-gray-600">m</span>
+                </div>
+                <div>
+                  <label className="block mb-1 text-gray-500 text-[10px]">ボールサイズ</label>
+                  <select
+                    className="w-full p-2 border border-gray-300 rounded text-sm"
+                    value={formData.ballType}
+                    onChange={(e) => handleChange('ballType', e.target.value)}
+                  >
+                    <option value="">選択してください</option>
+                    <option value="9">{ballTypes['9'].label}</option>
+                    <option value="16">{ballTypes['16'].label}</option>
+                    <option value="20">{ballTypes['20'].label}</option>
+                    <option value="22">{ballTypes['22'].label}</option>
+                    <option value="24">{ballTypes['24'].label}</option>
+                  </select>
                 </div>
               </MeasurementCard>
             </div>

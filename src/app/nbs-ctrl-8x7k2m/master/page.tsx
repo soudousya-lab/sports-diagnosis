@@ -106,53 +106,63 @@ export default function MasterDashboard() {
     setDataLoading(true)
 
     try {
-      // 基本データを並列で取得
-      const [
-        storesRes,
-        storesDataRes,
-        partnersRes,
-        childrenRes,
-        measurementsRes,
-        recentRes
-      ] = await Promise.all([
-        supabase.from('stores').select('id', { count: 'exact', head: true }),
-        supabase.from('stores').select('*'),
-        supabase.from('partners').select('*'),
-        supabase.from('children').select('id', { count: 'exact', head: true }),
-        supabase.from('measurements').select('id', { count: 'exact', head: true }),
-        supabase.from('measurements').select('id', { count: 'exact', head: true })
-          .gte('measured_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
-      ])
+      // タイムアウト付きでデータ取得
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('データ取得がタイムアウトしました')), 15000)
+      )
 
-      // エラーチェック
-      if (storesRes.error) console.error('stores error:', storesRes.error)
-      if (storesDataRes.error) console.error('storesData error:', storesDataRes.error)
-      if (partnersRes.error) console.error('partners error:', partnersRes.error)
-      if (childrenRes.error) console.error('children error:', childrenRes.error)
-      if (measurementsRes.error) console.error('measurements error:', measurementsRes.error)
+      const fetchPromise = async () => {
+        // 基本データを並列で取得
+        const [
+          storesRes,
+          storesDataRes,
+          partnersRes,
+          childrenRes,
+          measurementsRes,
+          recentRes
+        ] = await Promise.all([
+          supabase.from('stores').select('id', { count: 'exact', head: true }),
+          supabase.from('stores').select('*'),
+          supabase.from('partners').select('*'),
+          supabase.from('children').select('id', { count: 'exact', head: true }),
+          supabase.from('measurements').select('id', { count: 'exact', head: true }),
+          supabase.from('measurements').select('id', { count: 'exact', head: true })
+            .gte('measured_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+        ])
 
-      // ビューからのデータ取得（存在しない場合はエラーを無視）
-      const storeStatsRes = await supabase.from('store_statistics').select('*')
-      const gradeDistRes = await supabase.from('grade_gender_distribution').select('*')
-      const weaknessRes = await supabase.from('weakness_statistics').select('*')
+        // エラーチェック
+        if (storesRes.error) console.error('stores error:', storesRes.error)
+        if (storesDataRes.error) console.error('storesData error:', storesDataRes.error)
+        if (partnersRes.error) console.error('partners error:', partnersRes.error)
+        if (childrenRes.error) console.error('children error:', childrenRes.error)
+        if (measurementsRes.error) console.error('measurements error:', measurementsRes.error)
 
-      // ビューのエラーは無視（存在しない可能性があるため）
-      if (storeStatsRes.error) console.log('store_statistics not available:', storeStatsRes.error.message)
-      if (gradeDistRes.error) console.log('grade_gender_distribution not available:', gradeDistRes.error.message)
-      if (weaknessRes.error) console.log('weakness_statistics not available:', weaknessRes.error.message)
+        // ビューからのデータ取得（存在しない場合はエラーを無視）
+        const storeStatsRes = await supabase.from('store_statistics').select('*')
+        const gradeDistRes = await supabase.from('grade_gender_distribution').select('*')
+        const weaknessRes = await supabase.from('weakness_statistics').select('*')
 
-      setStats({
-        totalStores: storesRes.count || 0,
-        totalPartners: partnersRes.data?.length || 0,
-        totalChildren: childrenRes.count || 0,
-        totalMeasurements: measurementsRes.count || 0,
-        recentMeasurements: recentRes.count || 0,
-        storeStats: storeStatsRes.data || [],
-        gradeDistribution: gradeDistRes.data || [],
-        weaknessStats: weaknessRes.data || [],
-        partners: partnersRes.data || [],
-        stores: storesDataRes.data || []
-      })
+        // ビューのエラーは無視（存在しない可能性があるため）
+        if (storeStatsRes.error) console.log('store_statistics not available:', storeStatsRes.error.message)
+        if (gradeDistRes.error) console.log('grade_gender_distribution not available:', gradeDistRes.error.message)
+        if (weaknessRes.error) console.log('weakness_statistics not available:', weaknessRes.error.message)
+
+        return {
+          totalStores: storesRes.count || 0,
+          totalPartners: partnersRes.data?.length || 0,
+          totalChildren: childrenRes.count || 0,
+          totalMeasurements: measurementsRes.count || 0,
+          recentMeasurements: recentRes.count || 0,
+          storeStats: storeStatsRes.data || [],
+          gradeDistribution: gradeDistRes.data || [],
+          weaknessStats: weaknessRes.data || [],
+          partners: partnersRes.data || [],
+          stores: storesDataRes.data || []
+        }
+      }
+
+      const result = await Promise.race([fetchPromise(), timeoutPromise]) as DashboardStats
+      setStats(result)
     } catch (err) {
       console.error('Dashboard data fetch error:', err)
     } finally {
@@ -420,25 +430,31 @@ export default function MasterDashboard() {
     if (!editingStore) return
     setSaving(true)
 
-    const { error } = await supabase
-      .from('stores')
-      .update({
-        name: editForm.name,
-        slug: editForm.slug,
-        address: editForm.address || null,
-        phone: editForm.phone || null,
-        hours: editForm.hours || null,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', editingStore.id)
+    try {
+      const { error } = await supabase
+        .from('stores')
+        .update({
+          name: editForm.name,
+          slug: editForm.slug,
+          address: editForm.address || null,
+          phone: editForm.phone || null,
+          hours: editForm.hours || null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', editingStore.id)
 
-    if (error) {
-      alert('保存に失敗しました: ' + error.message)
-    } else {
-      setEditingStore(null)
-      fetchDashboardData() // データ再取得
+      if (error) {
+        alert('保存に失敗しました: ' + error.message)
+      } else {
+        setEditingStore(null)
+        await fetchDashboardData() // データ再取得
+      }
+    } catch (err) {
+      console.error('店舗保存エラー:', err)
+      alert('予期しないエラーが発生しました')
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   const handleExportCSV = async () => {
