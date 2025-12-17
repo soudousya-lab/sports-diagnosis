@@ -122,39 +122,47 @@ export default function StoreLoginPage() {
 
       if (data.user) {
         // プロファイル確認
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('user_profiles')
           .select('role, store_id')
           .eq('id', data.user.id)
           .single()
+
+        console.log('[StoreLogin] Profile:', profile, 'Error:', profileError)
 
         if (!profile) {
           throw new Error('ユーザープロファイルが見つかりません')
         }
 
         // 店舗情報取得
-        const { data: storeData } = await supabase
+        const { data: storeData, error: storeError } = await supabase
           .from('stores')
           .select('id')
           .eq('slug', slug)
           .single()
 
+        console.log('[StoreLogin] Store:', storeData, 'Error:', storeError, 'Slug:', slug)
+        console.log('[StoreLogin] Comparing store_id:', profile.store_id, 'vs', storeData?.id)
+
         // アクセス権限チェック
         if (profile.role === 'master') {
           // masterは全店舗アクセス可能
+          console.log('[StoreLogin] Master access granted')
           setRedirecting(true)
           setLoading(false)
           window.location.href = `/store/${slug}`
           return
         } else if (profile.role === 'store') {
           if (storeData && profile.store_id === storeData.id) {
+            console.log('[StoreLogin] Store access granted')
             setRedirecting(true)
             setLoading(false)
             window.location.href = `/store/${slug}`
             return
           } else {
+            console.log('[StoreLogin] Store access denied - ID mismatch')
             await supabase.auth.signOut()
-            throw new Error('この店舗へのアクセス権限がありません')
+            throw new Error('この店舗へのアクセス権限がありません（店舗IDが一致しません）')
           }
         } else {
           await supabase.auth.signOut()
@@ -162,6 +170,7 @@ export default function StoreLoginPage() {
         }
       }
     } catch (err) {
+      console.error('[StoreLogin] Login error:', err)
       setError(err instanceof Error ? err.message : 'ログインに失敗しました')
       setLoading(false)
     }
