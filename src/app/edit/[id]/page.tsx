@@ -42,6 +42,7 @@ export default function EditMeasurementPage() {
   const [isFetching, setIsFetching] = useState(true)
   const [childId, setChildId] = useState<string>('')
   const [storeId, setStoreId] = useState<string>('')
+  const [storeSlug, setStoreSlug] = useState<string>('')
   const [formData, setFormData] = useState<FormData>({
     name: '',
     furigana: '',
@@ -79,6 +80,17 @@ export default function EditMeasurementPage() {
 
         setChildId(measurement.child_id)
         setStoreId(measurement.store_id)
+
+        // 店舗スラッグを取得
+        const { data: storeData } = await supabase
+          .from('stores')
+          .select('slug')
+          .eq('id', measurement.store_id)
+          .single()
+
+        if (storeData) {
+          setStoreSlug(storeData.slug)
+        }
 
         // 子供データを取得
         const { data: child, error: childError } = await supabase
@@ -256,7 +268,7 @@ export default function EditMeasurementPage() {
       if (resultError) throw resultError
 
       // トップページへ遷移
-      router.push('/?updated=true')
+      router.push(storeSlug ? `/store/${storeSlug}?updated=true` : '/?updated=true')
     } catch (err) {
       console.error('更新エラー:', err)
       alert('更新中にエラーが発生しました。もう一度お試しください。')
@@ -277,7 +289,7 @@ export default function EditMeasurementPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 py-6 px-3 xs:px-4">
       <div className="max-w-4xl mx-auto">
         {/* 戻るボタン */}
-        <Link href="/" className="inline-flex items-center text-blue-200 hover:text-white transition-colors mb-4 text-sm xs:text-base">
+        <Link href={storeSlug ? `/store/${storeSlug}` : '/'} className="inline-flex items-center text-blue-200 hover:text-white transition-colors mb-4 text-sm xs:text-base">
           ← トップに戻る
         </Link>
 
@@ -518,7 +530,7 @@ export default function EditMeasurementPage() {
             </p>
             <div className="flex flex-col xs:flex-row gap-3 xs:gap-4 justify-center">
               <Link
-                href="/"
+                href={storeSlug ? `/store/${storeSlug}` : '/'}
                 className="w-full xs:w-auto px-6 xs:px-8 py-3 xs:py-4 text-sm xs:text-base font-bold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-all text-center"
               >
                 キャンセル

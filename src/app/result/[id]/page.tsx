@@ -97,6 +97,7 @@ export default function ResultPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [historyData, setHistoryData] = useState<HistoryMeasurement[]>([])
+  const [storeSlug, setStoreSlug] = useState<string>('')
   const printRef = useRef<HTMLDivElement>(null)
 
   // PDF出力（印刷機能）
@@ -145,12 +146,16 @@ export default function ResultPage() {
         // 店舗データを取得（QRコードURL含む）
         const { data: storeData, error: storeError } = await supabase
           .from('stores')
-          .select('name, theme_color, line_qr_url, reservation_qr_url')
+          .select('name, theme_color, line_qr_url, reservation_qr_url, slug')
           .eq('id', measurementData.store_id)
           .single()
 
         if (storeError) {
           console.error('Store error:', storeError)
+        }
+
+        if (storeData?.slug) {
+          setStoreSlug(storeData.slug)
         }
 
         // データを組み立てる
@@ -253,7 +258,7 @@ export default function ResultPage() {
         <div className="bg-white p-8 rounded-lg text-center">
           <h1 className="text-2xl font-bold text-red-600 mb-4">エラー</h1>
           <p className="text-gray-600 mb-4">{error || 'データが見つかりません'}</p>
-          <Link href="/" className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">
+          <Link href={storeSlug ? `/store/${storeSlug}` : '/'} className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">
             トップに戻る
           </Link>
         </div>
@@ -272,7 +277,7 @@ export default function ResultPage() {
         <div className="bg-white p-8 rounded-lg text-center">
           <h1 className="text-2xl font-bold text-red-600 mb-4">データエラー</h1>
           <p className="text-gray-600 mb-4">診断結果のデータが不完全です</p>
-          <Link href="/" className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">
+          <Link href={storeSlug ? `/store/${storeSlug}` : '/'} className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">
             トップに戻る
           </Link>
         </div>
@@ -287,7 +292,7 @@ export default function ResultPage() {
         <div className="bg-white p-8 rounded-lg text-center">
           <h1 className="text-2xl font-bold text-red-600 mb-4">データエラー</h1>
           <p className="text-gray-600 mb-4">学年・性別のデータが見つかりません</p>
-          <Link href="/" className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">
+          <Link href={storeSlug ? `/store/${storeSlug}` : '/'} className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">
             トップに戻る
           </Link>
         </div>
@@ -368,7 +373,7 @@ export default function ResultPage() {
         <div className="max-w-4xl mx-auto space-y-6 print:!space-y-0 print:max-w-none print:m-0">
           {/* 戻るボタン・PDF出力ボタン */}
           <div className="flex justify-between items-center print:hidden">
-            <Link href="/" className="inline-flex items-center text-blue-200 hover:text-white transition-colors text-sm xs:text-base">
+            <Link href={storeSlug ? `/store/${storeSlug}` : '/'} className="inline-flex items-center text-blue-200 hover:text-white transition-colors text-sm xs:text-base">
               ← トップに戻る
             </Link>
             <button
@@ -671,7 +676,7 @@ export default function ResultPage() {
 
           {/* 戻るボタン */}
           <div className="text-center pt-4 print:hidden">
-            <Link href="/" className="inline-block px-5 xs:px-6 py-2 xs:py-3 bg-white text-blue-900 font-bold rounded-lg shadow hover:shadow-lg transition-all text-sm xs:text-base">
+            <Link href={storeSlug ? `/store/${storeSlug}` : '/'} className="inline-block px-5 xs:px-6 py-2 xs:py-3 bg-white text-blue-900 font-bold rounded-lg shadow hover:shadow-lg transition-all text-sm xs:text-base">
               トップに戻る
             </Link>
           </div>
@@ -706,7 +711,7 @@ export default function ResultPage() {
       <div className="max-w-4xl mx-auto space-y-6 print:!space-y-0 print:max-w-none print:m-0">
         {/* 戻るボタン・PDF出力ボタン */}
         <div className="flex justify-between items-center print:hidden">
-          <Link href="/" className="inline-flex items-center text-blue-200 hover:text-white transition-colors text-sm xs:text-base">
+          <Link href={storeSlug ? `/store/${storeSlug}` : '/'} className="inline-flex items-center text-blue-200 hover:text-white transition-colors text-sm xs:text-base">
             ← トップに戻る
           </Link>
           <button
@@ -1139,7 +1144,7 @@ export default function ResultPage() {
 
         {/* 戻るボタン */}
         <div className="text-center pt-4 print:hidden">
-          <Link href="/" className="inline-block px-5 xs:px-6 py-2 xs:py-3 bg-white text-blue-900 font-bold rounded-lg shadow hover:shadow-lg transition-all text-sm xs:text-base">
+          <Link href={storeSlug ? `/store/${storeSlug}` : '/'} className="inline-block px-5 xs:px-6 py-2 xs:py-3 bg-white text-blue-900 font-bold rounded-lg shadow hover:shadow-lg transition-all text-sm xs:text-base">
             トップに戻る
           </Link>
         </div>
