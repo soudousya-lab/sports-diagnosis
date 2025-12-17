@@ -604,46 +604,46 @@ export default function MasterDashboard() {
     <div className="min-h-screen bg-gray-100">
       {/* ヘッダー */}
       <header className="bg-gradient-to-r from-purple-800 to-purple-900 text-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <FaCrown className="text-yellow-400 text-2xl" />
+        <div className="max-w-7xl mx-auto px-3 xs:px-4 py-3 xs:py-4 flex justify-between items-center">
+          <div className="flex items-center gap-2 xs:gap-3">
+            <FaCrown className="text-yellow-400 text-xl xs:text-2xl" />
             <div>
-              <h1 className="text-xl font-bold">Master管理画面</h1>
-              <p className="text-purple-200 text-xs">{profile?.email}</p>
+              <h1 className="text-base xs:text-xl font-bold">Master管理画面</h1>
+              <p className="text-purple-200 text-[10px] xs:text-xs truncate max-w-[120px] xs:max-w-none">{profile?.email}</p>
             </div>
           </div>
           <button
             onClick={signOut}
-            className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+            className="flex items-center gap-1 xs:gap-2 px-2 xs:px-4 py-1.5 xs:py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-xs xs:text-sm"
           >
             <FaSignOutAlt />
-            ログアウト
+            <span className="hidden xs:inline">ログアウト</span>
           </button>
         </div>
       </header>
 
       {/* タブナビゲーション */}
       <div className="bg-white border-b shadow-sm">
-        <div className="max-w-7xl mx-auto px-4">
-          <nav className="flex gap-1">
+        <div className="max-w-7xl mx-auto px-2 xs:px-4">
+          <nav className="flex gap-0.5 xs:gap-1 overflow-x-auto scrollbar-hide">
             {[
               { id: 'overview', label: '概要', icon: FaChartBar },
-              { id: 'stores', label: '店舗管理', icon: FaStore },
+              { id: 'stores', label: '店舗', icon: FaStore },
               { id: 'partners', label: 'パートナー', icon: FaHandshake },
-              { id: 'users', label: 'ユーザー管理', icon: FaUserCog },
-              { id: 'analysis', label: '分析・インサイト', icon: FaChartLine },
+              { id: 'users', label: 'ユーザー', icon: FaUserCog },
+              { id: 'analysis', label: '分析', icon: FaChartLine },
             ].map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors ${
+                className={`flex items-center gap-1 xs:gap-2 px-2 xs:px-4 py-2.5 xs:py-3 border-b-2 transition-colors whitespace-nowrap text-xs xs:text-sm ${
                   activeTab === tab.id
                     ? 'border-purple-600 text-purple-600 font-bold'
                     : 'border-transparent text-gray-600 hover:text-purple-600'
                 }`}
               >
-                <tab.icon />
-                {tab.label}
+                <tab.icon className="text-sm xs:text-base" />
+                <span className="hidden xs:inline">{tab.label}</span>
               </button>
             ))}
           </nav>
@@ -651,58 +651,58 @@ export default function MasterDashboard() {
       </div>
 
       {/* メインコンテンツ */}
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className="max-w-7xl mx-auto px-3 xs:px-4 py-4 xs:py-6">
         {activeTab === 'overview' && (
-          <div className="space-y-6">
+          <div className="space-y-4 xs:space-y-6">
             {/* KPIカード */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <div className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-purple-500">
+            <div className="grid grid-cols-2 xs:grid-cols-3 md:grid-cols-5 gap-2 xs:gap-4">
+              <div className="bg-white rounded-lg xs:rounded-xl p-3 xs:p-4 shadow-sm border-l-4 border-purple-500">
                 <div className="flex items-center justify-between">
-                  <FaStore className="text-purple-500 text-xl" />
-                  <span className="text-xs text-gray-500">店舗数</span>
+                  <FaStore className="text-purple-500 text-base xs:text-xl" />
+                  <span className="text-[10px] xs:text-xs text-gray-500">店舗数</span>
                 </div>
-                <div className="text-2xl font-bold text-gray-800 mt-2">{stats?.totalStores}</div>
+                <div className="text-xl xs:text-2xl font-bold text-gray-800 mt-1 xs:mt-2">{stats?.totalStores}</div>
               </div>
-              <div className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-blue-500">
+              <div className="bg-white rounded-lg xs:rounded-xl p-3 xs:p-4 shadow-sm border-l-4 border-blue-500">
                 <div className="flex items-center justify-between">
-                  <FaHandshake className="text-blue-500 text-xl" />
-                  <span className="text-xs text-gray-500">パートナー</span>
+                  <FaHandshake className="text-blue-500 text-base xs:text-xl" />
+                  <span className="text-[10px] xs:text-xs text-gray-500">パートナー</span>
                 </div>
-                <div className="text-2xl font-bold text-gray-800 mt-2">{stats?.totalPartners}</div>
+                <div className="text-xl xs:text-2xl font-bold text-gray-800 mt-1 xs:mt-2">{stats?.totalPartners}</div>
               </div>
-              <div className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-green-500">
+              <div className="bg-white rounded-lg xs:rounded-xl p-3 xs:p-4 shadow-sm border-l-4 border-green-500">
                 <div className="flex items-center justify-between">
-                  <FaChild className="text-green-500 text-xl" />
-                  <span className="text-xs text-gray-500">登録児童</span>
+                  <FaChild className="text-green-500 text-base xs:text-xl" />
+                  <span className="text-[10px] xs:text-xs text-gray-500">登録児童</span>
                 </div>
-                <div className="text-2xl font-bold text-gray-800 mt-2">{stats?.totalChildren}</div>
+                <div className="text-xl xs:text-2xl font-bold text-gray-800 mt-1 xs:mt-2">{stats?.totalChildren}</div>
               </div>
-              <div className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-orange-500">
+              <div className="bg-white rounded-lg xs:rounded-xl p-3 xs:p-4 shadow-sm border-l-4 border-orange-500">
                 <div className="flex items-center justify-between">
-                  <FaClipboardList className="text-orange-500 text-xl" />
-                  <span className="text-xs text-gray-500">総測定数</span>
+                  <FaClipboardList className="text-orange-500 text-base xs:text-xl" />
+                  <span className="text-[10px] xs:text-xs text-gray-500">総測定数</span>
                 </div>
-                <div className="text-2xl font-bold text-gray-800 mt-2">{stats?.totalMeasurements}</div>
+                <div className="text-xl xs:text-2xl font-bold text-gray-800 mt-1 xs:mt-2">{stats?.totalMeasurements}</div>
               </div>
-              <div className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-red-500">
+              <div className="bg-white rounded-lg xs:rounded-xl p-3 xs:p-4 shadow-sm border-l-4 border-red-500 col-span-2 xs:col-span-1">
                 <div className="flex items-center justify-between">
-                  <FaArrowUp className="text-red-500 text-xl" />
-                  <span className="text-xs text-gray-500">直近30日</span>
+                  <FaArrowUp className="text-red-500 text-base xs:text-xl" />
+                  <span className="text-[10px] xs:text-xs text-gray-500">直近30日</span>
                 </div>
-                <div className="text-2xl font-bold text-gray-800 mt-2">{stats?.recentMeasurements}</div>
+                <div className="text-xl xs:text-2xl font-bold text-gray-800 mt-1 xs:mt-2">{stats?.recentMeasurements}</div>
               </div>
             </div>
 
             {/* CSVエクスポート */}
-            <div className="bg-white rounded-xl p-4 shadow-sm">
-              <div className="flex items-center justify-between">
+            <div className="bg-white rounded-lg xs:rounded-xl p-3 xs:p-4 shadow-sm">
+              <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-3">
                 <div>
-                  <h3 className="font-bold text-gray-800">データエクスポート</h3>
-                  <p className="text-sm text-gray-500">全店舗の診断データをCSV形式でダウンロード</p>
+                  <h3 className="font-bold text-gray-800 text-sm xs:text-base">データエクスポート</h3>
+                  <p className="text-xs xs:text-sm text-gray-500">全店舗の診断データをCSV形式でダウンロード</p>
                 </div>
                 <button
                   onClick={handleExportCSV}
-                  className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  className="flex items-center gap-2 px-3 xs:px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-xs xs:text-sm w-full xs:w-auto justify-center"
                 >
                   <FaDownload />
                   CSVダウンロード
@@ -711,23 +711,23 @@ export default function MasterDashboard() {
             </div>
 
             {/* 店舗別実績 */}
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <div className="p-4 border-b bg-gray-50">
-                <h3 className="font-bold text-gray-800 flex items-center gap-2">
+            <div className="bg-white rounded-lg xs:rounded-xl shadow-sm overflow-hidden">
+              <div className="p-3 xs:p-4 border-b bg-gray-50">
+                <h3 className="font-bold text-gray-800 flex items-center gap-2 text-sm xs:text-base">
                   <FaTrophy className="text-yellow-500" />
                   店舗別実績ランキング
                 </h3>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 text-xs text-gray-600">
+                <table className="w-full text-xs xs:text-sm">
+                  <thead className="bg-gray-50 text-[10px] xs:text-xs text-gray-600">
                     <tr>
-                      <th className="text-left px-4 py-3">順位</th>
-                      <th className="text-left px-4 py-3">店舗名</th>
-                      <th className="text-left px-4 py-3">パートナー</th>
-                      <th className="text-right px-4 py-3">登録児童</th>
-                      <th className="text-right px-4 py-3">測定数</th>
-                      <th className="text-left px-4 py-3">最終測定日</th>
+                      <th className="text-left px-2 xs:px-4 py-2 xs:py-3">順位</th>
+                      <th className="text-left px-2 xs:px-4 py-2 xs:py-3">店舗名</th>
+                      <th className="text-left px-2 xs:px-4 py-2 xs:py-3 hidden sm:table-cell">パートナー</th>
+                      <th className="text-right px-2 xs:px-4 py-2 xs:py-3">児童</th>
+                      <th className="text-right px-2 xs:px-4 py-2 xs:py-3">測定</th>
+                      <th className="text-left px-2 xs:px-4 py-2 xs:py-3 hidden md:table-cell">最終測定日</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
@@ -735,9 +735,9 @@ export default function MasterDashboard() {
                       .sort((a, b) => b.measurements_count - a.measurements_count)
                       .map((store, i) => (
                         <tr key={store.store_id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3">
+                          <td className="px-2 xs:px-4 py-2 xs:py-3">
                             {i < 3 ? (
-                              <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-white text-xs font-bold ${
+                              <span className={`inline-flex items-center justify-center w-5 h-5 xs:w-6 xs:h-6 rounded-full text-white text-[10px] xs:text-xs font-bold ${
                                 i === 0 ? 'bg-yellow-500' : i === 1 ? 'bg-gray-400' : 'bg-orange-400'
                               }`}>
                                 {i + 1}
@@ -746,11 +746,11 @@ export default function MasterDashboard() {
                               <span className="text-gray-500">{i + 1}</span>
                             )}
                           </td>
-                          <td className="px-4 py-3 font-medium">{store.store_name}</td>
-                          <td className="px-4 py-3 text-gray-500">{store.partner_name || '-'}</td>
-                          <td className="px-4 py-3 text-right">{store.children_count}</td>
-                          <td className="px-4 py-3 text-right font-bold text-purple-600">{store.measurements_count}</td>
-                          <td className="px-4 py-3 text-gray-500 text-sm">
+                          <td className="px-2 xs:px-4 py-2 xs:py-3 font-medium">{store.store_name}</td>
+                          <td className="px-2 xs:px-4 py-2 xs:py-3 text-gray-500 hidden sm:table-cell">{store.partner_name || '-'}</td>
+                          <td className="px-2 xs:px-4 py-2 xs:py-3 text-right">{store.children_count}</td>
+                          <td className="px-2 xs:px-4 py-2 xs:py-3 text-right font-bold text-purple-600">{store.measurements_count}</td>
+                          <td className="px-2 xs:px-4 py-2 xs:py-3 text-gray-500 text-xs hidden md:table-cell">
                             {store.last_measurement_date || '-'}
                           </td>
                         </tr>
@@ -764,31 +764,31 @@ export default function MasterDashboard() {
 
         {activeTab === 'stores' && (
           <>
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
-                <h3 className="font-bold text-gray-800 flex items-center gap-2">
+            <div className="bg-white rounded-lg xs:rounded-xl shadow-sm overflow-hidden">
+              <div className="p-3 xs:p-4 border-b bg-gray-50 flex flex-col xs:flex-row justify-between items-start xs:items-center gap-2">
+                <h3 className="font-bold text-gray-800 flex items-center gap-2 text-sm xs:text-base">
                   <FaStore />
                   店舗一覧
                 </h3>
                 <button
                   onClick={() => setShowStoreModal(true)}
-                  className="flex items-center gap-1 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700 transition-colors"
+                  className="flex items-center gap-1 px-3 xs:px-4 py-1.5 xs:py-2 bg-purple-600 text-white rounded-lg text-xs xs:text-sm hover:bg-purple-700 transition-colors"
                 >
                   <FaPlus />
                   新規店舗追加
                 </button>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 text-xs text-gray-600">
+                <table className="w-full text-xs xs:text-sm">
+                  <thead className="bg-gray-50 text-[10px] xs:text-xs text-gray-600">
                     <tr>
-                      <th className="text-left px-4 py-3">店舗名</th>
-                      <th className="text-left px-4 py-3">スラッグ</th>
-                      <th className="text-left px-4 py-3">住所</th>
-                      <th className="text-left px-4 py-3">電話番号</th>
-                      <th className="text-right px-4 py-3">児童数</th>
-                      <th className="text-right px-4 py-3">測定数</th>
-                      <th className="text-center px-4 py-3">操作</th>
+                      <th className="text-left px-2 xs:px-4 py-2 xs:py-3">店舗名</th>
+                      <th className="text-left px-2 xs:px-4 py-2 xs:py-3 hidden sm:table-cell">スラッグ</th>
+                      <th className="text-left px-2 xs:px-4 py-2 xs:py-3 hidden md:table-cell">住所</th>
+                      <th className="text-left px-2 xs:px-4 py-2 xs:py-3 hidden lg:table-cell">電話番号</th>
+                      <th className="text-right px-2 xs:px-4 py-2 xs:py-3">児童</th>
+                      <th className="text-right px-2 xs:px-4 py-2 xs:py-3">測定</th>
+                      <th className="text-center px-2 xs:px-4 py-2 xs:py-3">操作</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
@@ -796,19 +796,19 @@ export default function MasterDashboard() {
                       const storeStat = stats.storeStats.find(s => s.store_id === store.id)
                       return (
                         <tr key={store.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 font-medium">{store.name}</td>
-                          <td className="px-4 py-3 text-gray-500 text-sm font-mono">{store.slug}</td>
-                          <td className="px-4 py-3 text-gray-500 text-sm">{store.address || '-'}</td>
-                          <td className="px-4 py-3 text-gray-500 text-sm">{store.phone || '-'}</td>
-                          <td className="px-4 py-3 text-right">{storeStat?.children_count || 0}</td>
-                          <td className="px-4 py-3 text-right">{storeStat?.measurements_count || 0}</td>
-                          <td className="px-4 py-3 text-center">
+                          <td className="px-2 xs:px-4 py-2 xs:py-3 font-medium">{store.name}</td>
+                          <td className="px-2 xs:px-4 py-2 xs:py-3 text-gray-500 text-xs font-mono hidden sm:table-cell">{store.slug}</td>
+                          <td className="px-2 xs:px-4 py-2 xs:py-3 text-gray-500 text-xs hidden md:table-cell">{store.address || '-'}</td>
+                          <td className="px-2 xs:px-4 py-2 xs:py-3 text-gray-500 text-xs hidden lg:table-cell">{store.phone || '-'}</td>
+                          <td className="px-2 xs:px-4 py-2 xs:py-3 text-right">{storeStat?.children_count || 0}</td>
+                          <td className="px-2 xs:px-4 py-2 xs:py-3 text-right">{storeStat?.measurements_count || 0}</td>
+                          <td className="px-2 xs:px-4 py-2 xs:py-3 text-center">
                             <button
                               onClick={() => handleEditStore(store)}
-                              className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm"
+                              className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-xs xs:text-sm"
                             >
                               <FaEdit />
-                              編集
+                              <span className="hidden xs:inline">編集</span>
                             </button>
                           </td>
                         </tr>
@@ -821,18 +821,18 @@ export default function MasterDashboard() {
 
             {/* 編集モーダル */}
             {editingStore && (
-              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4">
-                  <div className="p-4 border-b flex justify-between items-center">
-                    <h3 className="font-bold text-gray-800">店舗情報を編集</h3>
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 xs:p-4">
+                <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+                  <div className="p-3 xs:p-4 border-b flex justify-between items-center sticky top-0 bg-white">
+                    <h3 className="font-bold text-gray-800 text-sm xs:text-base">店舗情報を編集</h3>
                     <button
                       onClick={() => setEditingStore(null)}
-                      className="text-gray-500 hover:text-gray-700"
+                      className="text-gray-500 hover:text-gray-700 p-1"
                     >
                       <FaTimes />
                     </button>
                   </div>
-                  <div className="p-4 space-y-4">
+                  <div className="p-3 xs:p-4 space-y-3 xs:space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">店舗名</label>
                       <input
@@ -1004,15 +1004,15 @@ export default function MasterDashboard() {
 
         {activeTab === 'partners' && (
           <>
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
-                <h3 className="font-bold text-gray-800 flex items-center gap-2">
+            <div className="bg-white rounded-lg xs:rounded-xl shadow-sm overflow-hidden">
+              <div className="p-3 xs:p-4 border-b bg-gray-50 flex flex-col xs:flex-row justify-between items-start xs:items-center gap-2">
+                <h3 className="font-bold text-gray-800 flex items-center gap-2 text-sm xs:text-base">
                   <FaHandshake />
                   パートナー一覧
                 </h3>
                 <button
                   onClick={() => setShowPartnerModal(true)}
-                  className="flex items-center gap-1 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700 transition-colors"
+                  className="flex items-center gap-1 px-3 xs:px-4 py-1.5 xs:py-2 bg-purple-600 text-white rounded-lg text-xs xs:text-sm hover:bg-purple-700 transition-colors"
                 >
                   <FaPlus />
                   新規パートナー追加
@@ -1023,25 +1023,25 @@ export default function MasterDashboard() {
                   const storeCount = stats.storeStats.filter(s => s.partner_id === partner.id).length
                   const partnerUserList = getPartnerUsersByPartnerId(partner.id)
                   return (
-                    <div key={partner.id} className="p-4 hover:bg-gray-50">
-                      <div className="flex items-start justify-between mb-3">
+                    <div key={partner.id} className="p-3 xs:p-4 hover:bg-gray-50">
+                      <div className="flex flex-col xs:flex-row items-start justify-between gap-2 xs:gap-3 mb-3">
                         <div>
-                          <h4 className="font-bold text-gray-900">{partner.name}</h4>
-                          <div className="text-sm text-gray-500 mt-1">
-                            {partner.email && <span className="mr-4">{partner.email}</span>}
+                          <h4 className="font-bold text-gray-900 text-sm xs:text-base">{partner.name}</h4>
+                          <div className="text-xs xs:text-sm text-gray-500 mt-1">
+                            {partner.email && <span className="mr-2 xs:mr-4 block xs:inline">{partner.email}</span>}
                             {partner.phone && <span>{partner.phone}</span>}
                           </div>
-                          <div className="text-xs text-gray-400 mt-1">担当店舗: {storeCount}件</div>
+                          <div className="text-[10px] xs:text-xs text-gray-400 mt-1">担当店舗: {storeCount}件</div>
                         </div>
                         <button
                           onClick={() => {
                             setPartnerUserForm({ ...partnerUserForm, partner_id: partner.id })
                             setShowPartnerUserModal(true)
                           }}
-                          className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors"
+                          className="flex items-center gap-1 px-2 xs:px-3 py-1 xs:py-1.5 bg-blue-600 text-white rounded text-[10px] xs:text-xs hover:bg-blue-700 transition-colors whitespace-nowrap"
                         >
                           <FaUserPlus />
-                          ログインアカウント追加
+                          <span className="hidden xs:inline">ログイン</span>アカウント追加
                         </button>
                       </div>
 
@@ -1290,39 +1290,42 @@ export default function MasterDashboard() {
 
         {activeTab === 'users' && (
           <>
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
-                <h3 className="font-bold text-gray-800 flex items-center gap-2">
+            <div className="bg-white rounded-lg xs:rounded-xl shadow-sm overflow-hidden">
+              <div className="p-3 xs:p-4 border-b bg-gray-50 flex flex-col xs:flex-row justify-between items-start xs:items-center gap-2">
+                <h3 className="font-bold text-gray-800 flex items-center gap-2 text-sm xs:text-base">
                   <FaUserCog />
                   ユーザー一覧
                 </h3>
                 <button
                   onClick={() => setShowUserModal(true)}
-                  className="flex items-center gap-1 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700 transition-colors"
+                  className="flex items-center gap-1 px-3 xs:px-4 py-1.5 xs:py-2 bg-purple-600 text-white rounded-lg text-xs xs:text-sm hover:bg-purple-700 transition-colors"
                 >
                   <FaUserPlus />
                   新規ユーザー追加
                 </button>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 text-xs text-gray-600">
+                <table className="w-full text-xs xs:text-sm">
+                  <thead className="bg-gray-50 text-[10px] xs:text-xs text-gray-600">
                     <tr>
-                      <th className="text-left px-4 py-3">名前</th>
-                      <th className="text-left px-4 py-3">メール</th>
-                      <th className="text-center px-4 py-3">ロール</th>
-                      <th className="text-left px-4 py-3">パートナー/店舗</th>
-                      <th className="text-left px-4 py-3">作成日</th>
-                      <th className="text-center px-4 py-3">操作</th>
+                      <th className="text-left px-2 xs:px-4 py-2 xs:py-3">名前</th>
+                      <th className="text-left px-2 xs:px-4 py-2 xs:py-3 hidden sm:table-cell">メール</th>
+                      <th className="text-center px-2 xs:px-4 py-2 xs:py-3">ロール</th>
+                      <th className="text-left px-2 xs:px-4 py-2 xs:py-3 hidden md:table-cell">パートナー/店舗</th>
+                      <th className="text-left px-2 xs:px-4 py-2 xs:py-3 hidden lg:table-cell">作成日</th>
+                      <th className="text-center px-2 xs:px-4 py-2 xs:py-3">操作</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
                     {users.map(user => (
                       <tr key={user.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 font-medium">{user.name || '-'}</td>
-                        <td className="px-4 py-3 text-gray-500">{user.email}</td>
-                        <td className="px-4 py-3 text-center">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        <td className="px-2 xs:px-4 py-2 xs:py-3">
+                          <div className="font-medium">{user.name || '-'}</div>
+                          <div className="text-[10px] text-gray-400 sm:hidden truncate max-w-[100px]">{user.email}</div>
+                        </td>
+                        <td className="px-2 xs:px-4 py-2 xs:py-3 text-gray-500 hidden sm:table-cell">{user.email}</td>
+                        <td className="px-2 xs:px-4 py-2 xs:py-3 text-center">
+                          <span className={`px-1.5 xs:px-2 py-0.5 xs:py-1 rounded text-[10px] xs:text-xs font-medium ${
                             user.role === 'master' ? 'bg-purple-100 text-purple-700' :
                             user.role === 'partner' ? 'bg-blue-100 text-blue-700' :
                             'bg-green-100 text-green-700'
@@ -1330,34 +1333,34 @@ export default function MasterDashboard() {
                             {user.role}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-gray-500">
+                        <td className="px-2 xs:px-4 py-2 xs:py-3 text-gray-500 hidden md:table-cell">
                           {user.role === 'store' ? (
                             <div>
-                              <div>{user.stores?.name || '-'}</div>
+                              <div className="text-xs">{user.stores?.name || '-'}</div>
                               {user.partners?.name && (
-                                <div className="text-xs text-gray-400">({user.partners.name})</div>
+                                <div className="text-[10px] text-gray-400">({user.partners.name})</div>
                               )}
                             </div>
                           ) : user.role === 'partner' ? (
                             user.partners?.name || '-'
                           ) : '-'}
                         </td>
-                        <td className="px-4 py-3 text-gray-500 text-sm">
+                        <td className="px-2 xs:px-4 py-2 xs:py-3 text-gray-500 text-xs hidden lg:table-cell">
                           {new Date(user.created_at).toLocaleDateString('ja-JP')}
                         </td>
-                        <td className="px-4 py-3 text-center">
+                        <td className="px-2 xs:px-4 py-2 xs:py-3 text-center">
                           {user.role !== 'master' && (
-                            <div className="flex items-center justify-center gap-2">
+                            <div className="flex items-center justify-center gap-1 xs:gap-2">
                               <button
                                 onClick={() => handleEditUser(user)}
-                                className="text-blue-600 hover:text-blue-800 text-sm"
+                                className="text-blue-600 hover:text-blue-800 text-xs xs:text-sm p-1"
                                 title="編集"
                               >
                                 <FaEdit />
                               </button>
                               <button
                                 onClick={() => handleDeleteUser(user.id)}
-                                className="text-red-600 hover:text-red-800 text-sm"
+                                className="text-red-600 hover:text-red-800 text-xs xs:text-sm p-1"
                                 title="削除"
                               >
                                 <FaTrash />
@@ -1369,7 +1372,7 @@ export default function MasterDashboard() {
                     ))}
                     {users.length === 0 && (
                       <tr>
-                        <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                        <td colSpan={6} className="px-4 py-8 text-center text-gray-500 text-xs xs:text-sm">
                           ユーザーが登録されていません
                         </td>
                       </tr>
