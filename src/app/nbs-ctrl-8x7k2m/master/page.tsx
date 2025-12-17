@@ -67,6 +67,8 @@ export default function MasterDashboard() {
   const [editUserForm, setEditUserForm] = useState({
     id: '',
     name: '',
+    email: '',
+    password: '',
     role: 'store' as 'master' | 'partner' | 'store',
     partner_id: '',
     store_id: ''
@@ -227,6 +229,8 @@ export default function MasterDashboard() {
     setEditUserForm({
       id: user.id,
       name: user.name || '',
+      email: user.email,
+      password: '',
       role: user.role,
       partner_id: user.partner_id || '',
       store_id: user.store_id || ''
@@ -1390,10 +1394,21 @@ export default function MasterDashboard() {
                       <label className="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
                       <input
                         type="email"
-                        value={editingUser.email}
-                        disabled
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
+                        value={editUserForm.email}
+                        onChange={(e) => setEditUserForm({ ...editUserForm, email: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                       />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">新しいパスワード</label>
+                      <input
+                        type="password"
+                        value={editUserForm.password}
+                        onChange={(e) => setEditUserForm({ ...editUserForm, password: e.target.value })}
+                        placeholder="変更する場合のみ入力"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">8文字以上、大文字・小文字・数字を含む</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">名前</label>
