@@ -637,7 +637,7 @@ export default function Home() {
               <Link href="/privacy" className="hover:text-gray-600 transition-colors">プライバシーポリシー</Link>
               <Link href="/terms" className="hover:text-gray-600 transition-colors">利用規約</Link>
             </div>
-            <p>&copy; 2024 NOBISHIRO KIDS. All rights reserved.</p>
+            <p>&copy; 2025 NOBISHIRO KIDS. All rights reserved.</p>
           </div>
         </div>
       </footer>

@@ -144,7 +144,7 @@ export default function PartnerLoginPage() {
 
         {/* フッター */}
         <p className="text-center text-blue-200 text-xs mt-6">
-          © 2024 NOBISHIRO KIDS
+          © 2025 NOBISHIRO KIDS
         </p>
       </div>
     </div>

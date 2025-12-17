@@ -181,7 +181,7 @@ export default function ResetPasswordPage() {
 
         {/* フッター */}
         <div className="text-center mt-8 text-blue-200 text-sm">
-          © 2024 NOBISHIRO KIDS
+          © 2025 NOBISHIRO KIDS
         </div>
       </div>
     </div>

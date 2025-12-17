@@ -1,13 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useState, useEffect, useRef } from 'react'
+import { useParams } from 'next/navigation'
 import { createClientComponentClient } from '@/lib/supabase'
 import { FaSpinner, FaLock, FaEnvelope } from 'react-icons/fa'
 
 export default function StoreLoginPage() {
   const params = useParams()
-  const router = useRouter()
   const slug = params.slug as string
   const supabase = createClientComponentClient()
 
@@ -23,12 +22,79 @@ export default function StoreLoginPage() {
   const [resetSent, setResetSent] = useState(false)
   const [resetLoading, setResetLoading] = useState(false)
 
-  // 店舗情報取得
+  // 重複チェック防止
+  const authCheckStarted = useRef(false)
+
+  // 初期認証チェック（1回のみ実行、onAuthStateChangeを使わない）
   useEffect(() => {
+    if (authCheckStarted.current) return
+    authCheckStarted.current = true
+
+    const checkExistingSession = async () => {
+      console.log('[StoreLogin] Checking existing session...')
+
+      try {
+        // 現在のセッションを取得
+        const { data: { session } } = await supabase.auth.getSession()
+
+        if (!session) {
+          console.log('[StoreLogin] No existing session')
+          setCheckingAuth(false)
+          return
+        }
+
+        console.log('[StoreLogin] Found existing session, checking access...')
+
+        // 店舗情報とプロファイルを並行取得
+        const [storeResult, profileResult] = await Promise.all([
+          supabase.from('stores').select('id, name').eq('slug', slug).single(),
+          supabase.from('user_profiles').select('role, store_id').eq('id', session.user.id).single()
+        ])
+
+        const storeData = storeResult.data
+        const profile = profileResult.data
+
+        if (storeData) {
+          setStoreName(storeData.name)
+        }
+
+        console.log('[StoreLogin] Profile:', profile, 'Store:', storeData)
+
+        if (profile) {
+          // masterは全店舗アクセス可能
+          if (profile.role === 'master') {
+            console.log('[StoreLogin] Master - redirecting')
+            window.location.href = `/store/${slug}`
+            return
+          }
+          // 店舗ユーザーは自分の店舗のみアクセス可能
+          if (profile.role === 'store' && storeData && profile.store_id === storeData.id) {
+            console.log('[StoreLogin] Store user - redirecting')
+            window.location.href = `/store/${slug}`
+            return
+          }
+        }
+
+        // アクセス権がない場合はログインフォームを表示
+        console.log('[StoreLogin] No access, showing login form')
+        setCheckingAuth(false)
+      } catch (err) {
+        console.error('[StoreLogin] Error checking session:', err)
+        setCheckingAuth(false)
+      }
+    }
+
+    checkExistingSession()
+  }, [slug, supabase])
+
+  // 店舗名取得（セッションがない場合用）
+  useEffect(() => {
+    if (storeName) return // 既に取得済み
+
     async function fetchStoreName() {
       const { data: storeData } = await supabase
         .from('stores')
-        .select('id, name')
+        .select('name')
         .eq('slug', slug)
         .single()
 
@@ -37,138 +103,75 @@ export default function StoreLoginPage() {
       }
     }
     fetchStoreName()
-  }, [slug, supabase])
-
-  // 認証チェック
-  useEffect(() => {
-    let isMounted = true
-    let authHandled = false
-
-    // タイムアウト（8秒でローディング解除）
-    const timeoutId = setTimeout(() => {
-      if (isMounted && !authHandled) {
-        console.log('[StoreLogin] Auth check timeout')
-        setCheckingAuth(false)
-        authHandled = true
-      }
-    }, 8000)
-
-    // onAuthStateChangeを先にセットアップ
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('[StoreLogin] onAuthStateChange:', event)
-
-        if (!isMounted) return
-
-        // 既に処理済みの場合はスキップ（ただしSIGNED_INは常に処理）
-        if (authHandled && event !== 'SIGNED_IN') {
-          return
-        }
-
-        if (session) {
-          // 店舗情報取得
-          const { data: storeData } = await supabase
-            .from('stores')
-            .select('id')
-            .eq('slug', slug)
-            .single()
-
-          // プロファイル確認
-          const { data: profile } = await supabase
-            .from('user_profiles')
-            .select('role, store_id')
-            .eq('id', session.user.id)
-            .single()
-
-          if (profile) {
-            // masterは全店舗アクセス可能
-            if (profile.role === 'master') {
-              router.replace(`/store/${slug}`)
-              return
-            }
-            // 店舗ユーザーは自分の店舗のみアクセス可能
-            if (profile.role === 'store' && storeData && profile.store_id === storeData.id) {
-              router.replace(`/store/${slug}`)
-              return
-            }
-          }
-        }
-
-        // セッションがない、またはアクセス権がない場合はログインフォームを表示
-        authHandled = true
-        setCheckingAuth(false)
-      }
-    )
-
-    return () => {
-      isMounted = false
-      clearTimeout(timeoutId)
-      subscription.unsubscribe()
-    }
-  }, [slug, supabase, router])
+  }, [slug, supabase, storeName])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     setLoading(true)
 
+    console.log('[StoreLogin] handleLogin started')
+
     try {
+      // ログイン実行
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
-      if (signInError) throw signInError
+      if (signInError) {
+        throw signInError
+      }
 
-      if (data.user) {
-        // プロファイル確認
-        const { data: profile, error: profileError } = await supabase
-          .from('user_profiles')
-          .select('role, store_id')
-          .eq('id', data.user.id)
-          .single()
+      if (!data.user) {
+        throw new Error('ログインに失敗しました')
+      }
 
-        console.log('[StoreLogin] Profile:', profile, 'Error:', profileError)
+      console.log('[StoreLogin] User authenticated:', data.user.id)
 
-        if (!profile) {
-          throw new Error('ユーザープロファイルが見つかりません')
-        }
+      // プロファイルと店舗情報を並行取得
+      const [profileResult, storeResult] = await Promise.all([
+        supabase.from('user_profiles').select('role, store_id').eq('id', data.user.id).single(),
+        supabase.from('stores').select('id').eq('slug', slug).single()
+      ])
 
-        // 店舗情報取得
-        const { data: storeData, error: storeError } = await supabase
-          .from('stores')
-          .select('id')
-          .eq('slug', slug)
-          .single()
+      const profile = profileResult.data
+      const storeData = storeResult.data
 
-        console.log('[StoreLogin] Store:', storeData, 'Error:', storeError, 'Slug:', slug)
-        console.log('[StoreLogin] Comparing store_id:', profile.store_id, 'vs', storeData?.id)
+      console.log('[StoreLogin] Profile:', profile, 'Store:', storeData)
 
-        // アクセス権限チェック
-        if (profile.role === 'master') {
-          // masterは全店舗アクセス可能
-          console.log('[StoreLogin] Master access granted')
+      if (!profile) {
+        await supabase.auth.signOut()
+        throw new Error('ユーザープロファイルが見つかりません')
+      }
+
+      // アクセス権限チェック
+      if (profile.role === 'master') {
+        console.log('[StoreLogin] Master access granted')
+        setRedirecting(true)
+        setLoading(false)
+        window.location.href = `/store/${slug}`
+        return
+      }
+
+      if (profile.role === 'store') {
+        if (storeData && profile.store_id === storeData.id) {
+          console.log('[StoreLogin] Store access granted')
           setRedirecting(true)
           setLoading(false)
           window.location.href = `/store/${slug}`
           return
-        } else if (profile.role === 'store') {
-          if (storeData && profile.store_id === storeData.id) {
-            console.log('[StoreLogin] Store access granted')
-            setRedirecting(true)
-            setLoading(false)
-            window.location.href = `/store/${slug}`
-            return
-          } else {
-            console.log('[StoreLogin] Store access denied - ID mismatch')
-            await supabase.auth.signOut()
-            throw new Error('この店舗へのアクセス権限がありません（店舗IDが一致しません）')
-          }
         } else {
+          console.log('[StoreLogin] Store access denied - ID mismatch:', profile.store_id, 'vs', storeData?.id)
           await supabase.auth.signOut()
-          throw new Error('店舗へのアクセス権限がありません')
+          throw new Error('この店舗へのアクセス権限がありません')
         }
       }
+
+      // その他のロール
+      await supabase.auth.signOut()
+      throw new Error('店舗へのアクセス権限がありません')
+
     } catch (err) {
       console.error('[StoreLogin] Login error:', err)
       setError(err instanceof Error ? err.message : 'ログインに失敗しました')
@@ -383,7 +386,7 @@ export default function StoreLoginPage() {
 
         {/* フッター */}
         <div className="text-center mt-8 text-blue-200 text-sm">
-          © 2024 NOBISHIRO KIDS
+          © 2025 NOBISHIRO KIDS
         </div>
       </div>
     </div>

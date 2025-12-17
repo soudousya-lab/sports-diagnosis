@@ -25,7 +25,7 @@ export default function TermsPage() {
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8">利用規約</h1>
 
         <div className="bg-white rounded-xl shadow-sm p-6 sm:p-8 space-y-8">
-          <p className="text-gray-600 text-sm">最終更新日: 2024年12月16日</p>
+          <p className="text-gray-600 text-sm">最終更新日: 2025年1月1日</p>
 
           <section>
             <h2 className="text-lg font-bold text-gray-900 mb-3">第1条（適用）</h2>
@@ -199,7 +199,7 @@ export default function TermsPage() {
       {/* フッター */}
       <footer className="border-t border-gray-200 py-6 mt-12">
         <div className="max-w-4xl mx-auto px-4 text-center text-sm text-gray-500">
-          <p>&copy; 2024 NOBISHIRO KIDS. All rights reserved.</p>
+          <p>&copy; 2025 NOBISHIRO KIDS. All rights reserved.</p>
         </div>
       </footer>
     </div>

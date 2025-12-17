@@ -145,7 +145,7 @@ export default function LoginPage() {
 
         {/* フッター */}
         <p className="text-center text-blue-200 text-xs mt-6">
-          © 2024 スポーツ能力診断システム
+          © 2025 スポーツ能力診断システム
         </p>
       </div>
     </div>

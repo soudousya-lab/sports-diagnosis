@@ -7,7 +7,8 @@ import { Store, createClientComponentClient } from '@/lib/supabase'
 import {
   FaUsers, FaClipboardList, FaArrowLeft,
   FaSpinner, FaChartLine, FaChild,
-  FaCalendarAlt, FaDownload, FaQrcode, FaUpload, FaTrash
+  FaCalendarAlt, FaDownload, FaQrcode, FaUpload, FaTrash,
+  FaKey, FaEnvelope, FaSave, FaUserCog
 } from 'react-icons/fa'
 
 type GradeDistribution = {
@@ -42,6 +43,30 @@ export default function StoreAdminPage() {
   const [uploadingQr, setUploadingQr] = useState<'line' | 'reservation' | null>(null)
   const lineQrInputRef = useRef<HTMLInputElement>(null)
   const reservationQrInputRef = useRef<HTMLInputElement>(null)
+
+  // アカウント設定用state
+  const [currentUser, setCurrentUser] = useState<{ id: string; email: string } | null>(null)
+  const [accountForm, setAccountForm] = useState({
+    newEmail: '',
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  })
+  const [accountLoading, setAccountLoading] = useState(false)
+  const [accountError, setAccountError] = useState<string | null>(null)
+  const [accountSuccess, setAccountSuccess] = useState<string | null>(null)
+
+  // 現在のユーザー情報を取得
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        setCurrentUser({ id: user.id, email: user.email || '' })
+        setAccountForm(prev => ({ ...prev, newEmail: user.email || '' }))
+      }
+    }
+    fetchCurrentUser()
+  }, [supabase])
 
   useEffect(() => {
     let isMounted = true
@@ -337,6 +362,126 @@ export default function StoreAdminPage() {
     }
   }
 
+  // パスワード変更処理
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setAccountError(null)
+    setAccountSuccess(null)
+
+    if (!accountForm.currentPassword) {
+      setAccountError('現在のパスワードを入力してください')
+      return
+    }
+
+    if (!accountForm.newPassword) {
+      setAccountError('新しいパスワードを入力してください')
+      return
+    }
+
+    if (accountForm.newPassword.length < 8) {
+      setAccountError('パスワードは8文字以上で入力してください')
+      return
+    }
+
+    if (accountForm.newPassword !== accountForm.confirmPassword) {
+      setAccountError('新しいパスワードが一致しません')
+      return
+    }
+
+    setAccountLoading(true)
+
+    try {
+      // APIを使用してパスワード更新（Service Role Keyを使用）
+      const response = await fetch('/api/store/account', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'password',
+          currentPassword: accountForm.currentPassword,
+          newPassword: accountForm.newPassword
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'パスワードの変更に失敗しました')
+      }
+
+      setAccountSuccess('パスワードを変更しました')
+      setAccountForm(prev => ({
+        ...prev,
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      }))
+    } catch (err) {
+      console.error('パスワード変更エラー:', err)
+      setAccountError(err instanceof Error ? err.message : 'パスワードの変更に失敗しました')
+    } finally {
+      setAccountLoading(false)
+    }
+  }
+
+  // メールアドレス変更処理
+  const handleEmailChange = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setAccountError(null)
+    setAccountSuccess(null)
+
+    if (!accountForm.newEmail) {
+      setAccountError('新しいメールアドレスを入力してください')
+      return
+    }
+
+    if (!accountForm.currentPassword) {
+      setAccountError('現在のパスワードを入力してください')
+      return
+    }
+
+    // メールアドレス形式チェック
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(accountForm.newEmail)) {
+      setAccountError('メールアドレスの形式が正しくありません')
+      return
+    }
+
+    if (accountForm.newEmail === currentUser?.email) {
+      setAccountError('現在と同じメールアドレスです')
+      return
+    }
+
+    setAccountLoading(true)
+
+    try {
+      // APIを使用してメールアドレス更新（Service Role Keyを使用、user_profilesも同時更新）
+      const response = await fetch('/api/store/account', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'email',
+          currentPassword: accountForm.currentPassword,
+          newEmail: accountForm.newEmail
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'メールアドレスの変更に失敗しました')
+      }
+
+      setAccountSuccess('メールアドレスを変更しました。次回ログインから新しいメールアドレスを使用してください。')
+      setCurrentUser(prev => prev ? { ...prev, email: accountForm.newEmail } : null)
+      setAccountForm(prev => ({ ...prev, currentPassword: '' }))
+    } catch (err) {
+      console.error('メールアドレス変更エラー:', err)
+      setAccountError(err instanceof Error ? err.message : 'メールアドレスの変更に失敗しました')
+    } finally {
+      setAccountLoading(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 flex items-center justify-center">
@@ -550,6 +695,132 @@ export default function StoreAdminPage() {
                     }}
                   />
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* アカウント設定セクション */}
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
+          <div className="p-4 border-b bg-gray-50">
+            <h3 className="font-bold text-gray-800 flex items-center gap-2">
+              <FaUserCog className="text-indigo-500" />
+              アカウント設定
+            </h3>
+            <p className="text-xs text-gray-500 mt-1">ログイン情報の変更ができます</p>
+          </div>
+          <div className="p-4">
+            {/* エラー・成功メッセージ */}
+            {accountError && (
+              <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+                {accountError}
+              </div>
+            )}
+            {accountSuccess && (
+              <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg text-sm">
+                {accountSuccess}
+              </div>
+            )}
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* メールアドレス変更 */}
+              <div className="border rounded-lg p-4">
+                <h4 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
+                  <FaEnvelope className="text-blue-500" />
+                  メールアドレス変更
+                </h4>
+                <form onSubmit={handleEmailChange} className="space-y-3">
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">現在のメールアドレス</label>
+                    <p className="text-sm text-gray-800 bg-gray-100 px-3 py-2 rounded">
+                      {currentUser?.email || '-'}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">新しいメールアドレス</label>
+                    <input
+                      type="email"
+                      value={accountForm.newEmail}
+                      onChange={(e) => setAccountForm(prev => ({ ...prev, newEmail: e.target.value }))}
+                      className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="new-email@example.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">現在のパスワード（確認用）</label>
+                    <input
+                      type="password"
+                      value={accountForm.currentPassword}
+                      onChange={(e) => setAccountForm(prev => ({ ...prev, currentPassword: e.target.value }))}
+                      className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="現在のパスワード"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={accountLoading}
+                    className="w-full py-2 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {accountLoading ? (
+                      <FaSpinner className="animate-spin" />
+                    ) : (
+                      <FaSave />
+                    )}
+                    メールアドレスを変更
+                  </button>
+                </form>
+              </div>
+
+              {/* パスワード変更 */}
+              <div className="border rounded-lg p-4">
+                <h4 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
+                  <FaKey className="text-orange-500" />
+                  パスワード変更
+                </h4>
+                <form onSubmit={handlePasswordChange} className="space-y-3">
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">現在のパスワード</label>
+                    <input
+                      type="password"
+                      value={accountForm.currentPassword}
+                      onChange={(e) => setAccountForm(prev => ({ ...prev, currentPassword: e.target.value }))}
+                      className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="現在のパスワード"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">新しいパスワード</label>
+                    <input
+                      type="password"
+                      value={accountForm.newPassword}
+                      onChange={(e) => setAccountForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                      className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="新しいパスワード（8文字以上）"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">新しいパスワード（確認）</label>
+                    <input
+                      type="password"
+                      value={accountForm.confirmPassword}
+                      onChange={(e) => setAccountForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                      className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="新しいパスワードを再入力"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={accountLoading}
+                    className="w-full py-2 bg-orange-500 text-white text-sm font-medium rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {accountLoading ? (
+                      <FaSpinner className="animate-spin" />
+                    ) : (
+                      <FaSave />
+                    )}
+                    パスワードを変更
+                  </button>
+                </form>
               </div>
             </div>
           </div>
