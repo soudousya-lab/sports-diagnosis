@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { averageData, getGradeDisplay, categories, developmentAdvice, getGrade, sd, calcDeviation, deviationTo10Scale, determineType, getWeaknessClass, calcSportsAptitude } from '@/lib/diagnosis'
+import { averageData, getGradeDisplay, categories, developmentAdvice, getGrade, sd, calcDeviation, deviationTo10Scale, determineType, getWeaknessClass, calcSportsAptitude, estimate50mTime, sprint50mStandard } from '@/lib/diagnosis'
 import RadarChart from '@/components/RadarChart'
 import {
   FaTrophy, FaChartBar, FaBullseye, FaSearch, FaMedal, FaRunning,
@@ -356,10 +356,14 @@ export default function ResultPage() {
   // サマリー版用の変数を先に定義
   const simpleAllKeys = ['grip', 'jump', 'dash', 'doublejump', 'squat', 'sidestep', 'throw']
   const simpleAllLabels = ['筋力', '瞬発力', '移動能力', 'バランス', '筋持久力', '敏捷性', '投力']
+  // 50m走タイム推定（加速度考慮）
+  const estimated50m = estimate50mTime(data.dash, child.grade)
+  const sprint50mRef = sprint50mStandard[child.grade]?.[child.gender]
+
   const simpleMeasurementItems = [
     { key: 'grip', name: '握力', cat: '筋力', val: `${gripAvg.toFixed(1)}kg`, avg: `${avg.grip}kg` },
     { key: 'jump', name: '立ち幅跳び', cat: '瞬発力', val: `${data.jump}cm`, avg: `${avg.jump}cm` },
-    { key: 'dash', name: '15mダッシュ', cat: '移動能力', val: `${data.dash}秒`, avg: `${avg.dash}秒` },
+    { key: 'dash', name: '15mダッシュ', cat: '移動能力', val: `${data.dash}秒`, avg: `${avg.dash}秒`, extra: `50m換算: 約${estimated50m}秒` },
     { key: 'doublejump', name: '連続立ち幅跳び', cat: 'バランス', val: `${data.doublejump}cm`, avg: `${avg.doublejump}cm` },
     { key: 'squat', name: '30秒スクワット', cat: '筋持久力', val: `${data.squat}回`, avg: `${avg.squat}回` },
     { key: 'sidestep', name: '反復横跳び', cat: '敏捷性', val: `${data.sidestep}回`, avg: `${avg.sidestep}回` },
@@ -648,6 +652,9 @@ export default function ResultPage() {
                             </div>
                             <div className="flex items-center gap-1.5">
                               <span className="text-[10px] text-gray-600">{item.val}</span>
+                              {'extra' in item && item.extra && (
+                                <span className="text-[9px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">{item.extra}</span>
+                              )}
                               <div className="w-6 h-6 rounded-full flex items-center justify-center text-white font-black text-[11px] shadow-md bg-gradient-to-br from-blue-500 to-blue-700">
                                 {score}
                               </div>
@@ -693,7 +700,7 @@ export default function ResultPage() {
   const measurementItems = [
     { key: 'grip', name: '握力', cat: '筋力', val: `${gripAvg.toFixed(1)}kg`, avg: `${avg.grip}kg` },
     { key: 'jump', name: '立ち幅跳び', cat: '瞬発力', val: `${data.jump}cm`, avg: `${avg.jump}cm` },
-    { key: 'dash', name: '15mダッシュ', cat: '移動能力', val: `${data.dash}秒`, avg: `${avg.dash}秒` },
+    { key: 'dash', name: '15mダッシュ', cat: '移動能力', val: `${data.dash}秒`, avg: `${avg.dash}秒`, extra: `50m換算: 約${estimated50m}秒` },
     { key: 'doublejump', name: '連続立ち幅跳び', cat: 'バランス', val: `${data.doublejump}cm`, avg: `${avg.doublejump}cm` },
     { key: 'squat', name: '30秒スクワット', cat: '筋持久力', val: `${data.squat}回`, avg: `${avg.squat}回` },
     { key: 'sidestep', name: '反復横跳び', cat: '敏捷性', val: `${data.sidestep}回`, avg: `${avg.sidestep}回` },
@@ -703,8 +710,8 @@ export default function ResultPage() {
   const sorted = Object.entries(recalculatedScores).sort((a, b) => a[1] - b[1])
   const weakestKey = sorted[0][0]
   const strongestKey = sorted[sorted.length - 1][0]
-  // 15m走から50m走への変換（中間〜後半でスピードに乗ることを考慮）
-  const est50m = (data.dash * 2.7 + 0.5).toFixed(1)
+  // 15m走から50m走への変換（加速度を考慮した計算式を使用）
+  const est50m = estimated50m.toFixed(1)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 py-6 px-3 xs:px-4 print:bg-white print:py-0 print:px-0 print:min-h-0">
@@ -856,6 +863,9 @@ export default function ResultPage() {
                         </div>
                         <div className="flex items-center gap-2 print:gap-1">
                           <span className="text-xs text-gray-600 print:text-[9px]">{item.val}</span>
+                          {'extra' in item && item.extra && (
+                            <span className="text-[8px] text-blue-600 bg-blue-50 px-1 py-0.5 rounded print:text-[7px]">{item.extra}</span>
+                          )}
                           <span className="text-[9px] text-gray-400 print:text-[8px]">平均{item.avg}</span>
                           <div className="w-7 h-7 rounded-full flex items-center justify-center text-white font-black text-sm shadow-md bg-gradient-to-br from-blue-500 to-blue-700 print:w-5 print:h-5 print:text-[10px]">
                             {score}
