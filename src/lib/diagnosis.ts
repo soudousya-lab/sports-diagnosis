@@ -2,35 +2,35 @@
 
 // 平均データ（学年・性別別）
 // doublejump: 連続立ち幅跳び3回の合計距離(cm) - 実測データに基づき調整
-// トップの子が8-9点になるよう平均値を高めに設定
+// トップの子が10点になるよう平均値を設定（他の子も2-3点上がる）
 export const averageData: Record<string, Record<string, Record<string, number>>> = {
   'k5': {
-    male: { grip: 7, jump: 110, dash: 4.5, doublejump: 480, squat: 28, sidestep: 26, throw: 6 },
-    female: { grip: 6.5, jump: 102, dash: 4.7, doublejump: 450, squat: 26, sidestep: 24, throw: 4.5 }
+    male: { grip: 7, jump: 110, dash: 4.5, doublejump: 320, squat: 28, sidestep: 26, throw: 6 },
+    female: { grip: 6.5, jump: 102, dash: 4.7, doublejump: 300, squat: 26, sidestep: 24, throw: 4.5 }
   },
   '1': {
-    male: { grip: 7.5, jump: 130, dash: 4.1, doublejump: 530, squat: 30, sidestep: 28, throw: 7 },
-    female: { grip: 7, jump: 115, dash: 4.5, doublejump: 490, squat: 28, sidestep: 26, throw: 5 }
+    male: { grip: 7.5, jump: 130, dash: 4.1, doublejump: 360, squat: 30, sidestep: 28, throw: 7 },
+    female: { grip: 7, jump: 115, dash: 4.5, doublejump: 330, squat: 28, sidestep: 26, throw: 5 }
   },
   '2': {
-    male: { grip: 10, jump: 140, dash: 3.85, doublejump: 580, squat: 32, sidestep: 34, throw: 10 },
-    female: { grip: 9.5, jump: 125, dash: 4.1, doublejump: 540, squat: 30, sidestep: 31, throw: 7 }
+    male: { grip: 10, jump: 140, dash: 3.85, doublejump: 400, squat: 32, sidestep: 34, throw: 10 },
+    female: { grip: 9.5, jump: 125, dash: 4.1, doublejump: 370, squat: 30, sidestep: 31, throw: 7 }
   },
   '3': {
-    male: { grip: 11, jump: 140, dash: 3.9, doublejump: 550, squat: 31, sidestep: 32, throw: 10 },
-    female: { grip: 10.5, jump: 120, dash: 4.2, doublejump: 500, squat: 24, sidestep: 30, throw: 6 }
+    male: { grip: 11, jump: 140, dash: 3.9, doublejump: 380, squat: 31, sidestep: 32, throw: 10 },
+    female: { grip: 10.5, jump: 120, dash: 4.2, doublejump: 340, squat: 24, sidestep: 30, throw: 6 }
   },
   '4': {
-    male: { grip: 15, jump: 145, dash: 3.7, doublejump: 600, squat: 30, sidestep: 38, throw: 15 },
-    female: { grip: 14, jump: 135, dash: 3.9, doublejump: 550, squat: 28, sidestep: 35, throw: 10 }
+    male: { grip: 15, jump: 145, dash: 3.7, doublejump: 420, squat: 30, sidestep: 38, throw: 15 },
+    female: { grip: 14, jump: 135, dash: 3.9, doublejump: 380, squat: 28, sidestep: 35, throw: 10 }
   },
   '5': {
-    male: { grip: 18, jump: 155, dash: 3.5, doublejump: 650, squat: 33, sidestep: 42, throw: 20 },
-    female: { grip: 17, jump: 145, dash: 3.7, doublejump: 600, squat: 31, sidestep: 38, throw: 13 }
+    male: { grip: 18, jump: 155, dash: 3.5, doublejump: 460, squat: 33, sidestep: 42, throw: 20 },
+    female: { grip: 17, jump: 145, dash: 3.7, doublejump: 420, squat: 31, sidestep: 38, throw: 13 }
   },
   '6': {
-    male: { grip: 21, jump: 165, dash: 3.3, doublejump: 700, squat: 36, sidestep: 46, throw: 25 },
-    female: { grip: 19, jump: 152, dash: 3.5, doublejump: 650, squat: 33, sidestep: 42, throw: 16 }
+    male: { grip: 21, jump: 165, dash: 3.3, doublejump: 500, squat: 36, sidestep: 46, throw: 25 },
+    female: { grip: 19, jump: 152, dash: 3.5, doublejump: 460, squat: 33, sidestep: 42, throw: 16 }
   }
 }
 
@@ -197,14 +197,15 @@ export function estimate50mTime(dash15m: number, grade: string): number {
   const avgSpeed15m = 15 / dash15m
 
   // 学年別の加速係数（高学年ほど加速が効率的）
+  // 係数が高いほど後半の速度が上がり、50mタイムが速くなる
   const accelerationFactor: Record<string, number> = {
-    'k5': 1.08,  // 年長: 加速が未熟、後半もあまり伸びない
-    '1': 1.10,   // 小1
-    '2': 1.12,   // 小2
-    '3': 1.14,   // 小3
-    '4': 1.16,   // 小4
-    '5': 1.18,   // 小5
-    '6': 1.20    // 小6: 加速が効率的、後半伸びる
+    'k5': 1.15,  // 年長: 加速が未熟だが後半で伸びる
+    '1': 1.18,   // 小1
+    '2': 1.21,   // 小2
+    '3': 1.24,   // 小3
+    '4': 1.27,   // 小4
+    '5': 1.30,   // 小5
+    '6': 1.33    // 小6: 加速が効率的、後半大きく伸びる
   }
 
   const factor = accelerationFactor[grade] || 1.14
