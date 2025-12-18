@@ -33,26 +33,49 @@ export default function StoreLoginPage() {
     const checkExistingSession = async () => {
       console.log('[StoreLogin] Checking existing session...')
 
+      // タイムアウト用のAbortController的な処理
+      const timeoutId = setTimeout(() => {
+        console.log('[StoreLogin] Session check timeout, showing login form')
+        setCheckingAuth(false)
+      }, 8000)
+
       try {
         // 現在のセッションを取得
         const { data: { session } } = await supabase.auth.getSession()
 
         if (!session) {
           console.log('[StoreLogin] No existing session')
+          clearTimeout(timeoutId)
           setCheckingAuth(false)
           return
         }
 
         console.log('[StoreLogin] Found existing session, checking access...')
 
-        // 店舗情報とプロファイルを並行取得
+        // 店舗情報とプロファイルを並行取得（個別タイムアウト付き）
+        const fetchWithTimeout = async <T,>(
+          queryFn: () => PromiseLike<T>,
+          ms: number
+        ): Promise<T | null> => {
+          const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), ms))
+          return Promise.race([Promise.resolve(queryFn()), timeout])
+        }
+
         const [storeResult, profileResult] = await Promise.all([
-          supabase.from('stores').select('id, name').eq('slug', slug).single(),
-          supabase.from('user_profiles').select('role, store_id').eq('id', session.user.id).single()
+          fetchWithTimeout(
+            () => supabase.from('stores').select('id, name').eq('slug', slug).single(),
+            5000
+          ),
+          fetchWithTimeout(
+            () => supabase.from('user_profiles').select('role, store_id').eq('id', session.user.id).single(),
+            5000
+          )
         ])
 
-        const storeData = storeResult.data
-        const profile = profileResult.data
+        clearTimeout(timeoutId)
+
+        const storeData = storeResult?.data
+        const profile = profileResult?.data
 
         if (storeData) {
           setStoreName(storeData.name)
@@ -80,6 +103,7 @@ export default function StoreLoginPage() {
         setCheckingAuth(false)
       } catch (err) {
         console.error('[StoreLogin] Error checking session:', err)
+        clearTimeout(timeoutId)
         setCheckingAuth(false)
       }
     }

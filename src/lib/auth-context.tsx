@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // supabaseクライアントをメモ化
   const supabase = useMemo(() => createClientComponentClient(), [])
 
-  // fetchProfileをuseCallbackでメモ化
+  // fetchProfileをuseCallbackでメモ化（タイムアウト付き）
   const fetchProfile = useCallback(async (userId: string) => {
     // 既に取得中の場合はスキップ
     if (fetchingProfileRef.current) {
@@ -47,16 +47,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     fetchingProfileRef.current = true
     try {
-      const { data, error } = await supabase
+      // タイムアウト付きでプロファイル取得
+      const profilePromise = supabase
         .from('user_profiles')
         .select('*')
         .eq('id', userId)
         .single()
 
+      const timeoutPromise = new Promise<{ data: null; error: Error }>((resolve) =>
+        setTimeout(() => resolve({ data: null, error: new Error('Profile fetch timeout') }), 5000)
+      )
+
+      const { data, error } = await Promise.race([profilePromise, timeoutPromise])
+
       if (error) {
-        console.error('Error fetching profile:', error)
+        console.error('[AuthContext] Error fetching profile:', error)
         setProfile(null)
       } else {
+        console.log('[AuthContext] Profile fetched successfully')
         setProfile(data as UserProfile)
       }
     } finally {
