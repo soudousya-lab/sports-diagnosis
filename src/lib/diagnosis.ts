@@ -217,7 +217,10 @@ export function estimate50mTime(dash15m: number, grade: string): number {
   // 50mタイム = 15mタイム + 35m / 最高速度
   const estimated50m = dash15m + (35 / maxSpeed)
 
-  return Math.round(estimated50m * 100) / 100
+  // 0.3秒速く調整（実測値との乖離補正）
+  const adjusted50m = estimated50m - 0.3
+
+  return Math.round(adjusted50m * 100) / 100
 }
 
 // 50m走タイムの評価基準（学年・性別別）- 参考用
