@@ -162,8 +162,9 @@ export default function DetailResult({ store, child, measurements, result, train
               </tbody>
             </table>
           </div>
-          <div className="text-[9px] text-gray-600 mt-2">
-            ※評点は10段階評価（10が最高）、判定 A:非常に優秀 B:良好 C:標準 D:要改善 E:要注意
+          <div className="text-[9px] text-gray-600 mt-2 space-y-0.5">
+            <div>※評点は10段階評価（10が最高）、判定 A:非常に優秀 B:良好 C:標準 D:要改善 E:要注意</div>
+            <div>※立ち幅跳び：運動発達特性を考慮した独自基準による評価</div>
           </div>
         </div>
 
