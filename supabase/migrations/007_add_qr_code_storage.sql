@@ -14,5 +14,12 @@ ALTER TABLE stores ADD COLUMN IF NOT EXISTS reservation_qr_url TEXT;
 -- - 公開読み取り可能
 
 -- 4. stores更新ポリシーを追加（QRコードURL更新用）
-CREATE POLICY "Anyone can update store qr urls" ON stores
-  FOR UPDATE USING (true) WITH CHECK (true);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE policyname = 'Anyone can update store qr urls' AND tablename = 'stores'
+  ) THEN
+    CREATE POLICY "Anyone can update store qr urls" ON stores
+      FOR UPDATE USING (true) WITH CHECK (true);
+  END IF;
+END $$;
