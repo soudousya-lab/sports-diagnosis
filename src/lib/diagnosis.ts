@@ -223,6 +223,47 @@ export function estimate50mTime(dash15m: number, grade: string): number {
   return Math.round(adjusted50m * 100) / 100
 }
 
+// 50m走タイムから15m走タイムを逆算
+// estimate50mTimeの逆変換（50m→15m）
+export function estimate15mTime(dash50m: number, grade: string): number {
+  // 学年別の加速係数
+  const accelerationFactor: Record<string, number> = {
+    'k5': 1.15,
+    '1': 1.18,
+    '2': 1.21,
+    '3': 1.24,
+    '4': 1.27,
+    '5': 1.30,
+    '6': 1.33
+  }
+
+  const factor = accelerationFactor[grade] || 1.14
+
+  // 50mタイムから0.3秒を足し戻す（補正の逆）
+  const unadjusted50m = dash50m + 0.3
+
+  // 方程式を解く: unadjusted50m = dash15m + 35 / (15/dash15m * factor)
+  // unadjusted50m = dash15m + (35 * dash15m) / (15 * factor)
+  // unadjusted50m = dash15m * (1 + 35 / (15 * factor))
+  // unadjusted50m = dash15m * (1 + 7 / (3 * factor))
+  // dash15m = unadjusted50m / (1 + 7 / (3 * factor))
+
+  const multiplier = 1 + 7 / (3 * factor)
+  const dash15m = unadjusted50m / multiplier
+
+  return Math.round(dash15m * 100) / 100
+}
+
+// ボール重量による投距離の補正係数
+// 基準: 1kg（ソフトボール相当）を1.0として、重さに応じて補正
+// 重いボールほど飛距離が落ちるため、補正係数を掛けて1kg換算にする
+export const ballWeightCorrections: Record<string, { label: string; weight: number; correction: number }> = {
+  '500g': { label: '500g以下', weight: 0.5, correction: 0.80 },   // 軽いボールは飛びやすい→0.8倍で換算
+  '1kg':  { label: '1kg', weight: 1.0, correction: 1.0 },         // 基準
+  '2kg':  { label: '2kg', weight: 2.0, correction: 1.35 },        // 重いので飛距離短い→1.35倍で換算
+  '3kg':  { label: '3kg', weight: 3.0, correction: 1.70 }         // さらに重い→1.7倍で換算
+}
+
 // 50m走タイムの評価基準（学年・性別別）- 参考用
 export const sprint50mStandard: Record<string, Record<string, { excellent: number; average: number }>> = {
   'k5': {

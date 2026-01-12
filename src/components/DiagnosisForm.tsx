@@ -20,6 +20,7 @@ type FormData = {
   gripLeft: number
   jump: number
   dash: number
+  dashInputType: '15m' | '50m'
   doublejump?: number
   squat?: number
   sidestep?: number
@@ -29,8 +30,10 @@ type FormData = {
 
 export default function DiagnosisForm({ store, onSubmit, isLoading }: Props) {
   const [mode, setMode] = useState<'simple' | 'detail'>('simple')
+  const [dashInputType, setDashInputType] = useState<'15m' | '50m'>('15m')
   const [formData, setFormData] = useState<Partial<FormData>>({
-    mode: 'simple'
+    mode: 'simple',
+    dashInputType: '15m'
   })
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -232,17 +235,52 @@ export default function DiagnosisForm({ store, onSubmit, isLoading }: Props) {
             </div>
           </MeasurementCard>
 
-          {/* 15mダッシュ */}
-          <MeasurementCard icon="速" title="15mダッシュ" category="移動能力">
-            <div className="flex gap-2 items-center">
-              <input
-                type="number"
-                step="0.01"
-                placeholder="3.65"
-                className="flex-1 p-2 border border-gray-300 rounded text-sm"
-                onChange={(e) => handleChange('dash', parseFloat(e.target.value))}
-              />
-              <span className="text-xs text-gray-600">秒</span>
+          {/* ダッシュ（15m/50m切り替え） */}
+          <MeasurementCard icon="速" title={dashInputType === '15m' ? '15mダッシュ' : '50m走'} category="移動能力">
+            <div className="space-y-2">
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDashInputType('15m')
+                    handleChange('dashInputType', '15m')
+                  }}
+                  className={`flex-1 py-1 px-2 text-xs font-bold rounded transition-all ${
+                    dashInputType === '15m'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                  }`}
+                >
+                  15m走
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDashInputType('50m')
+                    handleChange('dashInputType', '50m')
+                  }}
+                  className={`flex-1 py-1 px-2 text-xs font-bold rounded transition-all ${
+                    dashInputType === '50m'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                  }`}
+                >
+                  50m走
+                </button>
+              </div>
+              <div className="flex gap-2 items-center">
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder={dashInputType === '15m' ? '3.65' : '9.50'}
+                  className="flex-1 p-2 border border-gray-300 rounded text-sm"
+                  onChange={(e) => handleChange('dash', parseFloat(e.target.value))}
+                />
+                <span className="text-xs text-gray-600">秒</span>
+              </div>
+              {dashInputType === '50m' && (
+                <p className="text-[10px] text-gray-500">※ 50m走タイムは15m走に換算されます</p>
+              )}
             </div>
           </MeasurementCard>
 

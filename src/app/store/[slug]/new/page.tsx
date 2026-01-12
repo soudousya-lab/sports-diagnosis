@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase, Store, Child } from '@/lib/supabase'
-import { runDiagnosis, categories, getGradeDisplay } from '@/lib/diagnosis'
+import { runDiagnosis, categories, getGradeDisplay, estimate15mTime, ballWeightCorrections } from '@/lib/diagnosis'
 import { FaSearch, FaTimes, FaUserPlus, FaHistory } from 'react-icons/fa'
 
 // 既存の子どもデータ型
@@ -31,11 +31,13 @@ type FormData = {
   gripLeft: number | ''
   jump: number | ''
   dash: number | ''
+  dashInputType: '15m' | '50m'  // 入力タイプ（15m走 or 50m走）
   doublejump: number | ''
   squat: number | ''
   sidestep: number | ''
   throw: number | ''
   ballType: '9' | '16' | '20' | '22' | '24' | ''  // ボール直径(cm)
+  ballWeight: '500g' | '1kg' | '2kg' | '3kg' | ''  // ボール重量
 }
 
 // ボール種類の定義（直径ベース、9cmソフトボールを基準に補正）
@@ -77,11 +79,13 @@ export default function StoreNewMeasurementPage() {
     gripLeft: '',
     jump: '',
     dash: '',
+    dashInputType: '15m',
     doublejump: '',
     squat: '',
     sidestep: '',
     throw: '',
-    ballType: ''
+    ballType: '',
+    ballWeight: ''
   })
 
   // 店舗データと既存の子どもデータを取得
@@ -196,11 +200,13 @@ export default function StoreNewMeasurementPage() {
       gripLeft: '',
       jump: '',
       dash: '',
+      dashInputType: '15m',
       doublejump: '',
       squat: '',
       sidestep: '',
       throw: '',
-      ballType: ''
+      ballType: '',
+      ballWeight: ''
     })
   }
 
@@ -221,8 +227,8 @@ export default function StoreNewMeasurementPage() {
         return
       }
 
-      // バリデーション（7項目すべて必須）
-      const required = ['name', 'furigana', 'grade', 'gender', 'height', 'weight', 'gripRight', 'gripLeft', 'jump', 'dash', 'doublejump', 'squat', 'sidestep', 'throw', 'ballType']
+      // バリデーション（7項目すべて必須 + ボール種類と重量）
+      const required = ['name', 'furigana', 'grade', 'gender', 'height', 'weight', 'gripRight', 'gripLeft', 'jump', 'dash', 'doublejump', 'squat', 'sidestep', 'throw', 'ballType', 'ballWeight']
       for (const field of required) {
         if (!formData[field as keyof FormData]) {
           alert('基本情報と測定項目（7項目すべて）を入力してください')
@@ -233,10 +239,19 @@ export default function StoreNewMeasurementPage() {
 
       const gripAvg = ((formData.gripRight as number) + (formData.gripLeft as number)) / 2
 
+      // ダッシュタイムの処理：50m入力の場合は15mに変換
+      let dash15m = formData.dash as number
+      if (formData.dashInputType === '50m') {
+        dash15m = estimate15mTime(formData.dash as number, formData.grade)
+      }
+
       // ボール投げの補正（9cmソフトボール基準に換算）
       // 大きいボールで投げた距離に補正係数を掛けて、ソフトボール換算の飛距離に変換
-      const ballCorrection = ballTypes[formData.ballType as '9' | '16' | '20' | '22' | '24'].correction
-      const correctedThrow = Math.round((formData.throw as number) * ballCorrection * 10) / 10
+      const ballSizeCorrection = ballTypes[formData.ballType as '9' | '16' | '20' | '22' | '24'].correction
+      // ボール重量の補正も適用
+      const ballWeightCorrection = ballWeightCorrections[formData.ballWeight as '500g' | '1kg' | '2kg' | '3kg'].correction
+      // 両方の補正を掛け合わせる
+      const correctedThrow = Math.round((formData.throw as number) * ballSizeCorrection * ballWeightCorrection * 10) / 10
 
       // 診断ロジック実行（詳細モードで計算）
       const diagnosisResult = runDiagnosis(
@@ -245,7 +260,7 @@ export default function StoreNewMeasurementPage() {
         {
           gripAvg,
           jump: formData.jump as number,
-          dash: formData.dash as number,
+          dash: dash15m,  // 15m換算値を使用
           doublejump: formData.doublejump as number,
           squat: formData.squat as number,
           sidestep: formData.sidestep as number,
@@ -351,12 +366,13 @@ export default function StoreNewMeasurementPage() {
           grip_right: formData.gripRight,
           grip_left: formData.gripLeft,
           jump: formData.jump,
-          dash: formData.dash,
+          dash: dash15m,  // 15m換算値を保存
           doublejump: formData.doublejump,
           squat: formData.squat,
           sidestep: formData.sidestep,
           throw: correctedThrow,  // 補正後の値を保存
-          ball_type: formData.ballType
+          ball_type: formData.ballType,
+          ball_weight: formData.ballWeight
         })
         .select()
         .single()
@@ -634,18 +650,47 @@ export default function StoreNewMeasurementPage() {
                 </div>
               </MeasurementCard>
 
-              {/* 15mダッシュ */}
-              <MeasurementCard icon="速" title="15mダッシュ" category="移動能力">
-                <div className="flex gap-2 items-center">
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="3.65"
-                    className="flex-1 p-2 border border-gray-300 rounded text-sm"
-                    value={formData.dash}
-                    onChange={(e) => handleChange('dash', parseFloat(e.target.value) || '')}
-                  />
-                  <span className="text-xs text-gray-600">秒</span>
+              {/* ダッシュ（15m/50m切り替え） */}
+              <MeasurementCard icon="速" title={formData.dashInputType === '15m' ? '15mダッシュ' : '50m走'} category="移動能力">
+                <div className="space-y-2">
+                  <div className="flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => handleChange('dashInputType', '15m')}
+                      className={`flex-1 py-1 px-2 text-xs font-bold rounded transition-all ${
+                        formData.dashInputType === '15m'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                      }`}
+                    >
+                      15m走
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleChange('dashInputType', '50m')}
+                      className={`flex-1 py-1 px-2 text-xs font-bold rounded transition-all ${
+                        formData.dashInputType === '50m'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                      }`}
+                    >
+                      50m走
+                    </button>
+                  </div>
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder={formData.dashInputType === '15m' ? '3.65' : '9.50'}
+                      className="flex-1 p-2 border border-gray-300 rounded text-sm"
+                      value={formData.dash}
+                      onChange={(e) => handleChange('dash', parseFloat(e.target.value) || '')}
+                    />
+                    <span className="text-xs text-gray-600">秒</span>
+                  </div>
+                  {formData.dashInputType === '50m' && (
+                    <p className="text-[10px] text-gray-500">※ 50m走タイムは15m走に換算されます</p>
+                  )}
                 </div>
               </MeasurementCard>
 
@@ -708,6 +753,17 @@ export default function StoreNewMeasurementPage() {
                     <option value="20">{ballTypes['20'].label}</option>
                     <option value="22">{ballTypes['22'].label}</option>
                     <option value="24">{ballTypes['24'].label}</option>
+                  </select>
+                  <select
+                    className="w-full p-2 border border-gray-300 rounded text-sm bg-white"
+                    value={formData.ballWeight}
+                    onChange={(e) => handleChange('ballWeight', e.target.value)}
+                  >
+                    <option value="">ボールの重さを選択</option>
+                    <option value="500g">{ballWeightCorrections['500g'].label}</option>
+                    <option value="1kg">{ballWeightCorrections['1kg'].label}</option>
+                    <option value="2kg">{ballWeightCorrections['2kg'].label}</option>
+                    <option value="3kg">{ballWeightCorrections['3kg'].label}</option>
                   </select>
                   <div className="flex gap-2 items-center">
                     <input
