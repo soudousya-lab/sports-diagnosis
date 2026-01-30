@@ -574,9 +574,18 @@ export default function ResultPage() {
                     )}
                     <h4 className="font-bold text-gray-900">{training.name}</h4>
                     <p className="text-sm text-gray-600 mt-1">{training.description}</p>
-                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                      <span>{training.reps}</span>
-                      <span>{training.effect}</span>
+                    <div className="flex flex-wrap items-center gap-2 mt-3">
+                      <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
+                        {training.reps}
+                      </span>
+                      {training.sets && (
+                        <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">
+                          {training.sets}セット
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-2 text-xs text-gray-500">
+                      {training.effect}
                     </div>
                   </div>
                 ))}
