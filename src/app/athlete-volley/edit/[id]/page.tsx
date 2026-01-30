@@ -18,12 +18,14 @@ type FormData = {
   weight: number | ''
   // 測定データ
   vertical_jump: number | ''
+  standing_jump: number | ''
   reach_height: number | ''
   spike_reach: number | ''
   approach_jump: number | ''
   continuous_jump: number | ''
-  serve_speed: number | ''
+  ball_throw: number | ''
   side_step: number | ''
+  single_leg_balance: number | ''
   // 測定日
   measured_at: string
 }
@@ -47,12 +49,14 @@ export default function EditMeasurementPage() {
     height: '',
     weight: '',
     vertical_jump: '',
+    standing_jump: '',
     reach_height: '',
     spike_reach: '',
     approach_jump: '',
     continuous_jump: '',
-    serve_speed: '',
+    ball_throw: '',
     side_step: '',
+    single_leg_balance: '',
     measured_at: ''
   })
 
@@ -89,12 +93,14 @@ export default function EditMeasurementPage() {
           height: athlete.height || '',
           weight: athlete.weight || '',
           vertical_jump: data.vertical_jump ?? '',
+          standing_jump: data.standing_jump ?? '',
           reach_height: data.reach_height ?? '',
           spike_reach: data.spike_reach ?? '',
           approach_jump: data.approach_jump ?? '',
           continuous_jump: data.continuous_jump ?? '',
-          serve_speed: data.serve_speed ?? '',
+          ball_throw: data.ball_throw ?? '',
           side_step: data.side_step ?? '',
+          single_leg_balance: data.single_leg_balance ?? '',
           measured_at: data.measured_at ? data.measured_at.split('T')[0] : ''
         })
       } catch (err) {
@@ -143,12 +149,14 @@ export default function EditMeasurementPage() {
         .from('volleyball_measurements')
         .update({
           vertical_jump: formData.vertical_jump || null,
+          standing_jump: formData.standing_jump || null,
           reach_height: formData.reach_height || null,
           spike_reach: formData.spike_reach || null,
           approach_jump: formData.approach_jump || null,
           continuous_jump: formData.continuous_jump || null,
-          serve_speed: formData.serve_speed || null,
+          ball_throw: formData.ball_throw || null,
           side_step: formData.side_step || null,
+          single_leg_balance: formData.single_leg_balance || null,
           measured_at: formData.measured_at || new Date().toISOString()
         })
         .eq('id', measurementId)
@@ -161,12 +169,14 @@ export default function EditMeasurementPage() {
         formData.gender as 'male' | 'female',
         {
           vertical_jump: formData.vertical_jump as number || undefined,
+          standing_jump: formData.standing_jump as number || undefined,
           reach_height: formData.reach_height as number || undefined,
           spike_reach: formData.spike_reach as number || undefined,
           approach_jump: formData.approach_jump as number || undefined,
           continuous_jump: formData.continuous_jump as number || undefined,
-          serve_speed: formData.serve_speed as number || undefined,
-          side_step: formData.side_step as number || undefined
+          ball_throw: formData.ball_throw as number || undefined,
+          side_step: formData.side_step as number || undefined,
+          single_leg_balance: formData.single_leg_balance as number || undefined
         }
       )
 
@@ -260,12 +270,14 @@ export default function EditMeasurementPage() {
   const getAbilityKeyFromItem = (item: string): string => {
     const mapping: Record<string, string> = {
       vertical_jump: 'jump_power',
+      standing_jump: 'jump_power',
       reach_height: 'reach',
       spike_reach: 'reach',
       approach_jump: 'reach',
       continuous_jump: 'continuous_power',
-      serve_speed: 'serve_power',
-      side_step: 'agility'
+      ball_throw: 'throw_power',
+      side_step: 'agility',
+      single_leg_balance: 'balance'
     }
     return mapping[item] || 'jump_power'
   }
@@ -428,7 +440,7 @@ export default function EditMeasurementPage() {
           {/* 測定データ */}
           <div className="p-4 sm:p-7">
             <h2 className="text-sm font-bold text-orange-900 mb-4 pl-3 border-l-4 border-orange-600">
-              測定データ（7項目）
+              測定データ（9項目）
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {/* 垂直跳び */}
@@ -441,6 +453,21 @@ export default function EditMeasurementPage() {
                     className="flex-1 p-2 border border-gray-300 rounded text-sm"
                     value={formData.vertical_jump}
                     onChange={(e) => handleChange('vertical_jump', parseInt(e.target.value) || '')}
+                  />
+                  <span className="text-xs text-gray-600">cm</span>
+                </div>
+              </MeasurementCard>
+
+              {/* 立ち幅跳び */}
+              <MeasurementCard icon="幅" title="立ち幅跳び" category="跳躍力">
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="number"
+                    step="1"
+                    placeholder="180"
+                    className="flex-1 p-2 border border-gray-300 rounded text-sm"
+                    value={formData.standing_jump}
+                    onChange={(e) => handleChange('standing_jump', parseInt(e.target.value) || '')}
                   />
                   <span className="text-xs text-gray-600">cm</span>
                 </div>
@@ -506,18 +533,18 @@ export default function EditMeasurementPage() {
                 </div>
               </MeasurementCard>
 
-              {/* サーブスピード */}
-              <MeasurementCard icon="S" title="サーブスピード" category="サーブ力">
+              {/* ボール投げ(3kg) */}
+              <MeasurementCard icon="投" title="ボール投げ(3kg)" category="投力">
                 <div className="flex gap-2 items-center">
                   <input
                     type="number"
                     step="0.1"
-                    placeholder="55.5"
+                    placeholder="6.5"
                     className="flex-1 p-2 border border-gray-300 rounded text-sm"
-                    value={formData.serve_speed}
-                    onChange={(e) => handleChange('serve_speed', parseFloat(e.target.value) || '')}
+                    value={formData.ball_throw}
+                    onChange={(e) => handleChange('ball_throw', parseFloat(e.target.value) || '')}
                   />
-                  <span className="text-xs text-gray-600">km/h</span>
+                  <span className="text-xs text-gray-600">m</span>
                 </div>
               </MeasurementCard>
 
@@ -533,6 +560,21 @@ export default function EditMeasurementPage() {
                     onChange={(e) => handleChange('side_step', parseInt(e.target.value) || '')}
                   />
                   <span className="text-xs text-gray-600">回/20秒</span>
+                </div>
+              </MeasurementCard>
+
+              {/* 片足立ちバランス */}
+              <MeasurementCard icon="バ" title="片足立ちバランス" category="バランス">
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="number"
+                    step="1"
+                    placeholder="45"
+                    className="flex-1 p-2 border border-gray-300 rounded text-sm"
+                    value={formData.single_leg_balance}
+                    onChange={(e) => handleChange('single_leg_balance', parseInt(e.target.value) || '')}
+                  />
+                  <span className="text-xs text-gray-600">秒</span>
                 </div>
               </MeasurementCard>
             </div>

@@ -3,12 +3,14 @@
 // 測定項目のカテゴリ名
 export const volleyballCategories: Record<string, string> = {
   vertical_jump: '垂直跳び',
+  standing_jump: '立ち幅跳び',
   reach_height: '指高リーチ',
   spike_reach: '最高到達点',
   approach_jump: '助走ジャンプ',
   continuous_jump: '連続立ち幅跳び',
-  serve_speed: 'サーブスピード',
-  side_step: '反復横跳び'
+  ball_throw: 'ボール投げ(3kg)',
+  side_step: '反復横跳び',
+  single_leg_balance: '片足立ちバランス'
 }
 
 // 能力カテゴリ名
@@ -16,8 +18,9 @@ export const abilityCategories: Record<string, string> = {
   jump_power: '跳躍力',
   reach: '到達点',
   agility: '敏捷性',
-  serve_power: 'サーブ力',
-  continuous_power: '連続跳躍力'
+  throw_power: '投力',
+  continuous_power: '連続跳躍力',
+  balance: 'バランス'
 }
 
 // 学年から実年齢を取得
@@ -48,125 +51,152 @@ export function getSchoolYearDisplay(schoolYear: string): string {
 
 // 平均データ（学年・性別別）- 中学生女子バレーボール選手向け
 // 実測データに基づいて調整
+// ball_throw: 3kgボール投げの距離（メートル）
+// standing_jump: 立ち幅跳び（cm）
+// single_leg_balance: 片足立ちバランス（秒）- 目を閉じて片足立ち
 export const volleyballAverageData: Record<string, Record<string, Record<string, number>>> = {
   '1': {
     male: {
       vertical_jump: 45,
+      standing_jump: 180,  // 立ち幅跳び(cm)
       reach_height: 220,
       spike_reach: 270,
       approach_jump: 50,
       continuous_jump: 600,
-      serve_speed: 55,
-      side_step: 50
+      ball_throw: 7.0,  // 3kgボール投げ(m)
+      side_step: 50,
+      single_leg_balance: 30  // 片足立ちバランス(秒)
     },
     female: {
       vertical_jump: 35,
+      standing_jump: 160,  // 立ち幅跳び(cm)
       reach_height: 200,
       spike_reach: 245,
       approach_jump: 40,
       continuous_jump: 580,
-      serve_speed: 50,
-      side_step: 48
+      ball_throw: 5.0,  // 3kgボール投げ(m)
+      side_step: 48,
+      single_leg_balance: 35  // 片足立ちバランス(秒)
     }
   },
   '2': {
     male: {
       vertical_jump: 50,
+      standing_jump: 195,  // 立ち幅跳び(cm)
       reach_height: 230,
       spike_reach: 285,
       approach_jump: 55,
       continuous_jump: 650,
-      serve_speed: 60,
-      side_step: 53
+      ball_throw: 8.0,  // 3kgボール投げ(m)
+      side_step: 53,
+      single_leg_balance: 35  // 片足立ちバランス(秒)
     },
     female: {
       vertical_jump: 40,
+      standing_jump: 170,  // 立ち幅跳び(cm)
       reach_height: 205,
       spike_reach: 255,
       approach_jump: 45,
       continuous_jump: 610,
-      serve_speed: 53,
-      side_step: 52
+      ball_throw: 5.5,  // 3kgボール投げ(m)
+      side_step: 52,
+      single_leg_balance: 40  // 片足立ちバランス(秒)
     }
   },
   '3': {
     male: {
       vertical_jump: 55,
+      standing_jump: 210,  // 立ち幅跳び(cm)
       reach_height: 240,
       spike_reach: 300,
       approach_jump: 60,
       continuous_jump: 700,
-      serve_speed: 65,
-      side_step: 55
+      ball_throw: 9.0,  // 3kgボール投げ(m)
+      side_step: 55,
+      single_leg_balance: 40  // 片足立ちバランス(秒)
     },
     female: {
       vertical_jump: 45,
+      standing_jump: 180,  // 立ち幅跳び(cm)
       reach_height: 210,
       spike_reach: 265,
       approach_jump: 50,
       continuous_jump: 640,
-      serve_speed: 56,
-      side_step: 55
+      ball_throw: 6.0,  // 3kgボール投げ(m)
+      side_step: 55,
+      single_leg_balance: 45  // 片足立ちバランス(秒)
     }
   },
   'h1': {
     male: {
       vertical_jump: 58,
+      standing_jump: 220,  // 立ち幅跳び(cm)
       reach_height: 250,
       spike_reach: 315,
       approach_jump: 65,
       continuous_jump: 750,
-      serve_speed: 70,
-      side_step: 58
+      ball_throw: 9.5,  // 3kgボール投げ(m)
+      side_step: 58,
+      single_leg_balance: 45  // 片足立ちバランス(秒)
     },
     female: {
       vertical_jump: 48,
+      standing_jump: 185,  // 立ち幅跳び(cm)
       reach_height: 215,
       spike_reach: 275,
       approach_jump: 55,
       continuous_jump: 670,
-      serve_speed: 60,
-      side_step: 57
+      ball_throw: 6.5,  // 3kgボール投げ(m)
+      side_step: 57,
+      single_leg_balance: 50  // 片足立ちバランス(秒)
     }
   },
   'h2': {
     male: {
       vertical_jump: 62,
+      standing_jump: 230,  // 立ち幅跳び(cm)
       reach_height: 255,
       spike_reach: 325,
       approach_jump: 70,
       continuous_jump: 780,
-      serve_speed: 75,
-      side_step: 60
+      ball_throw: 10.0,  // 3kgボール投げ(m)
+      side_step: 60,
+      single_leg_balance: 50  // 片足立ちバランス(秒)
     },
     female: {
       vertical_jump: 50,
+      standing_jump: 190,  // 立ち幅跳び(cm)
       reach_height: 218,
       spike_reach: 280,
       approach_jump: 58,
       continuous_jump: 690,
-      serve_speed: 63,
-      side_step: 58
+      ball_throw: 7.0,  // 3kgボール投げ(m)
+      side_step: 58,
+      single_leg_balance: 55  // 片足立ちバランス(秒)
     }
   },
   'h3': {
     male: {
       vertical_jump: 65,
+      standing_jump: 240,  // 立ち幅跳び(cm)
       reach_height: 260,
       spike_reach: 335,
       approach_jump: 75,
       continuous_jump: 800,
-      serve_speed: 80,
-      side_step: 62
+      ball_throw: 10.5,  // 3kgボール投げ(m)
+      side_step: 62,
+      single_leg_balance: 55  // 片足立ちバランス(秒)
     },
     female: {
       vertical_jump: 52,
+      standing_jump: 195,  // 立ち幅跳び(cm)
       reach_height: 220,
       spike_reach: 285,
       approach_jump: 60,
       continuous_jump: 710,
-      serve_speed: 65,
-      side_step: 60
+      ball_throw: 7.5,  // 3kgボール投げ(m)
+      side_step: 60,
+      single_leg_balance: 60  // 片足立ちバランス(秒)
     }
   }
 }
@@ -174,12 +204,14 @@ export const volleyballAverageData: Record<string, Record<string, Record<string,
 // 標準偏差
 export const volleyballSD: Record<string, number> = {
   vertical_jump: 10,
+  standing_jump: 20,  // 立ち幅跳び(cm)
   reach_height: 15,
   spike_reach: 18,
   approach_jump: 15,
   continuous_jump: 50,
-  serve_speed: 6,
-  side_step: 8
+  ball_throw: 1.5,  // 3kgボール投げ(m)
+  side_step: 8,
+  single_leg_balance: 15  // 片足立ちバランス(秒)
 }
 
 // ポジション情報
@@ -194,39 +226,44 @@ export const volleyballPositions = [
 // ポジション別の必要能力ウェイト
 export const positionRequirements: Record<string, Record<string, number>> = {
   S: { // セッター
-    agility: 0.35,
-    reach: 0.25,
-    jump_power: 0.20,
-    continuous_power: 0.15,
-    serve_power: 0.05
+    agility: 0.30,
+    balance: 0.20,
+    reach: 0.20,
+    jump_power: 0.15,
+    continuous_power: 0.10,
+    throw_power: 0.05
   },
   OH: { // アウトサイドヒッター
     jump_power: 0.25,
-    reach: 0.25,
-    serve_power: 0.20,
+    reach: 0.20,
+    throw_power: 0.20,
     agility: 0.15,
-    continuous_power: 0.15
+    continuous_power: 0.10,
+    balance: 0.10
   },
   MB: { // ミドルブロッカー
-    reach: 0.35,
-    jump_power: 0.30,
-    agility: 0.20,
+    reach: 0.30,
+    jump_power: 0.25,
+    agility: 0.15,
+    balance: 0.15,
     continuous_power: 0.10,
-    serve_power: 0.05
+    throw_power: 0.05
   },
   OP: { // オポジット
     jump_power: 0.30,
-    reach: 0.30,
-    serve_power: 0.25,
+    reach: 0.25,
+    throw_power: 0.25,
     continuous_power: 0.10,
+    balance: 0.05,
     agility: 0.05
   },
   L: { // リベロ
-    agility: 0.45,
-    continuous_power: 0.30,
-    jump_power: 0.15,
+    agility: 0.35,
+    balance: 0.25,
+    continuous_power: 0.25,
+    jump_power: 0.10,
     reach: 0.05,
-    serve_power: 0.05
+    throw_power: 0.00
   }
 }
 
@@ -260,12 +297,19 @@ export function getGrade(score: number): { grade: string; colorClass: string } {
 
 // 能力カテゴリごとのスコア計算
 export function calcAbilityScores(itemScores: Record<string, number>): Record<string, number> {
+  // 跳躍力: 垂直跳びと立ち幅跳びの平均
+  const jumpScores = [itemScores.vertical_jump, itemScores.standing_jump].filter(s => s !== undefined)
+  const jumpPower = jumpScores.length > 0
+    ? Math.round(jumpScores.reduce((a, b) => a + b, 0) / jumpScores.length)
+    : 5
+
   return {
-    jump_power: itemScores.vertical_jump || 5,
+    jump_power: jumpPower,
     reach: Math.round(((itemScores.reach_height || 5) + (itemScores.spike_reach || 5) + (itemScores.approach_jump || 5)) / 3),
     agility: itemScores.side_step || 5,
-    serve_power: itemScores.serve_speed || 5,
-    continuous_power: itemScores.continuous_jump || 5
+    throw_power: itemScores.ball_throw || 5,
+    continuous_power: itemScores.continuous_jump || 5,
+    balance: itemScores.single_leg_balance || 5
   }
 }
 
@@ -365,13 +409,17 @@ export function determineAthleteType(abilityScores: Record<string, number>): { n
       name: 'アジリティスター',
       description: '俊敏性に優れ、レシーブやフェイントへの対応が素早い。'
     },
-    serve_power: {
-      name: 'サーブエース',
-      description: 'サーブ力が高く、サービスエースで得点を量産できる可能性。'
+    throw_power: {
+      name: 'パワーエース',
+      description: '投力に優れ、力強いサーブやスパイクで得点を量産できる可能性。'
     },
     continuous_power: {
       name: 'スタミナエリート',
       description: '持久力・連続跳躍力に優れ、試合終盤でも安定したパフォーマンスを発揮。'
+    },
+    balance: {
+      name: 'バランスマスター',
+      description: 'バランス能力に優れ、不安定な体勢でも安定したプレーができる。'
     }
   }
 
@@ -388,17 +436,23 @@ export function setGoals(measurements: Record<string, number>): Record<string, n
   if (measurements.vertical_jump) {
     goals.vertical_jump = Math.round(measurements.vertical_jump * 1.05)
   }
+  if (measurements.standing_jump) {
+    goals.standing_jump = Math.round(measurements.standing_jump * 1.03)
+  }
   if (measurements.spike_reach) {
     goals.spike_reach = Math.round(measurements.spike_reach * 1.02)
   }
   if (measurements.continuous_jump) {
     goals.continuous_jump = Math.round(measurements.continuous_jump * 1.03)
   }
-  if (measurements.serve_speed) {
-    goals.serve_speed = Math.round(measurements.serve_speed * 1.05 * 10) / 10
+  if (measurements.ball_throw) {
+    goals.ball_throw = Math.round(measurements.ball_throw * 1.10 * 10) / 10
   }
   if (measurements.side_step) {
     goals.side_step = Math.round(measurements.side_step * 1.05)
+  }
+  if (measurements.single_leg_balance) {
+    goals.single_leg_balance = Math.round(measurements.single_leg_balance * 1.10)
   }
 
   return goals
@@ -517,7 +571,7 @@ function getAbilityKeyFromItem(item: string): string {
     spike_reach: 'reach',
     approach_jump: 'reach',
     continuous_jump: 'continuous_power',
-    serve_speed: 'serve_power',
+    ball_throw: 'throw_power',
     side_step: 'agility'
   }
   return mapping[item] || 'jump_power'
@@ -552,12 +606,14 @@ export function runVolleyballDiagnosis(
   gender: 'male' | 'female',
   measurements: {
     vertical_jump?: number
+    standing_jump?: number
     reach_height?: number
     spike_reach?: number
     approach_jump?: number
     continuous_jump?: number
-    serve_speed?: number
+    ball_throw?: number
     side_step?: number
+    single_leg_balance?: number
   }
 ) {
   const avg = volleyballAverageData[schoolYear]?.[gender] || volleyballAverageData['1'][gender]

@@ -26,12 +26,14 @@ type MeasurementData = {
   id: string
   measured_at: string
   vertical_jump: number | null
+  standing_jump: number | null
   reach_height: number | null
   spike_reach: number | null
   approach_jump: number | null
   continuous_jump: number | null
-  serve_speed: number | null
+  ball_throw: number | null
   side_step: number | null
+  single_leg_balance: number | null
   volleyball_athletes: {
     id: string
     name: string
@@ -307,12 +309,14 @@ export default function ResultPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               {[
                 { key: 'vertical_jump', value: data.vertical_jump, unit: 'cm' },
+                { key: 'standing_jump', value: data.standing_jump, unit: 'cm' },
                 { key: 'reach_height', value: data.reach_height, unit: 'cm' },
                 { key: 'spike_reach', value: data.spike_reach, unit: 'cm' },
                 { key: 'approach_jump', value: data.approach_jump, unit: 'cm' },
                 { key: 'continuous_jump', value: data.continuous_jump, unit: 'cm' },
-                { key: 'serve_speed', value: data.serve_speed, unit: 'km/h' },
-                { key: 'side_step', value: data.side_step, unit: '回' }
+                { key: 'ball_throw', value: data.ball_throw, unit: 'm' },
+                { key: 'side_step', value: data.side_step, unit: '回' },
+                { key: 'single_leg_balance', value: data.single_leg_balance, unit: '秒' }
               ].map(item => {
                 if (item.value === null || item.value === undefined) return null
                 const score = result.item_scores?.[item.key] || 5
