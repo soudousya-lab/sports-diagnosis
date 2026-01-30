@@ -77,12 +77,12 @@ export default function ResultPage() {
   useEffect(() => {
     async function fetchData() {
       try {
+        // 測定データと選手データを取得
         const { data: measurementData, error: fetchError } = await supabase
           .from('volleyball_measurements')
           .select(`
             *,
-            volleyball_athletes (*),
-            volleyball_results (*)
+            volleyball_athletes (*)
           `)
           .eq('id', measurementId)
           .single()
@@ -93,7 +93,19 @@ export default function ResultPage() {
           return
         }
 
-        setData(measurementData as MeasurementData)
+        // 診断結果を別途取得（measurement_idで検索）
+        const { data: resultData } = await supabase
+          .from('volleyball_results')
+          .select('*')
+          .eq('measurement_id', measurementId)
+
+        // データを結合してセット
+        const combinedData = {
+          ...measurementData,
+          volleyball_results: resultData || []
+        }
+
+        setData(combinedData as MeasurementData)
         // 体重が登録されている場合は設定
         if (measurementData.volleyball_athletes?.weight) {
           setInputWeight(measurementData.volleyball_athletes.weight)
