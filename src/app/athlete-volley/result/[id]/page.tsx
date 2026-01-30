@@ -572,7 +572,8 @@ export default function ResultPage() {
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                 {Object.entries(result.goals).map(([key, value]) => {
-                  const currentValue = (data as Record<string, number | null>)[key] as number | null
+                  const measurementData = data as unknown as Record<string, number | null>
+                  const currentValue = measurementData[key]
                   return (
                     <div key={key} className="bg-blue-50 rounded-lg p-3 text-center">
                       <div className="text-xs text-gray-500 mb-1">{volleyballCategories[key] || key}</div>

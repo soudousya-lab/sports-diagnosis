@@ -1,36 +1,213 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NOBISHIRO KIDS - 子ども運動能力診断システム
 
-## Getting Started
+## プロジェクト概要
 
-First, run the development server:
+NOBISHIRO KIDSは、**スポーツ教室・体操教室向けの子ども運動能力診断SaaSシステム**です。子どもの運動能力を7つの項目で科学的に測定・分析し、一人ひとりの「のびしろ」を可視化します。
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### 主な用途
+- **スポーツ教室での定期診断**: 生徒の成長を数値で可視化し、保護者へのフィードバックに活用
+- **体験会・イベントでの集客ツール**: 無料診断イベントで新規顧客を獲得
+- **指導の質の標準化**: 診断結果に基づくトレーニング提案で、指導者に依存しない品質を実現
+
+---
+
+## 技術スタック
+
+| カテゴリ | 技術 |
+|---------|------|
+| フレームワーク | Next.js 16 (App Router) |
+| 言語 | TypeScript |
+| UI/スタイリング | Tailwind CSS 4 |
+| データベース | Supabase (PostgreSQL) |
+| 認証 | Supabase Auth + カスタム認証 |
+| チャート | Recharts |
+| PDF出力 | jsPDF + html2canvas |
+| ホスティング | Vercel |
+
+---
+
+## 主要機能
+
+### 1. 運動能力診断（7項目）
+以下の7項目を測定し、学年・性別ごとの平均値と比較して10段階評価を算出：
+
+| 項目 | 測定内容 | 評価観点 |
+|------|---------|---------|
+| 握力 | 左右の平均値(kg) | 筋力 |
+| 立ち幅跳び | 跳躍距離(cm) | 瞬発力 |
+| 15mダッシュ | 走行タイム(秒) ※50m換算も表示 | 移動能力 |
+| 連続立ち幅跳び | 3回連続ジャンプの合計距離(cm) | バランス |
+| 30秒スクワット | 回数 | 筋持久力 |
+| 反復横跳び | 20秒間の回数 | 敏捷性 |
+| ボール投げ | 投距離(m) ※重量補正あり | 投力 |
+
+### 2. 診断モード
+- **簡易版（イベント用）**: 3項目のみ（握力・立ち幅跳び・15mダッシュ）で迅速に診断
+- **詳細版（教室用）**: 全7項目で総合的に分析
+
+### 3. 診断結果
+- **レーダーチャート**: 7能力のバランスを視覚化
+- **運動年齢**: 実年齢との比較で発達状況を表示
+- **運動タイプ診断**: 8タイプに分類（スピードスター型、パワーファイター型など）
+- **適性スポーツ提案**: 能力に基づく適性スポーツTOP6を提案
+- **トレーニング提案**: 弱点を補強する具体的メニューを4種目提案
+- **発達段階アドバイス**: ゴールデンエイジ理論に基づく育成アドバイス
+
+### 4. 管理機能
+- **マルチテナント対応**: 複数店舗を1システムで管理
+- **店舗別URL**: `/store/[slug]`形式で店舗ごとに独立したページ
+- **管理画面**: 過去の診断データ閲覧・編集・削除
+- **QRコード管理**: LINE・予約用QRコードのアップロード
+
+---
+
+## ディレクトリ構成
+
+```
+sports-diagnosis/
+├── src/
+│   ├── app/                      # Next.js App Router
+│   │   ├── page.tsx              # ランディングページ（B2B向け）
+│   │   ├── store/[slug]/         # 店舗別診断ページ
+│   │   │   ├── page.tsx          # 診断フォーム
+│   │   │   ├── new/page.tsx      # 新規診断
+│   │   │   ├── admin/page.tsx    # 店舗管理画面
+│   │   │   └── login/page.tsx    # 店舗ログイン
+│   │   ├── result/[id]/          # 診断結果表示
+│   │   ├── edit/[id]/            # 診断編集
+│   │   ├── nbs-ctrl-8x7k2m/      # マスター管理（隠しURL）
+│   │   ├── master/partner/       # パートナー管理
+│   │   ├── api/                  # APIエンドポイント
+│   │   ├── pricing/              # 料金ページ
+│   │   ├── contact/              # お問い合わせ
+│   │   ├── privacy/              # プライバシーポリシー
+│   │   └── terms/                # 利用規約
+│   ├── components/
+│   │   ├── DiagnosisForm.tsx     # 診断入力フォーム
+│   │   ├── SimpleResult.tsx      # 簡易版結果表示
+│   │   ├── DetailResult.tsx      # 詳細版結果表示
+│   │   ├── RadarChart.tsx        # レーダーチャート
+│   │   └── StoreAuthGuard.tsx    # 認証ガード
+│   └── lib/
+│       ├── diagnosis.ts          # 診断ロジック（評価基準・計算式）
+│       ├── supabase.ts           # Supabaseクライアント
+│       ├── supabase-server.ts    # サーバーサイドSupabase
+│       └── auth-context.tsx      # 認証コンテキスト
+├── supabase/
+│   ├── schema.sql                # データベーススキーマ
+│   └── migrations/               # マイグレーション
+└── public/
+    └── images/                   # ロゴ・画像素材
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## データベース設計
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 主要テーブル
 
-## Learn More
+| テーブル | 説明 |
+|---------|------|
+| `stores` | 店舗情報（名前、スラッグ、テーマカラー、QRコードURLなど） |
+| `store_admins` | 店舗管理者の認証情報 |
+| `children` | 診断対象の児童情報（名前、学年、性別など） |
+| `measurements` | 測定記録（7項目の測定値） |
+| `results` | 診断結果（スコア、運動タイプ、推奨スポーツなど） |
+| `trainings` | トレーニングマスタ（能力別・年齢層別のトレーニングメニュー） |
 
-To learn more about Next.js, take a look at the following resources:
+### RLS（Row Level Security）
+- 店舗データは誰でも閲覧可能（診断画面用）
+- 測定データの挿入は誰でも可能（診断実行時）
+- 読み取り・更新・削除は基本的に許可（将来的に店舗認証と連携予定）
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 診断ロジック
 
-## Deploy on Vercel
+### 評価計算
+1. **偏差値計算**: `偏差値 = 50 + 10 × (測定値 - 平均値) / 標準偏差`
+2. **10段階評価変換**: 偏差値を1〜10の段階評価に変換
+3. **運動年齢計算**: `運動年齢 = 実年齢 + (平均スコア - 5) × 0.8`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 50m走換算
+15mダッシュのタイムから50m走タイムを推定：
+- 加速度を考慮した物理モデルを使用
+- 学年別の加速係数で補正（高学年ほど加速効率が高い）
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### ボール投げ補正
+ボール重量による飛距離補正：
+- 500g以下: ×0.80
+- 1kg（基準）: ×1.0
+- 2kg: ×1.35
+- 3kg: ×1.70
+
+---
+
+## セットアップ
+
+### 前提条件
+- Node.js 18以上
+- Supabaseプロジェクト
+
+### インストール
+```bash
+# 依存関係のインストール
+npm install
+
+# 環境変数の設定
+cp .env.example .env.local
+# NEXT_PUBLIC_SUPABASE_URL と NEXT_PUBLIC_SUPABASE_ANON_KEY を設定
+
+# 開発サーバー起動
+npm run dev
+```
+
+### 環境変数
+```env
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key  # サーバーサイド用
+```
+
+---
+
+## URL構成
+
+| パス | 説明 |
+|------|------|
+| `/` | B2B向けランディングページ |
+| `/store/[slug]` | 店舗トップ（診断フォーム表示） |
+| `/store/[slug]/new` | 新規診断入力 |
+| `/store/[slug]/admin` | 店舗管理画面 |
+| `/store/[slug]/login` | 店舗ログイン |
+| `/result/[id]` | 診断結果表示 |
+| `/edit/[id]` | 診断データ編集 |
+| `/pricing` | 料金ページ |
+| `/contact` | お問い合わせ |
+
+---
+
+## 開発コマンド
+
+```bash
+npm run dev      # 開発サーバー起動
+npm run build    # プロダクションビルド
+npm run start    # プロダクションサーバー起動
+npm run lint     # ESLint実行
+```
+
+---
+
+## 今後の拡張予定
+
+- [ ] 成長記録グラフ（時系列での推移表示）
+- [ ] PDF診断書の自動生成
+- [ ] 保護者向けマイページ
+- [ ] LINE連携（診断結果の自動送信）
+- [ ] 予約システム連携
+
+---
+
+## 関連プロジェクト
+
+- **NOBISHIRO ATHLETE**: 中高生〜大人向け運動能力診断システム（別リポジトリ）

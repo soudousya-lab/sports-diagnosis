@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -24,6 +24,14 @@ type FormData = {
 }
 
 export default function NewMeasurementPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-orange-900 to-orange-700 flex items-center justify-center text-white">読み込み中...</div>}>
+      <NewMeasurementContent />
+    </Suspense>
+  )
+}
+
+function NewMeasurementContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const athleteIdParam = searchParams.get('athlete_id')
