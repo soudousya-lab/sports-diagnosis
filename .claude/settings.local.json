@@ -25,7 +25,8 @@
       "mcp__f7df631b-6f3a-4a00-af8c-c865c0915247__list_deployments",
       "mcp__f7df631b-6f3a-4a00-af8c-c865c0915247__list_projects",
       "mcp__f7df631b-6f3a-4a00-af8c-c865c0915247__list_teams",
-      "mcp__f7df631b-6f3a-4a00-af8c-c865c0915247__get_deployment_build_logs"
+      "mcp__f7df631b-6f3a-4a00-af8c-c865c0915247__get_deployment_build_logs",
+      "Bash(git diff:*)"
     ],
     "deny": [],
     "ask": []

@@ -19,6 +19,8 @@ import {
   FaDumbbell, FaLightbulb, FaPrint, FaUser, FaCalendarAlt, FaDrumstickBite
 } from 'react-icons/fa'
 import { HiOutlinePencil, HiOutlineClock } from 'react-icons/hi'
+import { GiChickenLeg, GiMilkCarton } from 'react-icons/gi'
+import { TbEgg, TbBowlFilled } from 'react-icons/tb'
 
 type MeasurementData = {
   id: string
@@ -534,17 +536,20 @@ export default function ResultPage() {
             {/* 食品例 */}
             <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { name: '鶏むね肉100g', protein: '23g', icon: '🍗' },
-                { name: 'ゆで卵1個', protein: '6g', icon: '🥚' },
-                { name: '納豆1パック', protein: '8g', icon: '🫘' },
-                { name: 'プロテイン1杯', protein: '20g', icon: '🥛' }
-              ].map((food, idx) => (
-                <div key={idx} className="bg-gray-50 rounded-lg p-3 text-center">
-                  <div className="text-2xl mb-1">{food.icon}</div>
-                  <div className="text-xs text-gray-600">{food.name}</div>
-                  <div className="text-sm font-bold text-gray-900">{food.protein}</div>
-                </div>
-              ))}
+                { name: '鶏むね肉100g', protein: '23g', icon: GiChickenLeg },
+                { name: 'ゆで卵1個', protein: '6g', icon: TbEgg },
+                { name: '納豆1パック', protein: '8g', icon: TbBowlFilled },
+                { name: 'プロテイン1杯', protein: '20g', icon: GiMilkCarton }
+              ].map((food, idx) => {
+                const IconComponent = food.icon
+                return (
+                  <div key={idx} className="bg-gray-50 rounded-lg p-3 text-center">
+                    <IconComponent className="w-8 h-8 mx-auto mb-1 text-orange-600" />
+                    <div className="text-xs text-gray-600">{food.name}</div>
+                    <div className="text-sm font-bold text-gray-900">{food.protein}</div>
+                  </div>
+                )
+              })}
             </div>
           </div>
 
