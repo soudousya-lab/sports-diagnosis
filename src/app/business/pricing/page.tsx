@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import posthog from 'posthog-js'
 import {
   HiOutlineCheck,
   HiOutlineChartBar,
@@ -36,13 +37,13 @@ export default function PricingPage() {
       <header className="bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-14 sm:h-16 md:h-20">
-            <Link href="/" className="flex items-center gap-2 sm:gap-3">
+            <Link href="/business" className="flex items-center gap-2 sm:gap-3">
               <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 bg-blue-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-xs sm:text-sm md:text-base">N</span>
               </div>
               <span className="font-semibold text-sm sm:text-base md:text-lg text-gray-900 tracking-tight">NOBISHIRO KIDS</span>
             </Link>
-            <Link href="/" className="text-xs sm:text-sm text-gray-500 hover:text-gray-900 transition-colors">
+            <Link href="/business" className="text-xs sm:text-sm text-gray-500 hover:text-gray-900 transition-colors">
               ← トップに戻る
             </Link>
           </div>
@@ -153,7 +154,8 @@ export default function PricingPage() {
                 {/* CTA */}
                 <div className="text-center">
                   <Link
-                    href="/contact"
+                    href="/business/contact"
+                    onClick={() => posthog.capture('pricing_cta_clicked', { location: 'pricing_card' })}
                     className="inline-flex items-center justify-center w-full sm:w-auto px-8 sm:px-12 py-4 bg-blue-600 text-white rounded-lg font-medium text-base hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20"
                   >
                     お問い合わせ・お申し込み
@@ -208,7 +210,8 @@ export default function PricingPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
               <Link
-                href="/contact"
+                href="/business/contact"
+                onClick={() => posthog.capture('pricing_cta_clicked', { location: 'bottom_cta' })}
                 className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 bg-blue-600 text-white rounded-lg font-medium text-sm sm:text-base hover:bg-blue-700 transition-colors"
               >
                 お問い合わせフォーム

@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import posthog from 'posthog-js'
 
 type FormData = {
   companyName: string
@@ -54,8 +55,20 @@ export default function ContactPage() {
       // 現在はダミーで成功とする
       await new Promise(resolve => setTimeout(resolve, 1000))
 
+      posthog.identify(formData.email, {
+        name: formData.name,
+        email: formData.email,
+        company: formData.companyName,
+      })
+      posthog.capture('contact_form_submitted', {
+        inquiry_type: formData.inquiryType,
+        has_company: !!formData.companyName,
+        has_phone: !!formData.phone,
+      })
+
       setIsSubmitted(true)
-    } catch {
+    } catch (err) {
+      posthog.captureException(err)
       setError('送信に失敗しました。しばらく経ってから再度お試しください。')
     } finally {
       setIsSubmitting(false)
@@ -77,7 +90,7 @@ export default function ContactPage() {
             内容を確認の上、担当者より2営業日以内にご連絡いたします。
           </p>
           <Link
-            href="/"
+            href="/business"
             className="inline-flex items-center justify-center px-6 py-3 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
           >
             トップページに戻る
@@ -93,13 +106,13 @@ export default function ContactPage() {
       <header className="bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16 sm:h-20">
-            <Link href="/" className="flex items-center gap-3">
+            <Link href="/business" className="flex items-center gap-3">
               <div className="w-8 h-8 sm:w-9 sm:h-9 bg-black rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm sm:text-base">N</span>
               </div>
               <span className="font-semibold text-base sm:text-lg text-gray-900 tracking-tight">NOBISHIRO KIDS</span>
             </Link>
-            <Link href="/" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
+            <Link href="/business" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
               ← トップに戻る
             </Link>
           </div>
