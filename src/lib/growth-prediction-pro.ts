@@ -139,23 +139,37 @@ export function mirwaldMaturityOffset(input: {
   sex: Sex
 }): { offsetYears: number; phvAge: number } {
   const legLength = input.heightCm - input.sittingHeightCm
+  // Weight × Height⁻¹ × 100（Mirwald式の補正項）
+  const whRatio = (input.weightKg / input.heightCm) * 100
   let offset = 0
   if (input.sex === 'male') {
-    // Mirwald 男子式
+    // Mirwald 2002 男子式（オリジナル係数）
+    // MO = -9.236
+    //    + 0.0002708 (LL × SH)
+    //    - 0.001663 (Age × LL)
+    //    + 0.007216 (Age × SH)
+    //    + 0.02292 (W/H × 100)
     offset =
-      -29.769 +
-      0.0003007 * legLength * input.sittingHeightCm -
-      0.01177 * legLength * input.ageYears +
-      0.01639 * input.weightKg * input.sittingHeightCm +
-      0.4445 * (legLength / input.heightCm)
+      -9.236 +
+      0.0002708 * legLength * input.sittingHeightCm -
+      0.001663 * input.ageYears * legLength +
+      0.007216 * input.ageYears * input.sittingHeightCm +
+      0.02292 * whRatio
   } else {
-    // Mirwald 女子式
+    // Mirwald 2002 女子式（オリジナル係数）
+    // MO = -9.376
+    //    + 0.0001882 (LL × SH)
+    //    + 0.0022 (Age × LL)
+    //    + 0.005841 (Age × SH)
+    //    - 0.002658 (Age × W)
+    //    + 0.07693 (W/H × 100)
     offset =
-      -16.364 +
-      0.0002309 * legLength * input.sittingHeightCm +
-      0.01125 * input.ageYears * legLength +
-      0.0007358 * input.ageYears * input.weightKg +
-      0.02093 * (input.weightKg / input.heightCm) * 100
+      -9.376 +
+      0.0001882 * legLength * input.sittingHeightCm +
+      0.0022 * input.ageYears * legLength +
+      0.005841 * input.ageYears * input.sittingHeightCm -
+      0.002658 * input.ageYears * input.weightKg +
+      0.07693 * whRatio
   }
   return {
     offsetYears: Math.round(offset * 100) / 100,
