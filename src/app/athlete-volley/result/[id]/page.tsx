@@ -57,6 +57,7 @@ type MeasurementData = {
       name: string
       description: string
       reps: string
+      sets?: string
       effect: string
       priority: string
     }>
