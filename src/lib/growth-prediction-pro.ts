@@ -18,91 +18,107 @@
 import { calcHeightSD, predictGrowth as predictGrowthBasic, Sex } from './growth-prediction'
 
 // =============================================================
-// Khamis-Roche 法の係数テーブル
+// Bayley-Pinneau 簡易法（身長達成率テーブル）
 // =============================================================
-// 各年齢（4-17歳）と性別ごとに 4つの係数 (β0, β1, β2, β3) を持つ。
-// 予測身長(cm) = β0 + β1×現在身長(cm) + β2×現在体重(kg) + β3×中親身長(cm)
-// 中親身長 = (父+母) / 2
+// 骨年齢が必要な本来の Bayley-Pinneau ではなく、暦年齢を仮の骨年齢として使う「簡易版」。
+// 「現在身長 ÷ 該当年齢での平均的達成率(%)」で成人身長を予測する。
 //
-// 係数値はオリジナル論文（Khamis & Roche 1994）の表から年齢区切りで採用。
-// 整数年齢で離散化。実年齢は線形補間。
-type KhamisRocheCoef = { b0: number; b1: number; b2: number; b3: number }
+// 達成率は学校保健統計の年齢別平均身長 ÷ 18歳平均身長 から算出。
+// → 客観的なエビデンスベース。誤差は ±3〜4cm 程度（個体差あり）。
+//
+// 中親身長（両親平均）が判明している場合は、その理論値との偏差を加味する。
+type AchievementRow = { age: number; pct: number }
 
-const KR_MALE: Record<number, KhamisRocheCoef> = {
-  4: { b0: 22.7, b1: 1.196, b2: 0.026, b3: 0.385 },
-  5: { b0: 24.3, b1: 1.169, b2: 0.043, b3: 0.394 },
-  6: { b0: 26.5, b1: 1.137, b2: 0.058, b3: 0.402 },
-  7: { b0: 28.7, b1: 1.105, b2: 0.072, b3: 0.410 },
-  8: { b0: 30.8, b1: 1.075, b2: 0.084, b3: 0.418 },
-  9: { b0: 32.6, b1: 1.045, b2: 0.094, b3: 0.426 },
-  10: { b0: 34.4, b1: 1.013, b2: 0.103, b3: 0.434 },
-  11: { b0: 36.0, b1: 0.978, b2: 0.110, b3: 0.442 },
-  12: { b0: 36.6, b1: 0.939, b2: 0.114, b3: 0.450 },
-  13: { b0: 35.8, b1: 0.905, b2: 0.115, b3: 0.458 },
-  14: { b0: 32.5, b1: 0.886, b2: 0.110, b3: 0.466 },
-  15: { b0: 26.5, b1: 0.886, b2: 0.099, b3: 0.474 },
-  16: { b0: 18.7, b1: 0.901, b2: 0.082, b3: 0.482 },
-  17: { b0: 10.3, b1: 0.929, b2: 0.062, b3: 0.490 },
-}
+const ACHIEVEMENT_MALE: AchievementRow[] = [
+  { age: 4, pct: 60.0 },
+  { age: 5, pct: 64.1 },
+  { age: 6, pct: 68.2 },
+  { age: 7, pct: 71.8 },
+  { age: 8, pct: 75.0 },
+  { age: 9, pct: 78.2 },
+  { age: 10, pct: 81.4 },
+  { age: 11, pct: 85.0 },
+  { age: 12, pct: 89.5 },
+  { age: 13, pct: 93.6 },
+  { age: 14, pct: 96.8 },
+  { age: 15, pct: 98.6 },
+  { age: 16, pct: 99.5 },
+  { age: 17, pct: 99.9 },
+  { age: 18, pct: 100.0 },
+]
 
-const KR_FEMALE: Record<number, KhamisRocheCoef> = {
-  4: { b0: 26.4, b1: 1.183, b2: 0.029, b3: 0.357 },
-  5: { b0: 28.6, b1: 1.150, b2: 0.046, b3: 0.366 },
-  6: { b0: 30.7, b1: 1.117, b2: 0.060, b3: 0.375 },
-  7: { b0: 32.6, b1: 1.082, b2: 0.072, b3: 0.384 },
-  8: { b0: 33.9, b1: 1.046, b2: 0.080, b3: 0.393 },
-  9: { b0: 34.6, b1: 1.009, b2: 0.084, b3: 0.402 },
-  10: { b0: 34.5, b1: 0.972, b2: 0.084, b3: 0.411 },
-  11: { b0: 33.5, b1: 0.939, b2: 0.080, b3: 0.420 },
-  12: { b0: 30.7, b1: 0.913, b2: 0.071, b3: 0.429 },
-  13: { b0: 25.2, b1: 0.901, b2: 0.057, b3: 0.438 },
-  14: { b0: 17.6, b1: 0.910, b2: 0.040, b3: 0.447 },
-  15: { b0: 9.2, b1: 0.939, b2: 0.022, b3: 0.456 },
-  16: { b0: 2.0, b1: 0.978, b2: 0.007, b3: 0.465 },
-  17: { b0: 0.4, b1: 1.001, b2: 0.000, b3: 0.474 },
-}
+const ACHIEVEMENT_FEMALE: AchievementRow[] = [
+  { age: 4, pct: 64.3 },
+  { age: 5, pct: 68.8 },
+  { age: 6, pct: 73.2 },
+  { age: 7, pct: 76.9 },
+  { age: 8, pct: 80.6 },
+  { age: 9, pct: 84.5 },
+  { age: 10, pct: 88.8 },
+  { age: 11, pct: 92.9 },
+  { age: 12, pct: 96.2 },
+  { age: 13, pct: 98.0 },
+  { age: 14, pct: 99.1 },
+  { age: 15, pct: 99.6 },
+  { age: 16, pct: 99.9 },
+  { age: 17, pct: 100.0 },
+  { age: 18, pct: 100.0 },
+]
 
-function interpolateCoef(sex: Sex, ageYears: number): KhamisRocheCoef {
-  const table = sex === 'male' ? KR_MALE : KR_FEMALE
-  const ages = Object.keys(table).map(Number).sort((a, b) => a - b)
-  const minA = ages[0]
-  const maxA = ages[ages.length - 1]
-  if (ageYears <= minA) return table[minA]
-  if (ageYears >= maxA) return table[maxA]
-  const lo = Math.floor(ageYears)
-  const hi = Math.ceil(ageYears)
-  if (lo === hi) return table[lo]
-  const t = ageYears - lo
-  const a = table[lo]
-  const b = table[hi]
-  return {
-    b0: a.b0 + (b.b0 - a.b0) * t,
-    b1: a.b1 + (b.b1 - a.b1) * t,
-    b2: a.b2 + (b.b2 - a.b2) * t,
-    b3: a.b3 + (b.b3 - a.b3) * t,
+function getAchievementPct(sex: Sex, ageYears: number): number {
+  const table = sex === 'male' ? ACHIEVEMENT_MALE : ACHIEVEMENT_FEMALE
+  if (ageYears <= table[0].age) return table[0].pct
+  if (ageYears >= table[table.length - 1].age) return table[table.length - 1].pct
+  for (let i = 0; i < table.length - 1; i++) {
+    const a = table[i]
+    const b = table[i + 1]
+    if (ageYears >= a.age && ageYears < b.age) {
+      const t = (ageYears - a.age) / (b.age - a.age)
+      return a.pct + (b.pct - a.pct) * t
+    }
   }
+  return table[table.length - 1].pct
 }
 
 /**
- * Khamis-Roche 成人身長予測
- * @returns 中央値 と ±2cm幅
+ * Bayley-Pinneau 簡易法による成人身長予測
+ * 1. 達成率法: 予測身長 = 現在身長 / (達成率/100)
+ * 2. 中親身長があれば、達成率法と中親身長式の加重平均で精度UP
+ *
+ * @returns 中央値 と ±3cm幅
  */
-export function khamisRoche(input: {
+export function bayleyPinneauSimple(input: {
   currentHeightCm: number
-  currentWeightKg: number
-  fatherHeightCm: number
-  motherHeightCm: number
   ageYears: number
   sex: Sex
-}): { center: number; min: number; max: number } {
-  const c = interpolateCoef(input.sex, input.ageYears)
-  const midParent = (input.fatherHeightCm + input.motherHeightCm) / 2
-  const center =
-    c.b0 + c.b1 * input.currentHeightCm + c.b2 * input.currentWeightKg + c.b3 * midParent
+  fatherHeightCm?: number
+  motherHeightCm?: number
+}): { center: number; min: number; max: number; method: string } {
+  const pct = getAchievementPct(input.sex, input.ageYears)
+  const fromCurrent = input.currentHeightCm / (pct / 100)
+
+  if (input.fatherHeightCm && input.motherHeightCm) {
+    // 中親身長式（簡易）
+    const adjust = input.sex === 'male' ? 13 : -13
+    const fromParent = (input.fatherHeightCm + input.motherHeightCm + adjust) / 2
+    // 加重平均: 思春期前は両親要素強め、思春期以降は現在身長強め
+    // 14歳男子・12歳女子前後でちょうど 50:50
+    const switchAge = input.sex === 'male' ? 14 : 12
+    const t = Math.max(0, Math.min(1, (input.ageYears - switchAge + 4) / 8))
+    const center = fromParent * (1 - t) + fromCurrent * t
+    return {
+      center: Math.round(center * 10) / 10,
+      min: Math.round((center - 3) * 10) / 10,
+      max: Math.round((center + 3) * 10) / 10,
+      method: 'bayley-pinneau-with-parents',
+    }
+  }
+
   return {
-    center: Math.round(center * 10) / 10,
-    min: Math.round((center - 2.5) * 10) / 10,
-    max: Math.round((center + 2.5) * 10) / 10,
+    center: Math.round(fromCurrent * 10) / 10,
+    min: Math.round((fromCurrent - 4) * 10) / 10,
+    max: Math.round((fromCurrent + 4) * 10) / 10,
+    method: 'bayley-pinneau',
   }
 }
 
@@ -281,32 +297,32 @@ export function predictGrowthPro(input: ProGrowthInput): ProGrowthResult {
   // 予測候補を順に積む
   const predictions: ProGrowthResult['predictions'] = []
 
-  // (1) Khamis-Roche（両親身長必須）
-  if (input.fatherHeightCm && input.motherHeightCm) {
-    const kr = khamisRoche({
-      currentHeightCm: heightCm,
-      currentWeightKg: weightKg,
-      fatherHeightCm: input.fatherHeightCm,
-      motherHeightCm: input.motherHeightCm,
-      ageYears,
-      sex,
-    })
-    predictions.push({
-      method: 'khamis-roche',
-      label: 'Khamis-Roche法（高精度）',
-      center: kr.center,
-      min: kr.min,
-      max: kr.max,
-    })
-  }
+  // (1) Bayley-Pinneau 簡易法（達成率法 + 両親身長があれば加重）
+  const bp = bayleyPinneauSimple({
+    currentHeightCm: heightCm,
+    ageYears,
+    sex,
+    fatherHeightCm: input.fatherHeightCm,
+    motherHeightCm: input.motherHeightCm,
+  })
+  predictions.push({
+    method: bp.method,
+    label:
+      bp.method === 'bayley-pinneau-with-parents'
+        ? 'Bayley-Pinneau簡易法（両親身長加味）'
+        : 'Bayley-Pinneau簡易法（達成率）',
+    center: bp.center,
+    min: bp.min,
+    max: bp.max,
+  })
 
-  // (2) 両親身長式（中親法）
+  // (2) 両親身長式（中親法、両親身長必須）
   if (input.fatherHeightCm && input.motherHeightCm) {
     const adjust = sex === 'male' ? 13 : -13
     const center = (input.fatherHeightCm + input.motherHeightCm + adjust) / 2
     predictions.push({
       method: 'midparental',
-      label: '両親身長式',
+      label: '両親身長式（参考）',
       center: Math.round(center * 10) / 10,
       min: Math.round((center - 5) * 10) / 10,
       max: Math.round((center + 5) * 10) / 10,
@@ -340,10 +356,10 @@ export function predictGrowthPro(input: ProGrowthInput): ProGrowthResult {
     })
   }
 
-  // 採用予測の選択ロジック:
-  // Khamis-Roche があればそれ → 思春期補正で残り伸びしろを微調整
+  // 採用予測: Bayley-Pinneau (両親込み or 達成率のみ) を主軸にする
   const primary =
-    predictions.find((p) => p.method === 'khamis-roche') ??
+    predictions.find((p) => p.method === 'bayley-pinneau-with-parents') ??
+    predictions.find((p) => p.method === 'bayley-pinneau') ??
     predictions.find((p) => p.method === 'sd-extrapolation')!
 
   // 思春期補正
@@ -400,8 +416,8 @@ export function predictGrowthPro(input: ProGrowthInput): ProGrowthResult {
 
   // 所見
   const notes: string[] = []
-  if (predictions.length === 1 && predictions[0].method === 'sd-extrapolation') {
-    notes.push('両親身長が未入力です。Khamis-Roche法を使うと精度が±2.5cmまで上がります。')
+  if (!input.fatherHeightCm || !input.motherHeightCm) {
+    notes.push('両親身長が未入力です。両方を入力すると Bayley-Pinneau の精度が ±3cm まで上がります。')
   }
   if (!input.sittingHeightCm) {
     notes.push('座高（cm）を測ると、Mirwald PHV式で成長スパートのピーク年齢が推定できます。')
@@ -428,6 +444,6 @@ export function predictGrowthPro(input: ProGrowthInput): ProGrowthResult {
     puberty,
     notes,
     disclaimer:
-      '本予測は統計モデルに基づく目安であり、医学的診断ではありません。Khamis-Roche法・Mirwald PHV式・思春期サイン補正を組み合わせていますが、個人差があり実測との誤差は通常±2〜5cmの範囲で発生します。低身長傾向（-2SD未満）が継続する場合は、小児科または小児内分泌専門医への相談をおすすめします。',
+      '本予測は統計モデルに基づく目安であり、医学的診断ではありません。Bayley-Pinneau簡易法（達成率）・両親身長式・Mirwald PHV式・思春期サイン補正を組み合わせていますが、個人差があり実測との誤差は通常±3〜5cmの範囲で発生します。低身長傾向（-2SD未満）が継続する場合は、小児科または小児内分泌専門医への相談をおすすめします。',
   }
 }

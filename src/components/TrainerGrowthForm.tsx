@@ -117,7 +117,8 @@ export default function TrainerGrowthForm() {
     if (!reportRef.current || !result) return
     setPdfLoading(true)
     try {
-      const html2canvas = (await import('html2canvas')).default
+      // html2canvas-pro は Tailwind 4 の oklch() カラーに対応している
+      const html2canvas = (await import('html2canvas-pro')).default
       const jsPDF = (await import('jspdf')).default
 
       const el = reportRef.current
@@ -125,6 +126,7 @@ export default function TrainerGrowthForm() {
         scale: 2,
         useCORS: true,
         backgroundColor: '#ffffff',
+        logging: false,
       })
       const imgData = canvas.toDataURL('image/png')
 
@@ -149,9 +151,10 @@ export default function TrainerGrowthForm() {
 
       const fname = `nobishiro-karte-${name || 'unknown'}-${measuredAt}.pdf`
       pdf.save(fname)
-    } catch (e) {
-      console.error(e)
-      alert('PDF 出力に失敗しました')
+    } catch (e: unknown) {
+      console.error('PDF生成失敗:', e)
+      const msg = e instanceof Error ? e.message : String(e)
+      alert(`PDF 出力に失敗しました\n${msg}`)
     } finally {
       setPdfLoading(false)
     }
@@ -603,7 +606,8 @@ function toneClass(tone: 'safe' | 'watch' | 'consult'): string {
 
 function labelMethod(method: string): string {
   const m: Record<string, string> = {
-    'khamis-roche': 'Khamis-Roche法 + 思春期補正',
+    'bayley-pinneau-with-parents': 'Bayley-Pinneau簡易法 + 両親身長 + 思春期補正',
+    'bayley-pinneau': 'Bayley-Pinneau簡易法（達成率）+ 思春期補正',
     midparental: '両親身長式 + 思春期補正',
     'sd-extrapolation': 'SD値外挿 + 思春期補正',
     'sibling-reference': '兄/姉参考',
