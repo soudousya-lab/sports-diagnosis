@@ -2,11 +2,16 @@
 
 import { useMemo, useRef, useState } from 'react'
 import {
+  AlignmentSigns,
   ProGrowthInput,
   PubertySigns,
   predictGrowthPro,
 } from '@/lib/growth-prediction-pro'
 import { Sex } from '@/lib/growth-prediction'
+
+type PostureType = NonNullable<AlignmentSigns['postureType']>
+type PelvicTilt = NonNullable<AlignmentSigns['pelvicTilt']>
+type LegAlignment = NonNullable<AlignmentSigns['legAlignment']>
 
 export default function TrainerGrowthForm() {
   // 基本
@@ -37,6 +42,16 @@ export default function TrainerGrowthForm() {
   const [shoeSizeJump, setShoeSizeJump] = useState(false)
   const [menarche, setMenarche] = useState(false)
   const [menarcheMonthsAgo, setMenarcheMonthsAgo] = useState<number | ''>('')
+
+  // アライメント評価
+  const [postureType, setPostureType] = useState<PostureType | ''>('')
+  const [pelvicTilt, setPelvicTilt] = useState<PelvicTilt | ''>('')
+  const [legAlignment, setLegAlignment] = useState<LegAlignment | ''>('')
+  const [shoulderRoll, setShoulderRoll] = useState(false)
+  const [forwardHead, setForwardHead] = useState(false)
+  const [jointHypermobility, setJointHypermobility] = useState(false)
+  const [muscleToneFirm, setMuscleToneFirm] = useState(false)
+  const [shoeSizeStable, setShoeSizeStable] = useState(false)
 
   // メモ
   const [notes, setNotes] = useState('')
@@ -69,6 +84,17 @@ export default function TrainerGrowthForm() {
         typeof menarcheMonthsAgo === 'number' ? menarcheMonthsAgo : undefined,
     }
 
+    const alignment: AlignmentSigns = {
+      postureType: postureType || undefined,
+      pelvicTilt: pelvicTilt || undefined,
+      legAlignment: legAlignment || undefined,
+      shoulderRoll,
+      forwardHead,
+      jointHypermobility,
+      muscleToneFirm,
+      shoeSizeStable,
+    }
+
     const input: ProGrowthInput = {
       ageYears,
       sex,
@@ -87,6 +113,7 @@ export default function TrainerGrowthForm() {
         typeof motherHeightCm === 'number' ? motherHeightCm : undefined,
       siblingHeightsCm: sibs.length ? sibs : undefined,
       pubertySigns,
+      alignment,
     }
     return predictGrowthPro(input)
   }, [
@@ -107,6 +134,14 @@ export default function TrainerGrowthForm() {
     shoeSizeJump,
     menarche,
     menarcheMonthsAgo,
+    postureType,
+    pelvicTilt,
+    legAlignment,
+    shoulderRoll,
+    forwardHead,
+    jointHypermobility,
+    muscleToneFirm,
+    shoeSizeStable,
   ])
 
   // ===== PDF 出力 =====
@@ -356,6 +391,72 @@ export default function TrainerGrowthForm() {
             </div>
           </div>
 
+          {/* アライメント評価 */}
+          <div>
+            <h2 className="text-sm font-bold text-blue-700 mb-3">
+              アライメント評価（姿勢観察）
+            </h2>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="姿勢タイプ">
+                <select
+                  value={postureType}
+                  onChange={(e) => setPostureType(e.target.value as PostureType | '')}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                >
+                  <option value="">未評価</option>
+                  <option value="normal">正常</option>
+                  <option value="kyphotic">猫背</option>
+                  <option value="lordotic">反り腰</option>
+                  <option value="flat">平背</option>
+                  <option value="sway-back">スウェイバック</option>
+                </select>
+              </Field>
+              <Field label="骨盤傾斜">
+                <select
+                  value={pelvicTilt}
+                  onChange={(e) => setPelvicTilt(e.target.value as PelvicTilt | '')}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                >
+                  <option value="">未評価</option>
+                  <option value="neutral">中立</option>
+                  <option value="anterior">前傾</option>
+                  <option value="posterior">後傾</option>
+                </select>
+              </Field>
+              <Field label="下肢アライメント">
+                <select
+                  value={legAlignment}
+                  onChange={(e) => setLegAlignment(e.target.value as LegAlignment | '')}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                >
+                  <option value="">未評価</option>
+                  <option value="normal">正常</option>
+                  <option value="genu-valgum">X脚</option>
+                  <option value="genu-varum">O脚</option>
+                </select>
+              </Field>
+            </div>
+            <div className="grid grid-cols-2 gap-2 mt-3">
+              <Check label="巻き肩" checked={shoulderRoll} onChange={setShoulderRoll} />
+              <Check label="頭部前方位" checked={forwardHead} onChange={setForwardHead} />
+              <Check
+                label="関節弛緩性あり（成熟前傾向）"
+                checked={jointHypermobility}
+                onChange={setJointHypermobility}
+              />
+              <Check
+                label="筋トーンしっかり（成熟兆候）"
+                checked={muscleToneFirm}
+                onChange={setMuscleToneFirm}
+              />
+              <Check
+                label="靴サイズが半年安定（成長停止兆候）"
+                checked={shoeSizeStable}
+                onChange={setShoeSizeStable}
+              />
+            </div>
+          </div>
+
           {/* メモ */}
           <div>
             <h2 className="text-sm font-bold text-blue-700 mb-2">
@@ -450,6 +551,80 @@ export default function TrainerGrowthForm() {
                     <p className="text-xs text-emerald-800 mt-1 leading-relaxed">
                       {result.phv.message}
                     </p>
+                  </div>
+                )}
+
+                {/* Tanner Stage */}
+                <div className="rounded-xl p-4 border border-purple-200 bg-purple-50">
+                  <div className="flex items-baseline justify-between">
+                    <p className="text-[10px] font-bold text-purple-800">
+                      Tanner Stage 推定
+                    </p>
+                    <span className="text-[10px] font-bold text-purple-900 bg-white px-2 py-0.5 rounded-full border border-purple-300">
+                      {result.tanner.label}
+                    </span>
+                  </div>
+                  <p className="text-xs text-purple-800 mt-2 leading-relaxed">
+                    {result.tanner.message}
+                  </p>
+                </div>
+
+                {/* 骨端線閉鎖予測 */}
+                <div className="rounded-xl p-4 border-2 border-orange-300 bg-gradient-to-br from-orange-50 to-amber-50">
+                  <div className="flex items-baseline justify-between mb-2">
+                    <p className="text-[10px] font-bold text-orange-800">
+                      骨端線閉鎖予測（成長終了の目安）
+                    </p>
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                        result.epiphysealClosure.confidence === 'high'
+                          ? 'text-emerald-800 border-emerald-300 bg-white'
+                          : result.epiphysealClosure.confidence === 'medium'
+                            ? 'text-amber-800 border-amber-300 bg-white'
+                            : 'text-gray-800 border-gray-300 bg-white'
+                      }`}
+                    >
+                      信頼度: {result.epiphysealClosure.confidence}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-[10px] text-orange-700">予測閉鎖年齢</p>
+                      <p className="text-2xl font-bold text-orange-900">
+                        約 {result.epiphysealClosure.estimatedAgeAtClosure}
+                        <span className="text-sm ml-1">歳</span>
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-orange-700">残り期間</p>
+                      <p className="text-2xl font-bold text-orange-900">
+                        約 {result.epiphysealClosure.yearsRemaining}
+                        <span className="text-sm ml-1">年</span>
+                      </p>
+                      <p className="text-[10px] text-orange-700">
+                        ({result.epiphysealClosure.monthsRemaining}ヶ月)
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-orange-900 mt-3 leading-relaxed">
+                    {result.epiphysealClosure.message}
+                  </p>
+                </div>
+
+                {/* アライメント所見 */}
+                {result.alignmentObservations.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-700 mb-2">
+                      アライメント所見・改善提案
+                    </p>
+                    <ul className="space-y-1 text-xs text-gray-700 leading-relaxed">
+                      {result.alignmentObservations.map((obs, i) => (
+                        <li key={i} className="pl-3 relative">
+                          <span className="absolute left-0 text-purple-500">●</span>
+                          {obs}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
 

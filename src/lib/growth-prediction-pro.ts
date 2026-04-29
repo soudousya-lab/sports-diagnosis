@@ -217,6 +217,156 @@ export function pubertyMultiplier(sex: Sex, signs: PubertySigns): {
 }
 
 // =============================================================
+// アライメント評価（姿勢観察）
+// =============================================================
+export interface AlignmentSigns {
+  // 全体姿勢
+  postureType?: 'normal' | 'kyphotic' | 'lordotic' | 'flat' | 'sway-back' // 正常/猫背/反り腰/平背/スウェイバック
+  pelvicTilt?: 'neutral' | 'anterior' | 'posterior' // 骨盤傾斜
+  // 下肢
+  legAlignment?: 'normal' | 'genu-valgum' | 'genu-varum' // 正常/X脚/O脚
+  // 上肢
+  shoulderRoll?: boolean // 巻き肩
+  forwardHead?: boolean // 頭部前方位
+  // 関節成熟度の所見
+  jointHypermobility?: boolean // 関節弛緩性（思春期前に多い）
+  muscleToneFirm?: boolean // 筋トーンがしっかりしている（成熟兆候）
+  shoeSizeStable?: boolean // 過去半年で靴サイズが変わっていない（成長停止兆候）
+}
+
+// =============================================================
+// Tanner Stage 推定（思春期成熟度の5段階）
+// =============================================================
+// 体験で取れる情報から Tanner Stage を推定する簡易版。
+// 1: 前思春期 → 5: ほぼ成熟。
+// 正確な評価は医師による身体診察が必要だが、観察可能な徴候から ±1段階で当てられる。
+export function estimateTannerStage(
+  sex: Sex,
+  ageYears: number,
+  signs: PubertySigns,
+  alignment?: AlignmentSigns
+): number {
+  if (sex === 'female') {
+    // 女子: 月経・体毛・食欲の組み合わせ
+    if (signs.menarche) {
+      const months = signs.menarcheMonthsAgo ?? 0
+      if (months >= 24) return 5
+      if (months >= 12) return 4
+      return 4 // 初潮から1年以内
+    }
+    let count = 0
+    if (signs.bodyHair) count++
+    if (signs.appetiteSurge) count++
+    if (alignment?.muscleToneFirm) count++
+
+    if (ageYears < 8) return 1
+    if (count === 0) return ageYears < 10 ? 1 : 2
+    if (count === 1) return ageYears < 11 ? 2 : 3
+    return 3
+  } else {
+    // 男子: 声変わり・体毛・食欲・靴サイズUP
+    let count = 0
+    if (signs.voiceChange) count += 2 // 声変わりは大きいシグナル
+    if (signs.bodyHair) count++
+    if (signs.appetiteSurge) count++
+    if (signs.shoeSizeJump) count++
+    if (alignment?.muscleToneFirm) count++
+
+    if (ageYears < 9) return 1
+    if (count === 0) return ageYears < 11 ? 1 : 2
+    if (count === 1) return 2
+    if (count === 2) return 3
+    if (count === 3) return 4
+    if (alignment?.shoeSizeStable && count >= 3) return 5
+    return 4
+  }
+}
+
+// =============================================================
+// 骨端線閉鎖時期の予測
+// =============================================================
+// 骨端線（成長板）の閉鎖は身長の伸びの終わりを意味する。
+// 正確な予測には手のX線（骨年齢）が必要だが、Tanner Stage と
+// PHVからの経過時期から ±1.5年の精度で推定できる。
+//
+// 各 Tanner Stage から閉鎖までの典型的な残り年数:
+//   男子: Stage1=5.5年, 2=4.0年, 3=2.5年, 4=1.5年, 5=0.5年
+//   女子: Stage1=4.5年, 2=3.0年, 3=1.5年, 4=0.5年, 5=0年（既に閉鎖近接）
+const STAGE_TO_YEARS_REMAINING: Record<Sex, Record<number, number>> = {
+  male: { 1: 5.5, 2: 4.0, 3: 2.5, 4: 1.5, 5: 0.5 },
+  female: { 1: 4.5, 2: 3.0, 3: 1.5, 4: 0.5, 5: 0.0 },
+}
+
+export function estimateEpiphysealClosure(input: {
+  sex: Sex
+  ageYears: number
+  tannerStage: number
+  phvOffsetYears?: number // Mirwald から得られる成熟度オフセット
+  alignment?: AlignmentSigns
+}): {
+  estimatedAgeAtClosure: number
+  yearsRemaining: number
+  monthsRemaining: number
+  confidence: 'high' | 'medium' | 'low'
+  message: string
+} {
+  let yearsRemaining = STAGE_TO_YEARS_REMAINING[input.sex][input.tannerStage] ?? 1.0
+
+  // PHVからの経過があれば、閉鎖は PHV から約4年後（男女共通）と補正
+  if (typeof input.phvOffsetYears === 'number') {
+    const fromPhv = 4 - input.phvOffsetYears
+    if (fromPhv > 0 && fromPhv < 6) {
+      // Tanner ベースと PHV ベースの平均を取る
+      yearsRemaining = (yearsRemaining + fromPhv) / 2
+    }
+  }
+
+  // アライメント所見による微調整
+  if (input.alignment?.shoeSizeStable) {
+    // 半年靴サイズが変わっていない = 成長落ち着き気味
+    yearsRemaining = Math.max(0, yearsRemaining - 0.5)
+  }
+  if (input.alignment?.jointHypermobility) {
+    // 関節弛緩性が顕著 = 成長余地あり
+    yearsRemaining += 0.5
+  }
+  if (input.alignment?.muscleToneFirm) {
+    // 筋トーンしっかり = 成熟度UP
+    yearsRemaining = Math.max(0, yearsRemaining - 0.3)
+  }
+
+  const estimatedAge = Math.round((input.ageYears + yearsRemaining) * 10) / 10
+  const months = Math.round(yearsRemaining * 12)
+
+  let message: string
+  if (yearsRemaining < 0.5) {
+    message = '骨端線閉鎖が近い段階です。残りの伸びはわずか（数mm〜2cm程度）と推定されます。'
+  } else if (yearsRemaining < 1.5) {
+    message = `あと約${Math.round(yearsRemaining * 12)}ヶ月で骨端線閉鎖の見込み。残り3〜5cm程度の伸びが期待されます。`
+  } else if (yearsRemaining < 3) {
+    message = `あと約${yearsRemaining.toFixed(1)}年で骨端線閉鎖の見込み。栄養・運動・睡眠の整えで残り伸びしろを最大化できる時期です。`
+  } else {
+    message = `骨端線閉鎖まで約${yearsRemaining.toFixed(1)}年。これから成長スパートのピーク期に向かう可能性が高い段階です。`
+  }
+
+  // 信頼度: PHV情報があれば high、Tanner だけなら medium、不確定なら low
+  let confidence: 'high' | 'medium' | 'low' = 'medium'
+  if (typeof input.phvOffsetYears === 'number' && input.tannerStage >= 2) {
+    confidence = 'high'
+  } else if (input.tannerStage === 1 && input.ageYears < 8) {
+    confidence = 'low'
+  }
+
+  return {
+    estimatedAgeAtClosure: estimatedAge,
+    yearsRemaining: Math.round(yearsRemaining * 10) / 10,
+    monthsRemaining: months,
+    confidence,
+    message,
+  }
+}
+
+// =============================================================
 // 統合予測関数
 // =============================================================
 export interface ProGrowthInput {
@@ -236,6 +386,8 @@ export interface ProGrowthInput {
   siblingHeightsCm?: number[] // 兄/姉の最終身長
   // 思春期
   pubertySigns?: PubertySigns
+  // アライメント評価
+  alignment?: AlignmentSigns
 }
 
 export interface ProGrowthResult {
@@ -273,6 +425,22 @@ export interface ProGrowthResult {
     multiplier: number
     message: string
   }
+  // Tanner Stage 推定
+  tanner: {
+    stage: number
+    label: string
+    message: string
+  }
+  // 骨端線閉鎖予測
+  epiphysealClosure: {
+    estimatedAgeAtClosure: number
+    yearsRemaining: number
+    monthsRemaining: number
+    confidence: 'high' | 'medium' | 'low'
+    message: string
+  }
+  // アライメント観察
+  alignmentObservations: string[]
   // 総合所見
   notes: string[]
   disclaimer: string
@@ -379,6 +547,7 @@ export function predictGrowthPro(input: ProGrowthInput): ProGrowthResult {
 
   // PHV（座高があれば）
   let phv: ProGrowthResult['phv']
+  let phvOffsetYearsForClosure: number | undefined
   if (input.sittingHeightCm) {
     const m = mirwaldMaturityOffset({
       ageYears,
@@ -387,6 +556,7 @@ export function predictGrowthPro(input: ProGrowthInput): ProGrowthResult {
       sittingHeightCm: input.sittingHeightCm,
       sex,
     })
+    phvOffsetYearsForClosure = m.offsetYears
     let phase: string
     let message: string
     if (m.offsetYears < -1.5) {
@@ -414,13 +584,90 @@ export function predictGrowthPro(input: ProGrowthInput): ProGrowthResult {
     }
   }
 
+  // Tanner Stage 推定
+  const tannerStage = estimateTannerStage(
+    sex,
+    ageYears,
+    input.pubertySigns ?? {},
+    input.alignment
+  )
+  const tannerLabels: Record<number, string> = {
+    1: 'Stage 1（前思春期）',
+    2: 'Stage 2（思春期初期）',
+    3: 'Stage 3（思春期中期・PHV近接）',
+    4: 'Stage 4（思春期後期）',
+    5: 'Stage 5（ほぼ成熟）',
+  }
+  const tannerMessages: Record<number, string> = {
+    1: '第二次性徴のサインがほぼ見られない段階。骨端線は十分に開いており、成長余地が大きい時期です。',
+    2: '第二次性徴の入口。成長スパート前の準備期で、これから加速的な伸びが期待されます。',
+    3: '思春期中期。成長スパートのピーク前後にあたる、人生で最も身長が伸びる時期です。',
+    4: '思春期後期。スパートのピークを過ぎ、伸びは緩やかになる段階です。',
+    5: 'ほぼ成熟。骨端線閉鎖が近接、または既に閉鎖し始めている段階です。',
+  }
+  const tanner = {
+    stage: tannerStage,
+    label: tannerLabels[tannerStage],
+    message: tannerMessages[tannerStage],
+  }
+
+  // 骨端線閉鎖予測
+  const epiphysealClosure = estimateEpiphysealClosure({
+    sex,
+    ageYears,
+    tannerStage,
+    phvOffsetYears: phvOffsetYearsForClosure,
+    alignment: input.alignment,
+  })
+
+  // アライメント観察コメント
+  const alignmentObservations: string[] = []
+  if (input.alignment) {
+    if (input.alignment.postureType === 'kyphotic') {
+      alignmentObservations.push('猫背傾向。胸椎の柔軟性向上と背筋の活性化で姿勢を整えると、見た目身長が1〜2cm改善する可能性があります。')
+    }
+    if (input.alignment.postureType === 'lordotic') {
+      alignmentObservations.push('反り腰傾向。腹筋・腸腰筋のバランス調整で骨盤の傾きを整えると、腰部の負担が減り姿勢が安定します。')
+    }
+    if (input.alignment.postureType === 'sway-back') {
+      alignmentObservations.push('スウェイバック姿勢。骨盤が前方シフトしている可能性。コア活性化と股関節モビリティが鍵です。')
+    }
+    if (input.alignment.pelvicTilt === 'anterior') {
+      alignmentObservations.push('骨盤前傾。腹筋群が弱く腸腰筋が硬い典型パターン。腰痛・膝痛リスクの予防にも有効です。')
+    }
+    if (input.alignment.pelvicTilt === 'posterior') {
+      alignmentObservations.push('骨盤後傾。ハムストリング短縮と臀部の機能低下が考えられます。')
+    }
+    if (input.alignment.legAlignment === 'genu-valgum') {
+      alignmentObservations.push('X脚傾向。中臀筋の弱化と内転筋の優位が原因。スタビリティトレで改善余地があります。')
+    }
+    if (input.alignment.legAlignment === 'genu-varum') {
+      alignmentObservations.push('O脚傾向。股関節外旋筋の優位と内転筋弱化が考えられます。')
+    }
+    if (input.alignment.shoulderRoll) {
+      alignmentObservations.push('巻き肩あり。胸郭出口の圧迫と頸部緊張、呼吸の浅さに繋がります。')
+    }
+    if (input.alignment.forwardHead) {
+      alignmentObservations.push('頭部前方位。頭の重みが背筋・首に集中。集中力低下や頭痛の原因にもなります。')
+    }
+    if (input.alignment.jointHypermobility) {
+      alignmentObservations.push('関節弛緩性あり。骨端線がまだ十分に成熟していない兆候の可能性。安定性トレを優先してください。')
+    }
+    if (input.alignment.muscleToneFirm) {
+      alignmentObservations.push('筋トーンしっかり。第二次性徴の進行を裏付けるサインの1つです。')
+    }
+    if (input.alignment.shoeSizeStable) {
+      alignmentObservations.push('靴サイズが半年安定。四肢端の成長停止が始まっている可能性があります。')
+    }
+  }
+
   // 所見
   const notes: string[] = []
   if (!input.fatherHeightCm || !input.motherHeightCm) {
     notes.push('両親身長が未入力です。両方を入力すると Bayley-Pinneau の精度が ±3cm まで上がります。')
   }
   if (!input.sittingHeightCm) {
-    notes.push('座高（cm）を測ると、Mirwald PHV式で成長スパートのピーク年齢が推定できます。')
+    notes.push('座高（cm）を測ると、Mirwald PHV式と骨端線閉鎖予測の精度が上がります。')
   }
   if (sdCat.tone === 'consult') {
     notes.push('現在のSD値が-2.0未満です。低身長の傾向がある場合、小児内分泌専門医への相談を検討してください。')
@@ -442,6 +689,9 @@ export function predictGrowthPro(input: ProGrowthInput): ProGrowthResult {
     finalPrediction,
     phv,
     puberty,
+    tanner,
+    epiphysealClosure,
+    alignmentObservations,
     notes,
     disclaimer:
       '本予測は統計モデルに基づく目安であり、医学的診断ではありません。Bayley-Pinneau簡易法（達成率）・両親身長式・Mirwald PHV式・思春期サイン補正を組み合わせていますが、個人差があり実測との誤差は通常±3〜5cmの範囲で発生します。低身長傾向（-2SD未満）が継続する場合は、小児科または小児内分泌専門医への相談をおすすめします。',
