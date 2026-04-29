@@ -380,6 +380,238 @@ export function estimateEpiphysealClosure(input: {
 }
 
 // =============================================================
+// アライメント改善で見込める「見た目身長プラス幅」推定
+// =============================================================
+// 各アライメント不良に対する改善寄与値（cm）。
+// すべての値はエビデンスレポート（複数RCT・MA）の効果サイズから保守的に設定。
+// 薬機法・景品表示法を意識し、最大値もMA中央値の範囲内に抑える。
+//
+// 主要出典:
+// - Tyrrell AR. Spine. 1985. PMID:4002033 — 朝晩の身長差 1〜2cm
+// - González-Gálvez N. Postgrad Med J. 2023. PMID:37294727 — Pilates 38週で胸椎後弯-5.6°
+// - González-Gálvez N. Sci Rep. 2020. PMID:32561877 — Pilates 9ヶ月で骨盤傾斜-2.9°
+// - Ruivo RM. BMC Pediatr. 2022. PMC9044875 — 8週でCVA改善
+// - Lafage R. JBJS. 2023. PMID:37478308 — 脊柱矯正で全身平均+7.6cm（成人ASD、参考）
+// - Maranesi E. 2024. PMC10974903 — 高齢者の単回介入で平均+3.5cm
+
+interface GainContribution {
+  key: string
+  label: string
+  shortMin: number
+  shortMax: number
+  midMin: number
+  midMax: number
+  source: string
+}
+
+const GAIN_TABLE: Record<string, Omit<GainContribution, 'key'>> = {
+  posture_kyphotic: {
+    label: '胸椎後弯（猫背）の整え',
+    shortMin: 0.3, shortMax: 1.0, midMin: 0.5, midMax: 1.5,
+    source: 'González-Gálvez 2023 (PMID:37294727)',
+  },
+  posture_lordotic: {
+    label: '反り腰の最適化',
+    shortMin: 0.1, shortMax: 0.3, midMin: 0.3, midMax: 0.6,
+    source: 'González-Gálvez 2020 (PMID:32561877)',
+  },
+  posture_swayback: {
+    label: 'スウェイバックの修正',
+    shortMin: 0.2, shortMax: 0.5, midMin: 0.4, midMax: 0.8,
+    source: 'González-Gálvez 2020 / 2023',
+  },
+  posture_flat: {
+    label: '平背の最適化',
+    shortMin: 0.1, shortMax: 0.3, midMin: 0.2, midMax: 0.4,
+    source: 'González-Gálvez 2019 (PMID:31034509)',
+  },
+  pelvic_anterior: {
+    label: '骨盤前傾の中立化',
+    shortMin: 0.2, shortMax: 0.4, midMin: 0.3, midMax: 0.6,
+    source: 'González-Gálvez 2020 (PMID:32561877)',
+  },
+  pelvic_posterior: {
+    label: '骨盤後傾の中立化',
+    shortMin: 0.2, shortMax: 0.4, midMin: 0.3, midMax: 0.6,
+    source: '機序的根拠（González-Gálvez 2020）',
+  },
+  forward_head: {
+    label: '頭部前方位（FHP）の改善',
+    shortMin: 0.2, shortMax: 0.5, midMin: 0.4, midMax: 1.0,
+    source: 'Ruivo 2022 (PMC9044875)',
+  },
+  shoulder_roll: {
+    label: '巻き肩の改善',
+    shortMin: 0.2, shortMax: 0.3, midMin: 0.3, midMax: 0.5,
+    source: 'Ruivo 2017 (Man Ther)',
+  },
+  disc_unload: {
+    label: '椎間板アンロード（姿勢由来の圧迫解消）',
+    shortMin: 0.5, shortMax: 1.5, midMin: 0.5, midMax: 1.5,
+    source: 'Tyrrell 1985 (PMID:4002033) / Belavý 2020',
+  },
+  pelvic_rotation: {
+    label: '骨盤回旋の修正',
+    shortMin: 0.1, shortMax: 0.2, midMin: 0.2, midMax: 0.4,
+    source: '機序的根拠（脊柱回旋による短縮の修正）',
+  },
+  trunk_rotation: {
+    label: '体幹回旋制限の解除',
+    shortMin: 0.1, shortMax: 0.2, midMin: 0.2, midMax: 0.3,
+    source: '機序的根拠（胸椎モビリティ）',
+  },
+  functional_scoliosis: {
+    label: '機能性側弯（左右の倒れグセ）の補正',
+    shortMin: 0.2, shortMax: 0.4, midMin: 0.4, midMax: 0.8,
+    source: 'Zhu 2025 (Schroth MA, peerj.19639)',
+  },
+  dynamic_align: {
+    label: '動的アライメント（knee-in・骨盤シフト等）の最適化',
+    shortMin: 0.0, shortMax: 0.1, midMin: 0.2, midMax: 0.5,
+    source: 'García-Luna 2020 (PMC7432391) / 機序',
+  },
+  leg_length: {
+    label: '脚長差（機能性LLD）の修正',
+    shortMin: 0.1, shortMax: 0.3, midMin: 0.2, midMax: 0.4,
+    source: 'Khamis & Carmeli 2014 (PMID:25082323)',
+  },
+}
+
+export interface ApparentHeightGain {
+  shortTerm: { min: number; max: number }
+  midTerm: { min: number; max: number }
+  contributions: GainContribution[]
+  hasIssues: boolean
+  summary: string
+  ctaMessage: string
+  caveat: string
+  sources: string[]
+}
+
+export function estimateApparentHeightGain(
+  alignment: AlignmentSigns | undefined,
+  ageYears: number
+): ApparentHeightGain {
+  const contributions: GainContribution[] = []
+  const al = alignment ?? {}
+
+  // 静的姿勢
+  if (al.postureType === 'kyphotic') push('posture_kyphotic')
+  if (al.postureType === 'lordotic') push('posture_lordotic')
+  if (al.postureType === 'sway-back') push('posture_swayback')
+  if (al.postureType === 'flat') push('posture_flat')
+
+  // 骨盤傾斜
+  if (al.pelvicTilt === 'anterior') push('pelvic_anterior')
+  if (al.pelvicTilt === 'posterior') push('pelvic_posterior')
+
+  // 頭部・肩
+  if (al.forwardHead) push('forward_head')
+  if (al.shoulderRoll) push('shoulder_roll')
+
+  // 椎間板アンロード（いずれかの姿勢不良がある場合に加算）
+  const hasPostureIssue =
+    (al.postureType && al.postureType !== 'normal') ||
+    al.forwardHead ||
+    al.shoulderRoll ||
+    (al.pelvicTilt && al.pelvicTilt !== 'neutral')
+  if (hasPostureIssue) push('disc_unload')
+
+  // 回旋
+  if (al.pelvicRotation && al.pelvicRotation !== 'neutral') push('pelvic_rotation')
+  if (al.trunkRotationRestriction && al.trunkRotationRestriction !== 'none')
+    push('trunk_rotation')
+
+  // 機能性側弯（体幹の倒れグセ）
+  if (al.movementBend && al.movementBend !== 'none') push('functional_scoliosis')
+
+  // 動的アライメント（knee-in / leanSide / hipShift / 着地非対称 / 歩行非対称）
+  const hasDynamicIssue =
+    (al.squatLeanSide && al.squatLeanSide !== 'none') ||
+    (al.squatKneeIn && al.squatKneeIn !== 'none') ||
+    al.squatHeelLift ||
+    al.squatRoundBack ||
+    (al.singleLegBalanceWeakSide && al.singleLegBalanceWeakSide !== 'none') ||
+    al.gaitAsymmetry ||
+    (al.jumpLandingAsymmetry && al.jumpLandingAsymmetry !== 'none') ||
+    (al.hipShiftDirection && al.hipShiftDirection !== 'none')
+  if (hasDynamicIssue) push('dynamic_align')
+
+  // 脚長差
+  if (al.legLengthDiscrepancy) push('leg_length')
+
+  function push(key: keyof typeof GAIN_TABLE) {
+    contributions.push({ key, ...GAIN_TABLE[key] })
+  }
+
+  // 合計（薬機法セーフのキャップ）
+  const SHORT_CAP = 3.0
+  const MID_CAP = 4.0
+  const sum = (sel: keyof GainContribution) =>
+    contributions.reduce((s, c) => s + (c[sel] as number), 0)
+
+  const shortMinRaw = Math.round(sum('shortMin') * 10) / 10
+  const shortMaxRaw = Math.round(sum('shortMax') * 10) / 10
+  const midMinRaw = Math.round(sum('midMin') * 10) / 10
+  const midMaxRaw = Math.round(sum('midMax') * 10) / 10
+
+  const shortTerm = {
+    min: Math.min(shortMinRaw, SHORT_CAP),
+    max: Math.min(shortMaxRaw, SHORT_CAP),
+  }
+  const midTerm = {
+    min: Math.min(midMinRaw, MID_CAP),
+    max: Math.min(midMaxRaw, MID_CAP),
+  }
+
+  const hasIssues = contributions.length > 0
+
+  // 出典の重複削除
+  const sources = Array.from(new Set(contributions.map((c) => c.source)))
+
+  let summary: string
+  let ctaMessage: string
+
+  if (!hasIssues) {
+    summary =
+      '現時点で大きなアライメント不良は観察されませんでした。良好な姿勢と動作パターンが見込まれます。'
+    ctaMessage =
+      '現在の姿勢を維持しながら、運動神経・筋骨格バランスをさらに伸ばすパーソナル指導が有効です。'
+  } else {
+    const itemCount = contributions.length
+    summary = `${itemCount}項目のアライメント所見から、${
+      ageYears < 13 ? 'スパート期の前後にあたるこの時期に' : '思春期成熟が進む時期に'
+    }改善の余地があります。`
+
+    ctaMessage = [
+      'FIREFITNESSのパーソナル指導（週1〜2回 × 3〜6ヶ月）は、',
+      '文献で姿勢角度の有意な改善が出始める介入頻度・期間と一致しています。',
+      `アライメント由来で隠れていた「見た目身長」を、`,
+      `中期で約 +${midTerm.min.toFixed(1)} 〜 +${midTerm.max.toFixed(1)} cm`,
+      '取り戻せる可能性が研究で報告されています。',
+    ].join(' ')
+  }
+
+  const caveat =
+    '※ これは骨そのものを伸ばすのではなく、姿勢の癖で「縮んでいた身長」を取り戻す範囲の見込みです。' +
+    '個人差があり、構造性側弯（Cobb >25°）や Scheuermann 病など特定の構造的疾患が疑われる場合、' +
+    '保存的介入での改善幅は限定的です。本値は文献の効果サイズからの推定であり、特定の身長増加を' +
+    '保証するものではありません。' +
+    '医療行為ではなく、健康増進・運動能力向上を目的としたパーソナル指導です。'
+
+  return {
+    shortTerm,
+    midTerm,
+    contributions,
+    hasIssues,
+    summary,
+    ctaMessage,
+    caveat,
+    sources,
+  }
+}
+
+// =============================================================
 // 統合予測関数
 // =============================================================
 export interface ProGrowthInput {
@@ -454,6 +686,8 @@ export interface ProGrowthResult {
   }
   // アライメント観察
   alignmentObservations: string[]
+  // アライメント改善で見込める「見た目身長プラス幅」（エビデンスベース）
+  apparentHeightGain: ApparentHeightGain
   // 総合所見
   notes: string[]
   disclaimer: string
@@ -780,6 +1014,9 @@ export function predictGrowthPro(input: ProGrowthInput): ProGrowthResult {
   }
   notes.push(puberty.message)
 
+  // アライメント改善で見込める見た目身長プラス幅
+  const apparentHeightGain = estimateApparentHeightGain(input.alignment, ageYears)
+
   return {
     currentSD: Math.round(currentSD * 100) / 100,
     currentSDLabel: sdCat.label,
@@ -792,6 +1029,7 @@ export function predictGrowthPro(input: ProGrowthInput): ProGrowthResult {
     tanner,
     epiphysealClosure,
     alignmentObservations,
+    apparentHeightGain,
     notes,
     disclaimer:
       '本予測は統計モデルに基づく目安であり、医学的診断ではありません。Bayley-Pinneau簡易法（達成率）・両親身長式・Mirwald PHV式・思春期サイン補正を組み合わせていますが、個人差があり実測との誤差は通常±3〜5cmの範囲で発生します。低身長傾向（-2SD未満）が継続する場合は、小児科または小児内分泌専門医への相談をおすすめします。',

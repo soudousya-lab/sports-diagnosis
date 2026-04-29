@@ -829,6 +829,103 @@ export default function TrainerGrowthForm() {
                   </div>
                 )}
 
+                {/* アライメント改善で見込める「見た目身長プラス幅」（CTA） */}
+                {result.apparentHeightGain.hasIssues && (
+                  <div className="rounded-2xl p-5 border-2 border-blue-300 bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
+                    <p className="text-[10px] tracking-widest text-blue-100 font-bold mb-1">
+                      EVIDENCE-BASED OPPORTUNITY
+                    </p>
+                    <h3 className="text-base md:text-lg font-bold mb-3">
+                      アライメント改善で見込める「見た目身長プラス幅」
+                    </h3>
+                    <p className="text-xs text-blue-100 mb-3 leading-relaxed">
+                      {result.apparentHeightGain.summary}
+                    </p>
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div className="bg-white/10 rounded-xl p-3 backdrop-blur">
+                        <p className="text-[10px] text-blue-100">数週〜1ヶ月（即時）</p>
+                        <p className="text-xl font-bold text-yellow-300">
+                          +{result.apparentHeightGain.shortTerm.min.toFixed(1)}〜
+                          {result.apparentHeightGain.shortTerm.max.toFixed(1)}
+                          <span className="text-xs ml-1">cm</span>
+                        </p>
+                        <p className="text-[10px] text-blue-100 mt-1">
+                          姿勢誘導・椎間板アンロード
+                        </p>
+                      </div>
+                      <div className="bg-white/15 rounded-xl p-3 backdrop-blur border border-yellow-300/40">
+                        <p className="text-[10px] text-blue-100">3〜6ヶ月（中期）</p>
+                        <p className="text-2xl font-bold text-yellow-300">
+                          +{result.apparentHeightGain.midTerm.min.toFixed(1)}〜
+                          {result.apparentHeightGain.midTerm.max.toFixed(1)}
+                          <span className="text-sm ml-1">cm</span>
+                        </p>
+                        <p className="text-[10px] text-blue-100 mt-1">
+                          角度・トレーニング効果
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* 寄与した項目の内訳 */}
+                    <div className="bg-white/5 rounded-xl p-3 mt-3">
+                      <p className="text-[10px] font-bold text-blue-100 mb-2">
+                        寄与している項目（中期見込み内訳）
+                      </p>
+                      <ul className="space-y-1">
+                        {result.apparentHeightGain.contributions.map((c) => (
+                          <li
+                            key={c.key}
+                            className="flex items-baseline justify-between text-[11px] text-blue-50 leading-relaxed"
+                          >
+                            <span className="flex-1 pr-2">{c.label}</span>
+                            <span className="text-yellow-200 font-bold whitespace-nowrap">
+                              +{c.midMin.toFixed(1)}〜{c.midMax.toFixed(1)} cm
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* CTA */}
+                    <div className="mt-4 pt-3 border-t border-blue-400/40">
+                      <p className="text-xs text-white leading-relaxed">
+                        💪 {result.apparentHeightGain.ctaMessage}
+                      </p>
+                    </div>
+
+                    {/* 注意 */}
+                    <p className="text-[10px] text-blue-100/80 mt-3 leading-relaxed">
+                      {result.apparentHeightGain.caveat}
+                    </p>
+
+                    {/* 出典 */}
+                    <details className="mt-3 group">
+                      <summary className="text-[10px] text-blue-200 cursor-pointer font-bold hover:text-white">
+                        📚 主要出典を表示（{result.apparentHeightGain.sources.length}件）
+                      </summary>
+                      <ul className="mt-2 space-y-0.5 text-[10px] text-blue-100/90">
+                        {result.apparentHeightGain.sources.map((s, i) => (
+                          <li key={i}>• {s}</li>
+                        ))}
+                      </ul>
+                    </details>
+                  </div>
+                )}
+
+                {/* 良好な場合の専用メッセージ */}
+                {!result.apparentHeightGain.hasIssues && (
+                  <div className="rounded-xl p-4 border border-emerald-300 bg-emerald-50">
+                    <p className="text-[10px] font-bold text-emerald-800 mb-1">
+                      アライメント評価
+                    </p>
+                    <p className="text-xs text-emerald-900 leading-relaxed">
+                      {result.apparentHeightGain.summary}
+                      {' '}
+                      {result.apparentHeightGain.ctaMessage}
+                    </p>
+                  </div>
+                )}
+
                 {/* 全予測手法の比較 */}
                 <div>
                   <p className="text-[10px] font-bold text-gray-700 mb-2">
