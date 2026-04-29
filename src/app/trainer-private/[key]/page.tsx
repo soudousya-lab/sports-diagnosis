@@ -20,10 +20,11 @@ export default async function TrainerPrivatePage({
   params: Promise<RouteParams>
 }) {
   const { key } = await params
-  const expected = process.env.TRAINER_PRIVATE_KEY
+  // 環境変数を優先、未設定時は暫定キーへフォールバック
+  // ※ 暫定キーは Vercel に TRAINER_PRIVATE_KEY を登録したら自動的に切り替わる
+  const expected = process.env.TRAINER_PRIVATE_KEY ?? 'okada-firefitness-quick-2026-jx9m'
 
-  // 環境変数未設定 or キー不一致は 404 で偽装
-  if (!expected || key !== expected) {
+  if (key !== expected) {
     notFound()
   }
 
