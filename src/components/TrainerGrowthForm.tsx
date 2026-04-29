@@ -685,16 +685,20 @@ export default function TrainerGrowthForm() {
 
         {/* ===== 結果カード ===== */}
         <section>
-          {/* PDFに出力される範囲（フラットデザイン、A4縦想定） */}
+          {/* PDFに出力される範囲（読みやすさ優先・必要に応じてA4 1〜2ページ） */}
           <div
             ref={reportRef}
-            style={{ width: '100%', maxWidth: 760, backgroundColor: '#ffffff' }}
-            className="border border-gray-300 p-6 space-y-4 text-gray-900"
+            style={{
+              width: '100%',
+              maxWidth: 760,
+              backgroundColor: '#ffffff',
+            }}
+            className="border border-gray-300 px-6 py-5 text-gray-900"
           >
             {/* ヘッダー */}
-            <div className="border-b-2 border-gray-900 pb-3">
+            <div className="border-b-2 border-gray-900 pb-3 mb-4">
               <div className="flex items-baseline justify-between">
-                <p className="text-[10px] tracking-[0.25em] text-gray-500 font-bold">
+                <p className="text-[10px] tracking-[0.2em] text-gray-500 font-bold">
                   NOBISHIRO KIDS GROWTH KARTE
                 </p>
                 <p className="text-[10px] text-gray-500">計測日 {measuredAt}</p>
@@ -717,8 +721,8 @@ export default function TrainerGrowthForm() {
             )}
 
             {result && (
-              <>
-                {/* メイン予測サマリー（4ボックス） */}
+              <div className="space-y-4">
+                {/* 1. 成長予測サマリー（4ボックス） */}
                 <SectionTitle
                   icon={<HiOutlineTrendingUp className="w-4 h-4 text-blue-700" />}
                   label="成長予測サマリー"
@@ -729,7 +733,7 @@ export default function TrainerGrowthForm() {
                     title="18歳時点の予測身長"
                     value={`${result.finalPrediction.center}`}
                     unit="cm"
-                    sub={`予測幅 ${result.finalPrediction.min} 〜 ${result.finalPrediction.max} cm`}
+                    sub={`予測幅 ${result.finalPrediction.min}〜${result.finalPrediction.max}cm`}
                     accent="border-blue-500"
                   />
                   <SummaryBox
@@ -761,14 +765,14 @@ export default function TrainerGrowthForm() {
                   />
                 </div>
 
-                {/* 成長スパートの位置 */}
+                {/* 2. 成長スパートの位置 */}
                 <SectionTitle
                   icon={<HiOutlineHeart className="w-4 h-4 text-purple-700" />}
                   label="成長スパートの位置"
                   bar="bg-purple-600"
                 />
                 <div className="border-l-4 border-purple-500 bg-purple-50 px-4 py-3">
-                  <div className="flex items-baseline justify-between mb-1">
+                  <div className="flex items-baseline justify-between mb-1.5">
                     <span className="text-xs font-bold text-purple-800">
                       現在の段階：{result.tanner.label}
                     </span>
@@ -788,37 +792,8 @@ export default function TrainerGrowthForm() {
                   )}
                 </div>
 
-                {/* 骨端線閉鎖予測の補足 */}
-                <div className="border-l-4 border-orange-500 bg-orange-50 px-4 py-3">
-                  <p className="text-xs font-bold text-orange-800 mb-1">
-                    骨の成長が止まる時期について
-                  </p>
-                  <p className="text-xs text-gray-800 leading-relaxed">
-                    {result.epiphysealClosure.message}
-                  </p>
-                </div>
-
-                {/* アライメント所見 */}
-                {result.alignmentObservations.length > 0 && (
-                  <>
-                    <SectionTitle
-                      icon={<HiOutlineClipboardCheck className="w-4 h-4 text-gray-800" />}
-                      label="今日の体験で観察したこと"
-                      bar="bg-gray-700"
-                    />
-                    <ul className="space-y-2 text-xs text-gray-800 leading-relaxed pl-2">
-                      {result.alignmentObservations.map((obs, i) => (
-                        <li key={i} className="flex gap-2">
-                          <span className="text-gray-400 flex-shrink-0">•</span>
-                          <span>{obs}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-
-                {/* アライメント改善で見込めるプラス幅（PDF：データのみ） */}
-                {result.apparentHeightGain.hasIssues && (
+                {/* 3. 姿勢を整えることで見込める見た目身長 */}
+                {result.apparentHeightGain.hasIssues ? (
                   <>
                     <SectionTitle
                       icon={<HiOutlineSparkles className="w-4 h-4 text-blue-700" />}
@@ -826,10 +801,7 @@ export default function TrainerGrowthForm() {
                       bar="bg-blue-600"
                     />
                     <div className="border border-gray-300 p-4">
-                      <p className="text-xs text-gray-700 leading-relaxed mb-3">
-                        {result.apparentHeightGain.summary}
-                      </p>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-2 gap-3 mb-3">
                         <div className="border-l-4 border-blue-400 bg-blue-50 p-3">
                           <p className="text-[10px] text-gray-700">数週〜1ヶ月（即時）</p>
                           <p className="text-xl font-bold text-blue-900 mt-1">
@@ -838,7 +810,7 @@ export default function TrainerGrowthForm() {
                             <span className="text-xs font-normal ml-1">cm</span>
                           </p>
                           <p className="text-[10px] text-gray-600 mt-1">
-                            姿勢の整えと圧迫の解消による
+                            姿勢の整えと圧迫の解消
                           </p>
                         </div>
                         <div className="border-l-4 border-orange-400 bg-orange-50 p-3">
@@ -853,10 +825,8 @@ export default function TrainerGrowthForm() {
                           </p>
                         </div>
                       </div>
-
-                      {/* 寄与した項目の内訳 */}
-                      <div className="mt-4">
-                        <p className="text-[11px] font-bold text-gray-700 mb-2">
+                      <div>
+                        <p className="text-[11px] font-bold text-gray-700 mb-1.5">
                           内訳（中期見込み）
                         </p>
                         <ul className="space-y-1">
@@ -873,16 +843,12 @@ export default function TrainerGrowthForm() {
                           ))}
                         </ul>
                       </div>
-
                       <p className="text-[10px] text-gray-500 mt-3 leading-relaxed">
-                        ※ これは骨を伸ばすのではなく、姿勢の癖で「縮んでいた身長」を取り戻す範囲の見込みです。個人差があります。
+                        ※ 骨を伸ばすのではなく、姿勢の癖で「縮んでいた身長」を取り戻す範囲の見込みです。個人差があります。
                       </p>
                     </div>
                   </>
-                )}
-
-                {/* 良好な場合 */}
-                {!result.apparentHeightGain.hasIssues && (
+                ) : (
                   <div className="border-l-4 border-emerald-500 bg-emerald-50 px-4 py-3">
                     <p className="text-xs font-bold text-emerald-800 mb-1">
                       アライメント評価
@@ -893,13 +859,13 @@ export default function TrainerGrowthForm() {
                   </div>
                 )}
 
-                {/* 補足所見 */}
+                {/* 4. 補足の所見 */}
                 <SectionTitle
                   icon={<HiOutlineExclamationCircle className="w-4 h-4 text-gray-700" />}
                   label="補足の所見"
                   bar="bg-gray-500"
                 />
-                <ul className="space-y-1.5 text-xs text-gray-700 leading-relaxed pl-2">
+                <ul className="space-y-1 text-xs text-gray-700 leading-relaxed pl-1">
                   {result.notes.map((n, i) => (
                     <li key={i} className="flex gap-2">
                       <span className="text-gray-400 flex-shrink-0">•</span>
@@ -908,17 +874,10 @@ export default function TrainerGrowthForm() {
                   ))}
                 </ul>
 
-                {/* 免責 */}
-                <div className="border-t border-gray-300 pt-3 mt-4">
-                  <p className="text-[10px] text-gray-500 leading-relaxed">
-                    {result.disclaimer}
-                  </p>
+                <div className="text-[10px] text-gray-400 text-center pt-3 mt-3 border-t border-gray-200">
+                  FIREFITNESS Junior / NOBISHIRO KIDS
                 </div>
-
-                <div className="text-[10px] text-gray-400 text-center pt-3 border-t border-gray-200">
-                  FIREFITNESS Junior / NOBISHIRO KIDS — 計測日 {measuredAt}
-                </div>
-              </>
+              </div>
             )}
           </div>
 
@@ -1030,16 +989,20 @@ function SectionTitle({
   icon,
   label,
   bar,
+  compact = false,
 }: {
   icon: React.ReactNode
   label: string
   bar: string
+  compact?: boolean
 }) {
   return (
-    <div className="flex items-center gap-2 pt-2">
+    <div className={`flex items-center gap-2 ${compact ? 'pt-1' : 'pt-2'}`}>
       <span className={`inline-block w-1 h-5 ${bar}`} />
       {icon}
-      <h3 className="text-sm font-bold text-gray-900">{label}</h3>
+      <h3 className={`font-bold text-gray-900 ${compact ? 'text-[13px]' : 'text-sm'}`}>
+        {label}
+      </h3>
     </div>
   )
 }
@@ -1050,21 +1013,37 @@ function SummaryBox({
   unit,
   sub,
   accent,
+  compact = false,
 }: {
   title: string
   value: string
   unit: string
   sub: string
   accent: string
+  compact?: boolean
 }) {
   return (
-    <div className={`border-l-4 ${accent} bg-gray-50 p-3`}>
-      <p className="text-[10px] text-gray-600 font-medium">{title}</p>
-      <p className="text-2xl font-bold text-gray-900 mt-1">
-        {value}
-        {unit && <span className="text-sm font-normal ml-1">{unit}</span>}
+    <div
+      className={`border-l-4 ${accent} bg-gray-50 ${compact ? 'px-2 py-1.5' : 'p-3'}`}
+    >
+      <p className={`text-gray-600 font-medium ${compact ? 'text-[10px]' : 'text-[10px]'}`}>
+        {title}
       </p>
-      <p className="text-[10px] text-gray-600 mt-1 leading-snug">{sub}</p>
+      <p
+        className={`font-bold text-gray-900 ${compact ? 'text-lg mt-0.5' : 'text-2xl mt-1'}`}
+      >
+        {value}
+        {unit && (
+          <span
+            className={`font-normal ml-1 ${compact ? 'text-[10px]' : 'text-sm'}`}
+          >
+            {unit}
+          </span>
+        )}
+      </p>
+      <p className={`text-gray-600 leading-snug mt-1 ${compact ? 'text-[9px]' : 'text-[10px]'}`}>
+        {sub}
+      </p>
     </div>
   )
 }
