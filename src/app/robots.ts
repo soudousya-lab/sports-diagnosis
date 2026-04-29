@@ -13,6 +13,7 @@ export default function robots(): MetadataRoute.Robots {
           '/login',
           '/edit/',
           '/nbs-ctrl-8x7k2m/',
+          '/trainer-private/',
         ],
       },
     ],
