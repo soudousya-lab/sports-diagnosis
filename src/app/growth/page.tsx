@@ -39,7 +39,7 @@ export default function GrowthPage() {
             <Link href="/blog" className="text-gray-600 hover:text-blue-600">
               ブログ
             </Link>
-            <Link href="/quick" className="text-gray-600 hover:text-blue-600">
+            <Link href="/new" className="text-gray-600 hover:text-blue-600">
               運動診断
             </Link>
             <Link href="/business" className="text-gray-400 hover:text-blue-600">

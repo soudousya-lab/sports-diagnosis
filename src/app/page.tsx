@@ -36,7 +36,7 @@ const features = [
     badge: 'bg-emerald-600 text-white',
   },
   {
-    href: '/quick',
+    href: '/new',
     label: 'ATHLETIC',
     title: '運動能力 7項目クイック診断',
     body: '握力・ジャンプ・反復横跳びなど7項目で運動能力をスコア化。同年齢平均との偏差値が見えます。',
@@ -65,7 +65,7 @@ export default function HomePage() {
             <Link href="/blog" className="text-gray-600 hover:text-blue-600">
               ブログ
             </Link>
-            <Link href="/quick" className="text-gray-600 hover:text-blue-600">
+            <Link href="/new" className="text-gray-600 hover:text-blue-600">
               運動診断
             </Link>
             <Link href="/business" className="text-gray-400 hover:text-blue-600">

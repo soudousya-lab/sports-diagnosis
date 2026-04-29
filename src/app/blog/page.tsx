@@ -41,7 +41,7 @@ export default function BlogIndex() {
             <Link href="/blog" className="text-blue-600 font-medium">
               ブログ
             </Link>
-            <Link href="/quick" className="text-gray-600 hover:text-blue-600">
+            <Link href="/new" className="text-gray-600 hover:text-blue-600">
               運動診断
             </Link>
             <Link href="/business" className="text-gray-400 hover:text-blue-600">
@@ -118,7 +118,7 @@ export default function BlogIndex() {
             10 分の計測で数値化します。
           </p>
           <Link
-            href="/quick"
+            href="/new"
             className="inline-block bg-white text-blue-600 font-bold py-3 px-8 rounded-full hover:bg-blue-50 transition-colors"
           >
             無料で診断を試す
