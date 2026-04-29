@@ -3,9 +3,7 @@
 import { useMemo, useRef, useState } from 'react'
 import {
   HiOutlineBookOpen,
-  HiOutlineClipboardCheck,
   HiOutlineDocumentReport,
-  HiOutlineExclamationCircle,
   HiOutlineHeart,
   HiOutlineSparkles,
   HiOutlineTrendingUp,
@@ -784,7 +782,7 @@ export default function TrainerGrowthForm() {
                     </div>
                   </div>
 
-                  {/* 2. 成長スパートの位置 */}
+                  {/* 2. 成長スパートの位置（PHVあり=PHV優先 / なし=Tannerのみ） */}
                   <div>
                     <SectionTitle
                       icon={<HiOutlineHeart className="w-4 h-4 text-purple-700" />}
@@ -794,7 +792,8 @@ export default function TrainerGrowthForm() {
                     <div className="border-l-4 border-purple-500 bg-purple-50 px-4 py-3 mt-3">
                       <div className="flex items-baseline justify-between mb-2">
                         <span className="text-sm font-bold text-purple-800">
-                          現在の段階：{result.tanner.label}
+                          現在の段階：
+                          {result.phv ? result.phv.phase : result.tanner.label}
                         </span>
                         {result.phv && (
                           <span className="text-xs text-purple-700">
@@ -803,13 +802,8 @@ export default function TrainerGrowthForm() {
                         )}
                       </div>
                       <p className="text-sm text-gray-800 leading-relaxed">
-                        {result.tanner.message}
+                        {result.phv ? result.phv.message : result.tanner.message}
                       </p>
-                      {result.phv && (
-                        <p className="text-sm text-gray-700 mt-2 leading-relaxed">
-                          {result.phv.message}
-                        </p>
-                      )}
                     </div>
                   </div>
                 </div>
@@ -914,22 +908,6 @@ export default function TrainerGrowthForm() {
                     </div>
                   )}
 
-                  {/* 4. 補足の所見 */}
-                  <div>
-                    <SectionTitle
-                      icon={<HiOutlineExclamationCircle className="w-4 h-4 text-gray-700" />}
-                      label="補足の所見"
-                      bar="bg-gray-500"
-                    />
-                    <ul className="space-y-1.5 text-sm text-gray-700 leading-relaxed pl-1 mt-3">
-                      {result.notes.map((n, i) => (
-                        <li key={i} className="flex gap-2">
-                          <span className="text-gray-400 flex-shrink-0">•</span>
-                          <span>{n}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
                 </div>
 
                 <div className="text-[10px] text-gray-400 text-center pt-3 border-t border-gray-200 mt-auto">
