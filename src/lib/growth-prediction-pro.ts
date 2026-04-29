@@ -220,15 +220,28 @@ export function pubertyMultiplier(sex: Sex, signs: PubertySigns): {
 // アライメント評価（姿勢観察）
 // =============================================================
 export interface AlignmentSigns {
-  // 全体姿勢
+  // ===== 静的姿勢 =====
   postureType?: 'normal' | 'kyphotic' | 'lordotic' | 'flat' | 'sway-back' // 正常/猫背/反り腰/平背/スウェイバック
   pelvicTilt?: 'neutral' | 'anterior' | 'posterior' // 骨盤傾斜
-  // 下肢
   legAlignment?: 'normal' | 'genu-valgum' | 'genu-varum' // 正常/X脚/O脚
-  // 上肢
   shoulderRoll?: boolean // 巻き肩
   forwardHead?: boolean // 頭部前方位
-  // 関節成熟度の所見
+  // ===== 回旋（左右非対称・静的） =====
+  pelvicRotation?: 'neutral' | 'left-forward' | 'right-forward' // 骨盤の回旋
+  shoulderRotation?: 'neutral' | 'left-forward' | 'right-forward' // 肩の回旋
+  trunkRotationRestriction?: 'none' | 'left' | 'right' | 'both' // 体幹回旋の制限側
+  legLengthDiscrepancy?: boolean // 脚長差あり
+  // ===== 動作観察（動的アライメント） =====
+  movementBend?: 'none' | 'left' | 'right' // 動作中の体幹の曲がりグセ（左/右に倒れる）
+  squatLeanSide?: 'none' | 'left' | 'right' // スクワット時の重心流れ
+  squatKneeIn?: 'none' | 'left' | 'right' | 'both' // スクワット時のknee-in（膝内入り）
+  squatHeelLift?: boolean // しゃがんだ時にかかとが浮く
+  squatRoundBack?: boolean // しゃがみで腰が丸まる
+  singleLegBalanceWeakSide?: 'none' | 'left' | 'right' // 片足立ちで弱い側
+  gaitAsymmetry?: boolean // 歩行・走行に左右非対称
+  jumpLandingAsymmetry?: 'none' | 'left' | 'right' // 跳躍着地が片側流れ
+  hipShiftDirection?: 'none' | 'left' | 'right' // 動作中に骨盤が片側にシフト
+  // ===== 関節成熟度の所見 =====
   jointHypermobility?: boolean // 関節弛緩性（思春期前に多い）
   muscleToneFirm?: boolean // 筋トーンがしっかりしている（成熟兆候）
   shoeSizeStable?: boolean // 過去半年で靴サイズが変わっていない（成長停止兆候）
@@ -649,6 +662,93 @@ export function predictGrowthPro(input: ProGrowthInput): ProGrowthResult {
     }
     if (input.alignment.forwardHead) {
       alignmentObservations.push('頭部前方位。頭の重みが背筋・首に集中。集中力低下や頭痛の原因にもなります。')
+    }
+    if (input.alignment.pelvicRotation && input.alignment.pelvicRotation !== 'neutral') {
+      const side = input.alignment.pelvicRotation === 'left-forward' ? '左' : '右'
+      alignmentObservations.push(
+        `骨盤が${side}前方に回旋。同側の腸腰筋・大腿筋膜張筋の短縮と反対側の臀筋弱化が考えられます。回旋を整えると腰部・膝のストレスが軽減し、姿勢の左右差が見た目身長にも影響します。`
+      )
+    }
+    if (input.alignment.shoulderRotation && input.alignment.shoulderRotation !== 'neutral') {
+      const side = input.alignment.shoulderRotation === 'left-forward' ? '左' : '右'
+      alignmentObservations.push(
+        `肩が${side}前方に回旋。同側の小胸筋短縮・前鋸筋優位が想定されます。骨盤回旋と連動するパターンが多く、上下のリンクで観察を。`
+      )
+    }
+    if (input.alignment.trunkRotationRestriction && input.alignment.trunkRotationRestriction !== 'none') {
+      const side = input.alignment.trunkRotationRestriction === 'both' ? '両側' : input.alignment.trunkRotationRestriction === 'left' ? '左方向' : '右方向'
+      alignmentObservations.push(
+        `体幹回旋に${side}制限。胸椎モビリティ不足や広背筋・腹斜筋の左右差が原因。投球動作・スイング系競技でパフォーマンスを大きく左右します。`
+      )
+    }
+    if (input.alignment.legLengthDiscrepancy) {
+      alignmentObservations.push(
+        '脚長差あり。骨格性（実脚長差）と機能性（骨盤回旋に伴う見かけの差）の鑑別が必要。後者なら回旋の修正で解消されます。'
+      )
+    }
+
+    // ===== 動作観察（動的アライメント） =====
+    if (input.alignment.movementBend && input.alignment.movementBend !== 'none') {
+      const side = input.alignment.movementBend === 'left' ? '左' : '右'
+      alignmentObservations.push(
+        `動作中に体幹が${side}に倒れる癖。${side}側の腰方形筋・広背筋の優位、反対側の体幹側屈筋弱化が想定されます。長期化すると側弯傾向に発展する可能性。コア左右差の補正トレが必要です。`
+      )
+    }
+    if (input.alignment.squatLeanSide && input.alignment.squatLeanSide !== 'none') {
+      const side = input.alignment.squatLeanSide === 'left' ? '左' : '右'
+      alignmentObservations.push(
+        `スクワット時に重心が${side}に流れる。${side}股関節モビリティ低下 or 反対側の臀筋弱化のサイン。スプリットスクワット等の片側種目で左右差を埋めると改善します。`
+      )
+    }
+    if (input.alignment.squatKneeIn && input.alignment.squatKneeIn !== 'none') {
+      const tag =
+        input.alignment.squatKneeIn === 'both'
+          ? '両側'
+          : input.alignment.squatKneeIn === 'left'
+            ? '左'
+            : '右'
+      alignmentObservations.push(
+        `スクワットで${tag}膝が内側に入る（knee-in）。中臀筋弱化と内転筋優位、足関節背屈制限が原因。サッカー・バスケ・ジャンプ系競技でのケガリスク（ACL損傷等）が高い兆候です。`
+      )
+    }
+    if (input.alignment.squatHeelLift) {
+      alignmentObservations.push(
+        'しゃがみでかかとが浮く。足関節背屈制限（ふくらはぎ短縮や距骨可動性低下）。腓腹筋・ヒラメ筋のリリース＋背屈モビリティで改善余地あり。'
+      )
+    }
+    if (input.alignment.squatRoundBack) {
+      alignmentObservations.push(
+        'しゃがみで腰が丸まる。胸椎モビリティ不足・股関節屈曲制限・体幹剛性不足の混合パターン。デッドリフト系の負荷でケガリスク高。先にモビリティ改善を。'
+      )
+    }
+    if (
+      input.alignment.singleLegBalanceWeakSide &&
+      input.alignment.singleLegBalanceWeakSide !== 'none'
+    ) {
+      const side = input.alignment.singleLegBalanceWeakSide === 'left' ? '左' : '右'
+      alignmentObservations.push(
+        `片足立ちで${side}側が弱い。中臀筋・足底感覚・体性感覚のバランスが${side}で低下。日常で${side}片足立ち30秒×3、不整地での片足ホールドが効きます。`
+      )
+    }
+    if (input.alignment.gaitAsymmetry) {
+      alignmentObservations.push(
+        '歩行・走行に左右非対称あり。骨盤回旋・脚長差・足底荷重の偏りなど複合要因の可能性。動画での歩行解析が望ましいレベルです。'
+      )
+    }
+    if (
+      input.alignment.jumpLandingAsymmetry &&
+      input.alignment.jumpLandingAsymmetry !== 'none'
+    ) {
+      const side = input.alignment.jumpLandingAsymmetry === 'left' ? '左' : '右'
+      alignmentObservations.push(
+        `跳躍着地が${side}側に流れる。${side}下肢への荷重偏りで膝・足首の慢性ストレスがかかりやすい状態。両足均等着地のドリルで補正を。`
+      )
+    }
+    if (input.alignment.hipShiftDirection && input.alignment.hipShiftDirection !== 'none') {
+      const side = input.alignment.hipShiftDirection === 'left' ? '左' : '右'
+      alignmentObservations.push(
+        `動作中に骨盤が${side}にシフト。同側の股関節内転・反対側臀筋弱化が想定されます。サイドブリッジ・モンスターウォーク等で側方安定性を獲得してください。`
+      )
     }
     if (input.alignment.jointHypermobility) {
       alignmentObservations.push('関節弛緩性あり。骨端線がまだ十分に成熟していない兆候の可能性。安定性トレを優先してください。')

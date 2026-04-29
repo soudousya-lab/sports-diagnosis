@@ -12,6 +12,10 @@ import { Sex } from '@/lib/growth-prediction'
 type PostureType = NonNullable<AlignmentSigns['postureType']>
 type PelvicTilt = NonNullable<AlignmentSigns['pelvicTilt']>
 type LegAlignment = NonNullable<AlignmentSigns['legAlignment']>
+type Rotation = NonNullable<AlignmentSigns['pelvicRotation']>
+type TrunkRotRestriction = NonNullable<AlignmentSigns['trunkRotationRestriction']>
+type Side = 'none' | 'left' | 'right'
+type SquatKneeIn = NonNullable<AlignmentSigns['squatKneeIn']>
 
 export default function TrainerGrowthForm() {
   // 基本
@@ -43,12 +47,29 @@ export default function TrainerGrowthForm() {
   const [menarche, setMenarche] = useState(false)
   const [menarcheMonthsAgo, setMenarcheMonthsAgo] = useState<number | ''>('')
 
-  // アライメント評価
+  // 静的アライメント
   const [postureType, setPostureType] = useState<PostureType | ''>('')
   const [pelvicTilt, setPelvicTilt] = useState<PelvicTilt | ''>('')
   const [legAlignment, setLegAlignment] = useState<LegAlignment | ''>('')
   const [shoulderRoll, setShoulderRoll] = useState(false)
   const [forwardHead, setForwardHead] = useState(false)
+  // 回旋（左右非対称）
+  const [pelvicRotation, setPelvicRotation] = useState<Rotation>('neutral')
+  const [shoulderRotation, setShoulderRotation] = useState<Rotation>('neutral')
+  const [trunkRotationRestriction, setTrunkRotationRestriction] =
+    useState<TrunkRotRestriction>('none')
+  const [legLengthDiscrepancy, setLegLengthDiscrepancy] = useState(false)
+  // 動作観察
+  const [movementBend, setMovementBend] = useState<Side>('none')
+  const [squatLeanSide, setSquatLeanSide] = useState<Side>('none')
+  const [squatKneeIn, setSquatKneeIn] = useState<SquatKneeIn>('none')
+  const [squatHeelLift, setSquatHeelLift] = useState(false)
+  const [squatRoundBack, setSquatRoundBack] = useState(false)
+  const [singleLegBalanceWeakSide, setSingleLegBalanceWeakSide] = useState<Side>('none')
+  const [gaitAsymmetry, setGaitAsymmetry] = useState(false)
+  const [jumpLandingAsymmetry, setJumpLandingAsymmetry] = useState<Side>('none')
+  const [hipShiftDirection, setHipShiftDirection] = useState<Side>('none')
+  // 関節成熟度
   const [jointHypermobility, setJointHypermobility] = useState(false)
   const [muscleToneFirm, setMuscleToneFirm] = useState(false)
   const [shoeSizeStable, setShoeSizeStable] = useState(false)
@@ -90,6 +111,19 @@ export default function TrainerGrowthForm() {
       legAlignment: legAlignment || undefined,
       shoulderRoll,
       forwardHead,
+      pelvicRotation,
+      shoulderRotation,
+      trunkRotationRestriction,
+      legLengthDiscrepancy,
+      movementBend,
+      squatLeanSide,
+      squatKneeIn,
+      squatHeelLift,
+      squatRoundBack,
+      singleLegBalanceWeakSide,
+      gaitAsymmetry,
+      jumpLandingAsymmetry,
+      hipShiftDirection,
       jointHypermobility,
       muscleToneFirm,
       shoeSizeStable,
@@ -139,6 +173,19 @@ export default function TrainerGrowthForm() {
     legAlignment,
     shoulderRoll,
     forwardHead,
+    pelvicRotation,
+    shoulderRotation,
+    trunkRotationRestriction,
+    legLengthDiscrepancy,
+    movementBend,
+    squatLeanSide,
+    squatKneeIn,
+    squatHeelLift,
+    squatRoundBack,
+    singleLegBalanceWeakSide,
+    gaitAsymmetry,
+    jumpLandingAsymmetry,
+    hipShiftDirection,
     jointHypermobility,
     muscleToneFirm,
     shoeSizeStable,
@@ -439,6 +486,160 @@ export default function TrainerGrowthForm() {
             <div className="grid grid-cols-2 gap-2 mt-3">
               <Check label="巻き肩" checked={shoulderRoll} onChange={setShoulderRoll} />
               <Check label="頭部前方位" checked={forwardHead} onChange={setForwardHead} />
+            </div>
+          </div>
+
+          {/* 回旋（左右非対称） */}
+          <div>
+            <h2 className="text-sm font-bold text-blue-700 mb-3">
+              回旋・左右非対称（静的）
+            </h2>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="骨盤の回旋">
+                <select
+                  value={pelvicRotation}
+                  onChange={(e) => setPelvicRotation(e.target.value as Rotation)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                >
+                  <option value="neutral">中立</option>
+                  <option value="left-forward">左が前に出ている</option>
+                  <option value="right-forward">右が前に出ている</option>
+                </select>
+              </Field>
+              <Field label="肩の回旋">
+                <select
+                  value={shoulderRotation}
+                  onChange={(e) => setShoulderRotation(e.target.value as Rotation)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                >
+                  <option value="neutral">中立</option>
+                  <option value="left-forward">左が前に出ている</option>
+                  <option value="right-forward">右が前に出ている</option>
+                </select>
+              </Field>
+              <Field label="体幹回旋の制限">
+                <select
+                  value={trunkRotationRestriction}
+                  onChange={(e) =>
+                    setTrunkRotationRestriction(e.target.value as TrunkRotRestriction)
+                  }
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                >
+                  <option value="none">なし</option>
+                  <option value="left">左方向に制限</option>
+                  <option value="right">右方向に制限</option>
+                  <option value="both">両方向に制限</option>
+                </select>
+              </Field>
+              <Check
+                label="脚長差あり（実 or 機能性）"
+                checked={legLengthDiscrepancy}
+                onChange={setLegLengthDiscrepancy}
+              />
+            </div>
+          </div>
+
+          {/* 動作観察 */}
+          <div>
+            <h2 className="text-sm font-bold text-blue-700 mb-3">
+              動作観察（動的アライメント）
+            </h2>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="動作中の体幹の倒れグセ">
+                <select
+                  value={movementBend}
+                  onChange={(e) => setMovementBend(e.target.value as Side)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                >
+                  <option value="none">なし</option>
+                  <option value="left">左に倒れる</option>
+                  <option value="right">右に倒れる</option>
+                </select>
+              </Field>
+              <Field label="スクワット時の重心流れ">
+                <select
+                  value={squatLeanSide}
+                  onChange={(e) => setSquatLeanSide(e.target.value as Side)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                >
+                  <option value="none">なし</option>
+                  <option value="left">左に流れる</option>
+                  <option value="right">右に流れる</option>
+                </select>
+              </Field>
+              <Field label="スクワット時の膝の内入り">
+                <select
+                  value={squatKneeIn}
+                  onChange={(e) => setSquatKneeIn(e.target.value as SquatKneeIn)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                >
+                  <option value="none">なし</option>
+                  <option value="left">左のみ</option>
+                  <option value="right">右のみ</option>
+                  <option value="both">両側</option>
+                </select>
+              </Field>
+              <Field label="片足立ちで弱い側">
+                <select
+                  value={singleLegBalanceWeakSide}
+                  onChange={(e) =>
+                    setSingleLegBalanceWeakSide(e.target.value as Side)
+                  }
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                >
+                  <option value="none">左右差なし</option>
+                  <option value="left">左が弱い</option>
+                  <option value="right">右が弱い</option>
+                </select>
+              </Field>
+              <Field label="跳躍着地の片側流れ">
+                <select
+                  value={jumpLandingAsymmetry}
+                  onChange={(e) => setJumpLandingAsymmetry(e.target.value as Side)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                >
+                  <option value="none">なし</option>
+                  <option value="left">左に流れる</option>
+                  <option value="right">右に流れる</option>
+                </select>
+              </Field>
+              <Field label="動作中の骨盤シフト">
+                <select
+                  value={hipShiftDirection}
+                  onChange={(e) => setHipShiftDirection(e.target.value as Side)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                >
+                  <option value="none">中立</option>
+                  <option value="left">左にシフト</option>
+                  <option value="right">右にシフト</option>
+                </select>
+              </Field>
+            </div>
+            <div className="grid grid-cols-2 gap-2 mt-3">
+              <Check
+                label="しゃがみで踵が浮く"
+                checked={squatHeelLift}
+                onChange={setSquatHeelLift}
+              />
+              <Check
+                label="しゃがみで腰が丸まる"
+                checked={squatRoundBack}
+                onChange={setSquatRoundBack}
+              />
+              <Check
+                label="歩行・走行に左右非対称"
+                checked={gaitAsymmetry}
+                onChange={setGaitAsymmetry}
+              />
+            </div>
+          </div>
+
+          {/* 関節成熟度 */}
+          <div>
+            <h2 className="text-sm font-bold text-blue-700 mb-3">
+              関節・成熟度の所見
+            </h2>
+            <div className="grid grid-cols-2 gap-2">
               <Check
                 label="関節弛緩性あり（成熟前傾向）"
                 checked={jointHypermobility}
