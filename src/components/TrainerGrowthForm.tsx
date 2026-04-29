@@ -2,6 +2,15 @@
 
 import { useMemo, useRef, useState } from 'react'
 import {
+  HiOutlineBookOpen,
+  HiOutlineClipboardCheck,
+  HiOutlineDocumentReport,
+  HiOutlineExclamationCircle,
+  HiOutlineHeart,
+  HiOutlineSparkles,
+  HiOutlineTrendingUp,
+} from 'react-icons/hi'
+import {
   AlignmentSigns,
   ProGrowthInput,
   PubertySigns,
@@ -256,9 +265,10 @@ export default function TrainerGrowthForm() {
           <button
             onClick={exportPDF}
             disabled={!result || pdfLoading}
-            className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-600 text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors"
+            className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-600 text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors"
           >
-            {pdfLoading ? 'PDF生成中…' : '📄 PDF出力'}
+            <HiOutlineDocumentReport className="w-4 h-4" />
+            {pdfLoading ? 'PDF生成中…' : 'PDF出力'}
           </button>
         </div>
       </header>
@@ -673,24 +683,32 @@ export default function TrainerGrowthForm() {
           </div>
         </section>
 
-        {/* ===== 結果カード（PDFはここを出力） ===== */}
+        {/* ===== 結果カード ===== */}
         <section>
+          {/* PDFに出力される範囲（フラットデザイン、A4縦想定） */}
           <div
             ref={reportRef}
-            className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 space-y-5"
+            style={{ width: '100%', maxWidth: 760, backgroundColor: '#ffffff' }}
+            className="border border-gray-300 p-6 space-y-4 text-gray-900"
           >
-            <header className="border-b border-gray-200 pb-3">
-              <p className="text-[10px] tracking-widest text-gray-500 font-bold">
-                NOBISHIRO KIDS / GROWTH KARTE — 高精度版
-              </p>
-              <h1 className="text-xl font-bold text-gray-900">
-                {name || '— 名前未入力 —'}
+            {/* ヘッダー */}
+            <div className="border-b-2 border-gray-900 pb-3">
+              <div className="flex items-baseline justify-between">
+                <p className="text-[10px] tracking-[0.25em] text-gray-500 font-bold">
+                  NOBISHIRO KIDS GROWTH KARTE
+                </p>
+                <p className="text-[10px] text-gray-500">計測日 {measuredAt}</p>
+              </div>
+              <h1 className="text-xl font-bold mt-2">
+                {name || '— お名前未入力 —'}
               </h1>
-              <p className="text-xs text-gray-500 mt-1">
-                {sex === 'male' ? '男子' : '女子'} ・ {ageYears > 0 ? `${ageYears}歳` : '年齢未入力'}
-                ・ 計測日 {measuredAt}
+              <p className="text-xs text-gray-600 mt-1">
+                {sex === 'male' ? '男子' : '女子'}
+                {ageYears > 0 && ` ・ ${ageYears} 歳`}
+                {typeof heightCm === 'number' && ` ・ 身長 ${heightCm} cm`}
+                {typeof weightKg === 'number' && ` ・ 体重 ${weightKg} kg`}
               </p>
-            </header>
+            </div>
 
             {!result && (
               <p className="text-sm text-gray-500 text-center py-8">
@@ -700,295 +718,232 @@ export default function TrainerGrowthForm() {
 
             {result && (
               <>
-                {/* メイン予測 */}
-                <div className="bg-gradient-to-br from-blue-600 to-blue-800 text-white rounded-2xl p-5">
-                  <p className="text-[10px] tracking-widest text-blue-100">
-                    最終身長予測（{labelMethod(result.finalPrediction.method)}）
-                  </p>
-                  <p className="text-4xl font-bold my-1">
-                    {result.finalPrediction.center}
-                    <span className="text-base font-normal ml-1">cm</span>
-                  </p>
-                  <p className="text-xs text-blue-100">
-                    予測幅 {result.finalPrediction.min} 〜 {result.finalPrediction.max} cm
-                  </p>
-                  <div className="mt-3 pt-3 border-t border-blue-400/40 flex items-center justify-between">
-                    <span className="text-xs">残り伸びしろ</span>
-                    <span className="text-xl font-bold text-yellow-300">
-                      約 {result.finalPrediction.remainingGrowthCm} cm
+                {/* メイン予測サマリー（4ボックス） */}
+                <SectionTitle
+                  icon={<HiOutlineTrendingUp className="w-4 h-4 text-blue-700" />}
+                  label="成長予測サマリー"
+                  bar="bg-blue-600"
+                />
+                <div className="grid grid-cols-2 gap-3">
+                  <SummaryBox
+                    title="18歳時点の予測身長"
+                    value={`${result.finalPrediction.center}`}
+                    unit="cm"
+                    sub={`予測幅 ${result.finalPrediction.min} 〜 ${result.finalPrediction.max} cm`}
+                    accent="border-blue-500"
+                  />
+                  <SummaryBox
+                    title="残りの伸びしろ"
+                    value={`+${result.finalPrediction.remainingGrowthCm}`}
+                    unit="cm"
+                    sub="現時点から18歳までの見込み"
+                    accent="border-orange-500"
+                  />
+                  <SummaryBox
+                    title="同年齢平均との位置（SD値）"
+                    value={`${result.currentSD >= 0 ? '+' : ''}${result.currentSD.toFixed(2)}`}
+                    unit=""
+                    sub={result.currentSDLabel}
+                    accent={
+                      result.currentSDTone === 'safe'
+                        ? 'border-emerald-500'
+                        : result.currentSDTone === 'watch'
+                          ? 'border-amber-500'
+                          : 'border-red-500'
+                    }
+                  />
+                  <SummaryBox
+                    title="骨の成長が止まるまで"
+                    value={`約 ${result.epiphysealClosure.yearsRemaining}`}
+                    unit="年"
+                    sub={`予測 ${result.epiphysealClosure.estimatedAgeAtClosure} 歳ごろ`}
+                    accent="border-purple-500"
+                  />
+                </div>
+
+                {/* 成長スパートの位置 */}
+                <SectionTitle
+                  icon={<HiOutlineHeart className="w-4 h-4 text-purple-700" />}
+                  label="成長スパートの位置"
+                  bar="bg-purple-600"
+                />
+                <div className="border-l-4 border-purple-500 bg-purple-50 px-4 py-3">
+                  <div className="flex items-baseline justify-between mb-1">
+                    <span className="text-xs font-bold text-purple-800">
+                      現在の段階：{result.tanner.label}
                     </span>
-                  </div>
-                </div>
-
-                {/* SD値 */}
-                <div
-                  className={`rounded-xl p-4 border ${toneClass(result.currentSDTone)}`}
-                >
-                  <p className="text-[10px] font-bold mb-1">現在のSD値（学校保健統計）</p>
-                  <p className="text-2xl font-bold">
-                    {result.currentSD >= 0 ? '+' : ''}
-                    {result.currentSD.toFixed(2)}
-                  </p>
-                  <p className="text-xs mt-1">{result.currentSDLabel}</p>
-                  <p className="text-[11px] text-gray-700 mt-2">
-                    同年齢平均 {result.norm.mean.toFixed(1)}cm（±{result.norm.sd.toFixed(1)}cm）
-                  </p>
-                </div>
-
-                {/* PHV */}
-                {result.phv && (
-                  <div className="rounded-xl p-4 border border-emerald-200 bg-emerald-50">
-                    <div className="flex items-baseline justify-between">
-                      <p className="text-[10px] font-bold text-emerald-800">
-                        PHV推定（Mirwald 2002 式）
-                      </p>
-                      <span className="text-[10px] font-bold text-emerald-900 bg-white px-2 py-0.5 rounded-full border border-emerald-300">
-                        {result.phv.phase}
+                    {result.phv && (
+                      <span className="text-[11px] text-purple-700">
+                        ピーク年齢：約 {result.phv.estimatedAgeYears} 歳
                       </span>
-                    </div>
-                    <p className="text-lg font-bold text-emerald-900 mt-1">
-                      ピーク年齢：約 {result.phv.estimatedAgeYears} 歳
-                    </p>
-                    <p className="text-xs text-emerald-800 mt-1 leading-relaxed">
-                      {result.phv.message}
-                    </p>
+                    )}
                   </div>
-                )}
-
-                {/* Tanner Stage */}
-                <div className="rounded-xl p-4 border border-purple-200 bg-purple-50">
-                  <div className="flex items-baseline justify-between">
-                    <p className="text-[10px] font-bold text-purple-800">
-                      Tanner Stage 推定
-                    </p>
-                    <span className="text-[10px] font-bold text-purple-900 bg-white px-2 py-0.5 rounded-full border border-purple-300">
-                      {result.tanner.label}
-                    </span>
-                  </div>
-                  <p className="text-xs text-purple-800 mt-2 leading-relaxed">
+                  <p className="text-xs text-gray-800 leading-relaxed">
                     {result.tanner.message}
                   </p>
+                  {result.phv && (
+                    <p className="text-xs text-gray-700 mt-2 leading-relaxed">
+                      {result.phv.message}
+                    </p>
+                  )}
                 </div>
 
-                {/* 骨端線閉鎖予測 */}
-                <div className="rounded-xl p-4 border-2 border-orange-300 bg-gradient-to-br from-orange-50 to-amber-50">
-                  <div className="flex items-baseline justify-between mb-2">
-                    <p className="text-[10px] font-bold text-orange-800">
-                      骨端線閉鎖予測（成長終了の目安）
-                    </p>
-                    <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                        result.epiphysealClosure.confidence === 'high'
-                          ? 'text-emerald-800 border-emerald-300 bg-white'
-                          : result.epiphysealClosure.confidence === 'medium'
-                            ? 'text-amber-800 border-amber-300 bg-white'
-                            : 'text-gray-800 border-gray-300 bg-white'
-                      }`}
-                    >
-                      信頼度: {result.epiphysealClosure.confidence}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <p className="text-[10px] text-orange-700">予測閉鎖年齢</p>
-                      <p className="text-2xl font-bold text-orange-900">
-                        約 {result.epiphysealClosure.estimatedAgeAtClosure}
-                        <span className="text-sm ml-1">歳</span>
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] text-orange-700">残り期間</p>
-                      <p className="text-2xl font-bold text-orange-900">
-                        約 {result.epiphysealClosure.yearsRemaining}
-                        <span className="text-sm ml-1">年</span>
-                      </p>
-                      <p className="text-[10px] text-orange-700">
-                        ({result.epiphysealClosure.monthsRemaining}ヶ月)
-                      </p>
-                    </div>
-                  </div>
-                  <p className="text-xs text-orange-900 mt-3 leading-relaxed">
+                {/* 骨端線閉鎖予測の補足 */}
+                <div className="border-l-4 border-orange-500 bg-orange-50 px-4 py-3">
+                  <p className="text-xs font-bold text-orange-800 mb-1">
+                    骨の成長が止まる時期について
+                  </p>
+                  <p className="text-xs text-gray-800 leading-relaxed">
                     {result.epiphysealClosure.message}
                   </p>
                 </div>
 
                 {/* アライメント所見 */}
                 {result.alignmentObservations.length > 0 && (
-                  <div>
-                    <p className="text-[10px] font-bold text-gray-700 mb-2">
-                      アライメント所見・改善提案
-                    </p>
-                    <ul className="space-y-1 text-xs text-gray-700 leading-relaxed">
+                  <>
+                    <SectionTitle
+                      icon={<HiOutlineClipboardCheck className="w-4 h-4 text-gray-800" />}
+                      label="今日の体験で観察したこと"
+                      bar="bg-gray-700"
+                    />
+                    <ul className="space-y-2 text-xs text-gray-800 leading-relaxed pl-2">
                       {result.alignmentObservations.map((obs, i) => (
-                        <li key={i} className="pl-3 relative">
-                          <span className="absolute left-0 text-purple-500">●</span>
-                          {obs}
+                        <li key={i} className="flex gap-2">
+                          <span className="text-gray-400 flex-shrink-0">•</span>
+                          <span>{obs}</span>
                         </li>
                       ))}
                     </ul>
-                  </div>
+                  </>
                 )}
 
-                {/* アライメント改善で見込める「見た目身長プラス幅」（CTA） */}
+                {/* アライメント改善で見込めるプラス幅（PDF：データのみ） */}
                 {result.apparentHeightGain.hasIssues && (
-                  <div className="rounded-2xl p-5 border-2 border-blue-300 bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
-                    <p className="text-[10px] tracking-widest text-blue-100 font-bold mb-1">
-                      EVIDENCE-BASED OPPORTUNITY
-                    </p>
-                    <h3 className="text-base md:text-lg font-bold mb-3">
-                      アライメント改善で見込める「見た目身長プラス幅」
-                    </h3>
-                    <p className="text-xs text-blue-100 mb-3 leading-relaxed">
-                      {result.apparentHeightGain.summary}
-                    </p>
-                    <div className="grid grid-cols-2 gap-3 mb-3">
-                      <div className="bg-white/10 rounded-xl p-3 backdrop-blur">
-                        <p className="text-[10px] text-blue-100">数週〜1ヶ月（即時）</p>
-                        <p className="text-xl font-bold text-yellow-300">
-                          +{result.apparentHeightGain.shortTerm.min.toFixed(1)}〜
-                          {result.apparentHeightGain.shortTerm.max.toFixed(1)}
-                          <span className="text-xs ml-1">cm</span>
-                        </p>
-                        <p className="text-[10px] text-blue-100 mt-1">
-                          姿勢誘導・椎間板アンロード
-                        </p>
-                      </div>
-                      <div className="bg-white/15 rounded-xl p-3 backdrop-blur border border-yellow-300/40">
-                        <p className="text-[10px] text-blue-100">3〜6ヶ月（中期）</p>
-                        <p className="text-2xl font-bold text-yellow-300">
-                          +{result.apparentHeightGain.midTerm.min.toFixed(1)}〜
-                          {result.apparentHeightGain.midTerm.max.toFixed(1)}
-                          <span className="text-sm ml-1">cm</span>
-                        </p>
-                        <p className="text-[10px] text-blue-100 mt-1">
-                          角度・トレーニング効果
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* 寄与した項目の内訳 */}
-                    <div className="bg-white/5 rounded-xl p-3 mt-3">
-                      <p className="text-[10px] font-bold text-blue-100 mb-2">
-                        寄与している項目（中期見込み内訳）
+                  <>
+                    <SectionTitle
+                      icon={<HiOutlineSparkles className="w-4 h-4 text-blue-700" />}
+                      label="姿勢を整えることで見込める見た目身長"
+                      bar="bg-blue-600"
+                    />
+                    <div className="border border-gray-300 p-4">
+                      <p className="text-xs text-gray-700 leading-relaxed mb-3">
+                        {result.apparentHeightGain.summary}
                       </p>
-                      <ul className="space-y-1">
-                        {result.apparentHeightGain.contributions.map((c) => (
-                          <li
-                            key={c.key}
-                            className="flex items-baseline justify-between text-[11px] text-blue-50 leading-relaxed"
-                          >
-                            <span className="flex-1 pr-2">{c.label}</span>
-                            <span className="text-yellow-200 font-bold whitespace-nowrap">
-                              +{c.midMin.toFixed(1)}〜{c.midMax.toFixed(1)} cm
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="border-l-4 border-blue-400 bg-blue-50 p-3">
+                          <p className="text-[10px] text-gray-700">数週〜1ヶ月（即時）</p>
+                          <p className="text-xl font-bold text-blue-900 mt-1">
+                            +{result.apparentHeightGain.shortTerm.min.toFixed(1)}〜
+                            {result.apparentHeightGain.shortTerm.max.toFixed(1)}
+                            <span className="text-xs font-normal ml-1">cm</span>
+                          </p>
+                          <p className="text-[10px] text-gray-600 mt-1">
+                            姿勢の整えと圧迫の解消による
+                          </p>
+                        </div>
+                        <div className="border-l-4 border-orange-400 bg-orange-50 p-3">
+                          <p className="text-[10px] text-gray-700">3〜6ヶ月（中期）</p>
+                          <p className="text-xl font-bold text-orange-900 mt-1">
+                            +{result.apparentHeightGain.midTerm.min.toFixed(1)}〜
+                            {result.apparentHeightGain.midTerm.max.toFixed(1)}
+                            <span className="text-xs font-normal ml-1">cm</span>
+                          </p>
+                          <p className="text-[10px] text-gray-600 mt-1">
+                            姿勢の角度改善とトレーニング効果
+                          </p>
+                        </div>
+                      </div>
 
-                    {/* CTA */}
-                    <div className="mt-4 pt-3 border-t border-blue-400/40">
-                      <p className="text-xs text-white leading-relaxed">
-                        💪 {result.apparentHeightGain.ctaMessage}
+                      {/* 寄与した項目の内訳 */}
+                      <div className="mt-4">
+                        <p className="text-[11px] font-bold text-gray-700 mb-2">
+                          内訳（中期見込み）
+                        </p>
+                        <ul className="space-y-1">
+                          {result.apparentHeightGain.contributions.map((c) => (
+                            <li
+                              key={c.key}
+                              className="flex items-baseline justify-between text-[11px] text-gray-700 leading-relaxed border-b border-gray-100 pb-1"
+                            >
+                              <span className="flex-1 pr-2">{c.label}</span>
+                              <span className="text-orange-700 font-bold whitespace-nowrap">
+                                +{c.midMin.toFixed(1)}〜{c.midMax.toFixed(1)} cm
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <p className="text-[10px] text-gray-500 mt-3 leading-relaxed">
+                        ※ これは骨を伸ばすのではなく、姿勢の癖で「縮んでいた身長」を取り戻す範囲の見込みです。個人差があります。
                       </p>
                     </div>
-
-                    {/* 注意 */}
-                    <p className="text-[10px] text-blue-100/80 mt-3 leading-relaxed">
-                      {result.apparentHeightGain.caveat}
-                    </p>
-
-                    {/* 出典 */}
-                    <details className="mt-3 group">
-                      <summary className="text-[10px] text-blue-200 cursor-pointer font-bold hover:text-white">
-                        📚 主要出典を表示（{result.apparentHeightGain.sources.length}件）
-                      </summary>
-                      <ul className="mt-2 space-y-0.5 text-[10px] text-blue-100/90">
-                        {result.apparentHeightGain.sources.map((s, i) => (
-                          <li key={i}>• {s}</li>
-                        ))}
-                      </ul>
-                    </details>
-                  </div>
+                  </>
                 )}
 
-                {/* 良好な場合の専用メッセージ */}
+                {/* 良好な場合 */}
                 {!result.apparentHeightGain.hasIssues && (
-                  <div className="rounded-xl p-4 border border-emerald-300 bg-emerald-50">
-                    <p className="text-[10px] font-bold text-emerald-800 mb-1">
+                  <div className="border-l-4 border-emerald-500 bg-emerald-50 px-4 py-3">
+                    <p className="text-xs font-bold text-emerald-800 mb-1">
                       アライメント評価
                     </p>
-                    <p className="text-xs text-emerald-900 leading-relaxed">
+                    <p className="text-xs text-gray-800 leading-relaxed">
                       {result.apparentHeightGain.summary}
-                      {' '}
-                      {result.apparentHeightGain.ctaMessage}
                     </p>
                   </div>
                 )}
 
-                {/* 全予測手法の比較 */}
-                <div>
-                  <p className="text-[10px] font-bold text-gray-700 mb-2">
-                    予測手法の比較
-                  </p>
-                  <div className="space-y-1">
-                    {result.predictions.map((p) => (
-                      <div
-                        key={p.method}
-                        className="flex items-center justify-between text-xs px-3 py-2 bg-gray-50 rounded"
-                      >
-                        <span className="text-gray-700 font-medium">{p.label}</span>
-                        <span className="text-gray-900 font-bold">
-                          {p.center} cm
-                          <span className="text-gray-400 font-normal ml-1">
-                            ({p.min}〜{p.max})
-                          </span>
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 思春期補正 */}
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                  <p className="text-[10px] font-bold text-amber-800 mb-1">
-                    思春期サインによる補正
-                  </p>
-                  <p className="text-xs text-amber-900 leading-relaxed">
-                    補正係数 ×{result.puberty.multiplier} ／ {result.puberty.message}
-                  </p>
-                </div>
-
-                {/* 所見 */}
-                <div>
-                  <p className="text-[10px] font-bold text-gray-700 mb-2">
-                    トレーナー所見・推奨アプローチ
-                  </p>
-                  <ul className="space-y-1 text-xs text-gray-700 leading-relaxed">
-                    {result.notes.map((n, i) => (
-                      <li key={i} className="pl-3 relative">
-                        <span className="absolute left-0 text-blue-500">●</span>
-                        {n}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                {/* 補足所見 */}
+                <SectionTitle
+                  icon={<HiOutlineExclamationCircle className="w-4 h-4 text-gray-700" />}
+                  label="補足の所見"
+                  bar="bg-gray-500"
+                />
+                <ul className="space-y-1.5 text-xs text-gray-700 leading-relaxed pl-2">
+                  {result.notes.map((n, i) => (
+                    <li key={i} className="flex gap-2">
+                      <span className="text-gray-400 flex-shrink-0">•</span>
+                      <span>{n}</span>
+                    </li>
+                  ))}
+                </ul>
 
                 {/* 免責 */}
-                <div className="border-t border-gray-200 pt-3 text-[10px] text-gray-500 leading-relaxed">
-                  ※ {result.disclaimer}
+                <div className="border-t border-gray-300 pt-3 mt-4">
+                  <p className="text-[10px] text-gray-500 leading-relaxed">
+                    {result.disclaimer}
+                  </p>
                 </div>
 
-                <div className="text-[10px] text-gray-400 text-center pt-2 border-t border-gray-100">
-                  FIREFITNESS / NOBISHIRO KIDS — Trainer Private Edition
+                <div className="text-[10px] text-gray-400 text-center pt-3 border-t border-gray-200">
+                  FIREFITNESS Junior / NOBISHIRO KIDS — 計測日 {measuredAt}
                 </div>
               </>
             )}
           </div>
 
+          {/* === reportRef の外（画面のみ） === */}
+          {result && result.apparentHeightGain.hasIssues && (
+            <details className="mt-4 bg-white border border-gray-200 rounded-xl p-4">
+              <summary className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer font-bold hover:text-blue-700">
+                <HiOutlineBookOpen className="w-4 h-4" />
+                エビデンス出典を表示（{result.apparentHeightGain.sources.length}件）
+              </summary>
+              <ul className="mt-3 space-y-1 text-[11px] text-gray-600">
+                {result.apparentHeightGain.sources.map((s, i) => (
+                  <li key={i} className="flex gap-2">
+                    <span className="text-gray-400">•</span>
+                    <span>{s}</span>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+
           {result && (
-            <p className="text-xs text-gray-500 text-center mt-3">
-              「PDF出力」ボタンを押すと A4縦のレポートとして保存できます。
+            <p className="text-xs text-gray-500 text-center mt-3 inline-flex items-center gap-1 justify-center w-full">
+              <HiOutlineDocumentReport className="w-4 h-4" />
+              「PDF出力」を押すと A4縦のレポートとして保存できます
             </p>
           )}
         </section>
@@ -1071,19 +1026,46 @@ function Check({
   )
 }
 
-function toneClass(tone: 'safe' | 'watch' | 'consult'): string {
-  if (tone === 'safe') return 'border-emerald-200 bg-emerald-50 text-emerald-900'
-  if (tone === 'watch') return 'border-amber-200 bg-amber-50 text-amber-900'
-  return 'border-red-200 bg-red-50 text-red-900'
+function SectionTitle({
+  icon,
+  label,
+  bar,
+}: {
+  icon: React.ReactNode
+  label: string
+  bar: string
+}) {
+  return (
+    <div className="flex items-center gap-2 pt-2">
+      <span className={`inline-block w-1 h-5 ${bar}`} />
+      {icon}
+      <h3 className="text-sm font-bold text-gray-900">{label}</h3>
+    </div>
+  )
 }
 
-function labelMethod(method: string): string {
-  const m: Record<string, string> = {
-    'bayley-pinneau-with-parents': 'Bayley-Pinneau簡易法 + 両親身長 + 思春期補正',
-    'bayley-pinneau': 'Bayley-Pinneau簡易法（達成率）+ 思春期補正',
-    midparental: '両親身長式 + 思春期補正',
-    'sd-extrapolation': 'SD値外挿 + 思春期補正',
-    'sibling-reference': '兄/姉参考',
-  }
-  return m[method] ?? method
+function SummaryBox({
+  title,
+  value,
+  unit,
+  sub,
+  accent,
+}: {
+  title: string
+  value: string
+  unit: string
+  sub: string
+  accent: string
+}) {
+  return (
+    <div className={`border-l-4 ${accent} bg-gray-50 p-3`}>
+      <p className="text-[10px] text-gray-600 font-medium">{title}</p>
+      <p className="text-2xl font-bold text-gray-900 mt-1">
+        {value}
+        {unit && <span className="text-sm font-normal ml-1">{unit}</span>}
+      </p>
+      <p className="text-[10px] text-gray-600 mt-1 leading-snug">{sub}</p>
+    </div>
+  )
 }
+

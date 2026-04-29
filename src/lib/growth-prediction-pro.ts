@@ -185,16 +185,15 @@ export function pubertyMultiplier(sex: Sex, signs: PubertySigns): {
 } {
   if (sex === 'female') {
     if (signs.menarche) {
-      // 初潮後は残り 5-7cm が平均的
       const months = signs.menarcheMonthsAgo ?? 0
-      if (months >= 24) return { multiplier: 0.4, message: '初潮から2年以上経過。残り伸びしろは小さい段階です。' }
-      if (months >= 12) return { multiplier: 0.6, message: '初潮から1〜2年。残り 3〜5cm 程度の伸びが期待されます。' }
-      return { multiplier: 0.8, message: '初潮から1年以内。残り 5〜7cm 程度の伸びが期待されます。' }
+      if (months >= 24) return { multiplier: 0.4, message: '生理が始まってから2年以上経っています。残りの伸びしろは小さい時期です。' }
+      if (months >= 12) return { multiplier: 0.6, message: '生理が始まって1〜2年。残り3〜5cm程度の伸びが見込まれる時期です。' }
+      return { multiplier: 0.8, message: '生理が始まってから1年以内。残り5〜7cm程度の伸びが見込まれる時期です。' }
     }
     if (signs.bodyHair || signs.appetiteSurge) {
-      return { multiplier: 1.05, message: '思春期の入口。これからピーク期に入る可能性があります。' }
+      return { multiplier: 1.05, message: '思春期の入口です。これから一番伸びる時期に入る可能性があります。' }
     }
-    return { multiplier: 1.1, message: '思春期前。今後の伸びしろが大きい段階です。' }
+    return { multiplier: 1.1, message: '思春期前。これからの伸びしろが大きい時期です。' }
   } else {
     // male
     let signCount = 0
@@ -204,15 +203,15 @@ export function pubertyMultiplier(sex: Sex, signs: PubertySigns): {
     if (signs.shoeSizeJump) signCount++
 
     if (signCount >= 3) {
-      return { multiplier: 0.9, message: '第二次性徴の進行が確認されます。スパートのピーク前後の段階です。' }
+      return { multiplier: 0.9, message: '体の変化が進んでいます。一番伸びる時期（成長スパート）の前後にあります。' }
     }
     if (signCount === 2) {
-      return { multiplier: 1.0, message: 'スパート開始期です。次の1年が最も大きく伸びる可能性があります。' }
+      return { multiplier: 1.0, message: '一番伸びる時期に入り始めています。これから1年が最も伸びる可能性があります。' }
     }
     if (signCount === 1) {
-      return { multiplier: 1.05, message: 'スパート直前です。これから急成長が期待されます。' }
+      return { multiplier: 1.05, message: '一番伸びる時期の直前です。これから急に伸びることが期待されます。' }
     }
-    return { multiplier: 1.1, message: '第二次性徴のサインはまだ少ない段階。スパートはこれから訪れます。' }
+    return { multiplier: 1.1, message: '体の変化のサインはまだ少ない時期。一番伸びるピークはこれから訪れます。' }
   }
 }
 
@@ -353,13 +352,13 @@ export function estimateEpiphysealClosure(input: {
 
   let message: string
   if (yearsRemaining < 0.5) {
-    message = '骨端線閉鎖が近い段階です。残りの伸びはわずか（数mm〜2cm程度）と推定されます。'
+    message = '骨の成長が止まる時期がすぐそこに迫っています。残りの伸びは数mm〜2cm程度と見込まれます。'
   } else if (yearsRemaining < 1.5) {
-    message = `あと約${Math.round(yearsRemaining * 12)}ヶ月で骨端線閉鎖の見込み。残り3〜5cm程度の伸びが期待されます。`
+    message = `あと約${Math.round(yearsRemaining * 12)}ヶ月で骨の成長が止まる見込みです。残り3〜5cm程度の伸びが期待されます。`
   } else if (yearsRemaining < 3) {
-    message = `あと約${yearsRemaining.toFixed(1)}年で骨端線閉鎖の見込み。栄養・運動・睡眠の整えで残り伸びしろを最大化できる時期です。`
+    message = `あと約${yearsRemaining.toFixed(1)}年で骨の成長が止まる見込みです。栄養・運動・睡眠を整えることで、残りの伸びしろを最大限に引き出せる大事な時期です。`
   } else {
-    message = `骨端線閉鎖まで約${yearsRemaining.toFixed(1)}年。これから成長スパートのピーク期に向かう可能性が高い段階です。`
+    message = `骨の成長が止まるまで約${yearsRemaining.toFixed(1)}年。これから一番伸びる時期に向かう可能性が高い段階です。`
   }
 
   // 信頼度: PHV情報があれば high、Tanner だけなら medium、不確定なら low
@@ -807,20 +806,20 @@ export function predictGrowthPro(input: ProGrowthInput): ProGrowthResult {
     let phase: string
     let message: string
     if (m.offsetYears < -1.5) {
-      phase = 'スパート前'
-      message = `Mirwald推定でPHV予想は ${m.phvAge}歳。あと ${Math.round(-m.offsetYears * 12)}ヶ月でピーク期に入る可能性があります。`
+      phase = 'これから伸びる時期'
+      message = `一番伸びるピークは約 ${m.phvAge}歳と見込まれます。あと ${Math.round(-m.offsetYears * 12)}ヶ月でピーク期に入る可能性があります。`
     } else if (m.offsetYears < 0) {
-      phase = 'スパート開始期'
-      message = `Mirwald推定でPHV予想は ${m.phvAge}歳。スパートが開始しつつある段階です。`
+      phase = '伸びが始まる時期'
+      message = `一番伸びるピークは約 ${m.phvAge}歳。今まさに伸びが始まろうとしている段階です。`
     } else if (m.offsetYears < 1) {
-      phase = 'ピーク期'
-      message = `Mirwald推定でPHVを直近で経過。1年で8〜10cm伸びる可能性のある時期です。`
+      phase = '一番伸びる時期'
+      message = '一番伸びるピークを直近で迎えています。1年で8〜10cm伸びる可能性のある大切な時期です。'
     } else if (m.offsetYears < 2.5) {
-      phase = '減速期'
-      message = `Mirwald推定でPHVから ${Math.round(m.offsetYears * 12)}ヶ月経過。残りの伸びは緩やかになる時期です。`
+      phase = '伸びが緩やかな時期'
+      message = `一番伸びる時期から ${Math.round(m.offsetYears * 12)}ヶ月経過。残りの伸びは緩やかになる時期です。`
     } else {
       phase = 'ほぼ最終身長'
-      message = 'Mirwald推定でPHVから2年以上経過。骨端線閉鎖が近い段階です。'
+      message = '一番伸びる時期から2年以上経過。骨の成長が止まりつつある段階です。'
     }
     phv = {
       method: 'mirwald-2002',
@@ -839,18 +838,18 @@ export function predictGrowthPro(input: ProGrowthInput): ProGrowthResult {
     input.alignment
   )
   const tannerLabels: Record<number, string> = {
-    1: 'Stage 1（前思春期）',
-    2: 'Stage 2（思春期初期）',
-    3: 'Stage 3（思春期中期・PHV近接）',
-    4: 'Stage 4（思春期後期）',
-    5: 'Stage 5（ほぼ成熟）',
+    1: '思春期前',
+    2: '思春期の入口',
+    3: '一番伸びる時期（思春期中期）',
+    4: '伸びが緩やかになる時期',
+    5: 'ほぼ成熟',
   }
   const tannerMessages: Record<number, string> = {
-    1: '第二次性徴のサインがほぼ見られない段階。骨端線は十分に開いており、成長余地が大きい時期です。',
-    2: '第二次性徴の入口。成長スパート前の準備期で、これから加速的な伸びが期待されます。',
-    3: '思春期中期。成長スパートのピーク前後にあたる、人生で最も身長が伸びる時期です。',
-    4: '思春期後期。スパートのピークを過ぎ、伸びは緩やかになる段階です。',
-    5: 'ほぼ成熟。骨端線閉鎖が近接、または既に閉鎖し始めている段階です。',
+    1: '体の変化のサインがほとんど見られない時期です。骨の成長板（骨端線）は十分開いていて、これからの伸びしろが大きい段階です。',
+    2: '思春期の入口です。これから一気に伸びる時期に向かう準備段階。栄養と睡眠、運動の整えで土台を作る時期です。',
+    3: 'ちょうど一番伸びる時期です。1年で8〜10cm伸びる可能性のある、人生で最も身長が伸びる段階です。',
+    4: '一番伸びる時期を過ぎて、伸びが緩やかになる段階です。残り2〜3年が最終身長を決める鍵を握ります。',
+    5: 'ほぼ成熟段階です。骨の成長板（骨端線）が閉じはじめている可能性があります。',
   }
   const tanner = {
     stage: tannerStage,
@@ -871,53 +870,53 @@ export function predictGrowthPro(input: ProGrowthInput): ProGrowthResult {
   const alignmentObservations: string[] = []
   if (input.alignment) {
     if (input.alignment.postureType === 'kyphotic') {
-      alignmentObservations.push('猫背傾向。胸椎の柔軟性向上と背筋の活性化で姿勢を整えると、見た目身長が1〜2cm改善する可能性があります。')
+      alignmentObservations.push('猫背の傾向があります。背中の動きを良くして背筋を働かせると、姿勢が伸びて見た目身長の改善が見込まれます。')
     }
     if (input.alignment.postureType === 'lordotic') {
-      alignmentObservations.push('反り腰傾向。腹筋・腸腰筋のバランス調整で骨盤の傾きを整えると、腰部の負担が減り姿勢が安定します。')
+      alignmentObservations.push('反り腰の傾向があります。お腹周りと股関節前のバランスを整えると、骨盤の傾きが整い、腰の負担が減って姿勢が安定します。')
     }
     if (input.alignment.postureType === 'sway-back') {
-      alignmentObservations.push('スウェイバック姿勢。骨盤が前方シフトしている可能性。コア活性化と股関節モビリティが鍵です。')
+      alignmentObservations.push('骨盤が前にシフトした立ち方になっています。お腹のインナーマッスルと股関節周りの動きを整えるトレーニングが効果的です。')
     }
     if (input.alignment.pelvicTilt === 'anterior') {
-      alignmentObservations.push('骨盤前傾。腹筋群が弱く腸腰筋が硬い典型パターン。腰痛・膝痛リスクの予防にも有効です。')
+      alignmentObservations.push('骨盤が前に傾いています。腹筋が弱く、太ももの付け根が硬い典型的なパターンです。腰痛・膝痛の予防にもつながります。')
     }
     if (input.alignment.pelvicTilt === 'posterior') {
-      alignmentObservations.push('骨盤後傾。ハムストリング短縮と臀部の機能低下が考えられます。')
+      alignmentObservations.push('骨盤が後ろに傾いています。もも裏が硬く、お尻の力が入りにくい状態が考えられます。')
     }
     if (input.alignment.legAlignment === 'genu-valgum') {
-      alignmentObservations.push('X脚傾向。中臀筋の弱化と内転筋の優位が原因。スタビリティトレで改善余地があります。')
+      alignmentObservations.push('X脚の傾向があります。お尻の横の筋肉が弱く、内ももが優位に働いている状態。バランス系のトレーニングで改善できます。')
     }
     if (input.alignment.legAlignment === 'genu-varum') {
-      alignmentObservations.push('O脚傾向。股関節外旋筋の優位と内転筋弱化が考えられます。')
+      alignmentObservations.push('O脚の傾向があります。股関節を外側に開く筋肉が優位で、内ももの力が弱い状態が考えられます。')
     }
     if (input.alignment.shoulderRoll) {
-      alignmentObservations.push('巻き肩あり。胸郭出口の圧迫と頸部緊張、呼吸の浅さに繋がります。')
+      alignmentObservations.push('肩が前に巻き込んでいます。胸が圧迫されて呼吸が浅くなり、首にも負担がかかります。')
     }
     if (input.alignment.forwardHead) {
-      alignmentObservations.push('頭部前方位。頭の重みが背筋・首に集中。集中力低下や頭痛の原因にもなります。')
+      alignmentObservations.push('頭が前に出る姿勢になっています。頭の重さで首と背中に負担が集中し、集中力低下や頭痛の原因にもなります。')
     }
     if (input.alignment.pelvicRotation && input.alignment.pelvicRotation !== 'neutral') {
       const side = input.alignment.pelvicRotation === 'left-forward' ? '左' : '右'
       alignmentObservations.push(
-        `骨盤が${side}前方に回旋。同側の腸腰筋・大腿筋膜張筋の短縮と反対側の臀筋弱化が考えられます。回旋を整えると腰部・膝のストレスが軽減し、姿勢の左右差が見た目身長にも影響します。`
+        `骨盤が${side}側に回っています。${side}側の太もも前の筋肉が硬く、反対側のお尻の筋肉が弱い状態。整えると腰や膝の負担が減り、姿勢の左右差が見た目身長にも影響します。`
       )
     }
     if (input.alignment.shoulderRotation && input.alignment.shoulderRotation !== 'neutral') {
       const side = input.alignment.shoulderRotation === 'left-forward' ? '左' : '右'
       alignmentObservations.push(
-        `肩が${side}前方に回旋。同側の小胸筋短縮・前鋸筋優位が想定されます。骨盤回旋と連動するパターンが多く、上下のリンクで観察を。`
+        `肩が${side}側に回っています。${side}側の胸の小さな筋肉が硬くなっているサイン。骨盤の回旋と連動することが多いです。`
       )
     }
     if (input.alignment.trunkRotationRestriction && input.alignment.trunkRotationRestriction !== 'none') {
       const side = input.alignment.trunkRotationRestriction === 'both' ? '両側' : input.alignment.trunkRotationRestriction === 'left' ? '左方向' : '右方向'
       alignmentObservations.push(
-        `体幹回旋に${side}制限。胸椎モビリティ不足や広背筋・腹斜筋の左右差が原因。投球動作・スイング系競技でパフォーマンスを大きく左右します。`
+        `体を${side}にひねる動きに制限があります。背中の動きが硬かったり、左右の体幹のバランス差が原因。投球やスイング系のスポーツで影響が出ます。`
       )
     }
     if (input.alignment.legLengthDiscrepancy) {
       alignmentObservations.push(
-        '脚長差あり。骨格性（実脚長差）と機能性（骨盤回旋に伴う見かけの差）の鑑別が必要。後者なら回旋の修正で解消されます。'
+        '左右の脚の長さに差があります。骨格そのものの差と、骨盤の回旋による見かけの差があり、後者なら姿勢を整えれば解消されます。'
       )
     }
 
@@ -925,13 +924,13 @@ export function predictGrowthPro(input: ProGrowthInput): ProGrowthResult {
     if (input.alignment.movementBend && input.alignment.movementBend !== 'none') {
       const side = input.alignment.movementBend === 'left' ? '左' : '右'
       alignmentObservations.push(
-        `動作中に体幹が${side}に倒れる癖。${side}側の腰方形筋・広背筋の優位、反対側の体幹側屈筋弱化が想定されます。長期化すると側弯傾向に発展する可能性。コア左右差の補正トレが必要です。`
+        `動いている時に体が${side}に倒れる癖があります。${side}側の腰の筋肉が優位で、反対側の体を支える筋肉が弱い状態。長く続くと背骨の左右差が大きくなる可能性があり、左右差を整えるトレーニングが必要です。`
       )
     }
     if (input.alignment.squatLeanSide && input.alignment.squatLeanSide !== 'none') {
       const side = input.alignment.squatLeanSide === 'left' ? '左' : '右'
       alignmentObservations.push(
-        `スクワット時に重心が${side}に流れる。${side}股関節モビリティ低下 or 反対側の臀筋弱化のサイン。スプリットスクワット等の片側種目で左右差を埋めると改善します。`
+        `しゃがむ時に重心が${side}に流れます。${side}側の股関節が硬いか、反対側のお尻の筋肉が弱いサイン。片足ずつのトレーニングで左右差を埋められます。`
       )
     }
     if (input.alignment.squatKneeIn && input.alignment.squatKneeIn !== 'none') {
@@ -942,17 +941,17 @@ export function predictGrowthPro(input: ProGrowthInput): ProGrowthResult {
             ? '左'
             : '右'
       alignmentObservations.push(
-        `スクワットで${tag}膝が内側に入る（knee-in）。中臀筋弱化と内転筋優位、足関節背屈制限が原因。サッカー・バスケ・ジャンプ系競技でのケガリスク（ACL損傷等）が高い兆候です。`
+        `しゃがむ時に${tag}膝が内側に入ります。お尻の横の筋肉が弱く、内ももが優位に働いている状態。サッカー・バスケなどで膝の重要な靭帯のケガリスクが高い兆候です。`
       )
     }
     if (input.alignment.squatHeelLift) {
       alignmentObservations.push(
-        'しゃがみでかかとが浮く。足関節背屈制限（ふくらはぎ短縮や距骨可動性低下）。腓腹筋・ヒラメ筋のリリース＋背屈モビリティで改善余地あり。'
+        'しゃがむ時にかかとが浮きます。足首の動きが硬く、ふくらはぎが短くなっている可能性。ストレッチと足首の可動性を上げるトレーニングで改善できます。'
       )
     }
     if (input.alignment.squatRoundBack) {
       alignmentObservations.push(
-        'しゃがみで腰が丸まる。胸椎モビリティ不足・股関節屈曲制限・体幹剛性不足の混合パターン。デッドリフト系の負荷でケガリスク高。先にモビリティ改善を。'
+        'しゃがむ時に腰が丸まります。背中と股関節の動きが硬く、体幹を支える力も弱いことが組み合わさったパターン。重い負荷をかける前に、まず動きの改善が必要です。'
       )
     }
     if (
@@ -961,12 +960,12 @@ export function predictGrowthPro(input: ProGrowthInput): ProGrowthResult {
     ) {
       const side = input.alignment.singleLegBalanceWeakSide === 'left' ? '左' : '右'
       alignmentObservations.push(
-        `片足立ちで${side}側が弱い。中臀筋・足底感覚・体性感覚のバランスが${side}で低下。日常で${side}片足立ち30秒×3、不整地での片足ホールドが効きます。`
+        `片足立ちで${side}側が弱いです。${side}側のお尻の筋肉と足裏の感覚のバランスが弱い状態。${side}片足立ち30秒×3回を日常に取り入れると改善できます。`
       )
     }
     if (input.alignment.gaitAsymmetry) {
       alignmentObservations.push(
-        '歩行・走行に左右非対称あり。骨盤回旋・脚長差・足底荷重の偏りなど複合要因の可能性。動画での歩行解析が望ましいレベルです。'
+        '歩き方や走り方に左右の差があります。骨盤の回旋・脚長差・足裏の使い方の偏りなど、複数の原因が組み合わさっている可能性。詳しくは動画で観察するのがおすすめです。'
       )
     }
     if (
@@ -975,23 +974,23 @@ export function predictGrowthPro(input: ProGrowthInput): ProGrowthResult {
     ) {
       const side = input.alignment.jumpLandingAsymmetry === 'left' ? '左' : '右'
       alignmentObservations.push(
-        `跳躍着地が${side}側に流れる。${side}下肢への荷重偏りで膝・足首の慢性ストレスがかかりやすい状態。両足均等着地のドリルで補正を。`
+        `ジャンプの着地が${side}側に流れます。${side}側の脚に体重が偏り、膝や足首に負担がかかりやすい状態。両足で均等に着地するトレーニングで補正できます。`
       )
     }
     if (input.alignment.hipShiftDirection && input.alignment.hipShiftDirection !== 'none') {
       const side = input.alignment.hipShiftDirection === 'left' ? '左' : '右'
       alignmentObservations.push(
-        `動作中に骨盤が${side}にシフト。同側の股関節内転・反対側臀筋弱化が想定されます。サイドブリッジ・モンスターウォーク等で側方安定性を獲得してください。`
+        `動いている時に骨盤が${side}に流れます。${side}側の股関節と反対側のお尻の筋肉のバランスが崩れているサイン。横方向の安定性を高めるトレーニングが必要です。`
       )
     }
     if (input.alignment.jointHypermobility) {
-      alignmentObservations.push('関節弛緩性あり。骨端線がまだ十分に成熟していない兆候の可能性。安定性トレを優先してください。')
+      alignmentObservations.push('関節がやわらかい状態です。骨の成長板がまだ十分に成熟していないサイン。まず安定性を高めるトレーニングをおすすめします。')
     }
     if (input.alignment.muscleToneFirm) {
-      alignmentObservations.push('筋トーンしっかり。第二次性徴の進行を裏付けるサインの1つです。')
+      alignmentObservations.push('筋肉のハリがしっかりしています。体の成熟が進んでいるサインの1つです。')
     }
     if (input.alignment.shoeSizeStable) {
-      alignmentObservations.push('靴サイズが半年安定。四肢端の成長停止が始まっている可能性があります。')
+      alignmentObservations.push('靴のサイズが半年変わっていません。手足の成長が止まりつつあるサインです。')
     }
   }
 
