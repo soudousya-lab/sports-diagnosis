@@ -208,36 +208,46 @@ export default function TrainerGrowthForm() {
     if (!reportRef.current || !result) return
     setPdfLoading(true)
     try {
-      // html2canvas-pro は Tailwind 4 の oklch() カラーに対応している
       const html2canvas = (await import('html2canvas-pro')).default
       const jsPDF = (await import('jspdf')).default
 
-      const el = reportRef.current
-      const canvas = await html2canvas(el, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-      })
-      const imgData = canvas.toDataURL('image/png')
+      // ページ単位の <div data-pdf-page="..."> をすべて取得
+      const pages = Array.from(
+        reportRef.current.querySelectorAll<HTMLElement>('[data-pdf-page]')
+      )
+      if (pages.length === 0) {
+        throw new Error('PDFページ要素が見つかりません')
+      }
 
-      // A4 縦（210 × 297 mm）
       const pdf = new jsPDF('p', 'mm', 'a4')
-      const pageWidth = 210
-      const pageHeight = 297
-      const imgWidth = pageWidth
-      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      const A4_W = 210
+      const A4_H = 297
 
-      let heightLeft = imgHeight
-      let position = 0
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
-      heightLeft -= pageHeight
+      for (let i = 0; i < pages.length; i++) {
+        const el = pages[i]
+        const canvas = await html2canvas(el, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          logging: false,
+        })
+        const imgData = canvas.toDataURL('image/png')
 
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight
-        pdf.addPage()
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
-        heightLeft -= pageHeight
+        // canvas の縦横比から A4 内に収まるサイズを算出（縦か横、長い方を基準にフィット）
+        const imgRatio = canvas.height / canvas.width
+        const a4Ratio = A4_H / A4_W
+        let drawW = A4_W
+        let drawH = A4_W * imgRatio
+        if (imgRatio > a4Ratio) {
+          // 縦長：高さをA4高さに合わせ、幅を縮小
+          drawH = A4_H
+          drawW = A4_H / imgRatio
+        }
+        const offsetX = (A4_W - drawW) / 2
+        const offsetY = (A4_H - drawH) / 2
+
+        if (i > 0) pdf.addPage()
+        pdf.addImage(imgData, 'PNG', offsetX, offsetY, drawW, drawH)
       }
 
       const fname = `nobishiro-karte-${name || 'unknown'}-${measuredAt}.pdf`
@@ -685,197 +695,245 @@ export default function TrainerGrowthForm() {
 
         {/* ===== 結果カード ===== */}
         <section>
-          {/* PDFに出力される範囲（読みやすさ優先・必要に応じてA4 1〜2ページ） */}
+          {/* PDFに出力される範囲（ページ単位で分割：data-pdf-page="N" で1ページ） */}
           <div
             ref={reportRef}
-            style={{
-              width: '100%',
-              maxWidth: 760,
-              backgroundColor: '#ffffff',
-            }}
-            className="border border-gray-300 px-6 py-5 text-gray-900"
+            style={{ backgroundColor: '#ffffff' }}
+            className="space-y-4"
           >
-            {/* ヘッダー */}
-            <div className="border-b-2 border-gray-900 pb-3 mb-4">
-              <div className="flex items-baseline justify-between">
-                <p className="text-[10px] tracking-[0.2em] text-gray-500 font-bold">
-                  NOBISHIRO KIDS GROWTH KARTE
-                </p>
-                <p className="text-[10px] text-gray-500">計測日 {measuredAt}</p>
-              </div>
-              <h1 className="text-xl font-bold mt-2">
-                {name || '— お名前未入力 —'}
-              </h1>
-              <p className="text-xs text-gray-600 mt-1">
-                {sex === 'male' ? '男子' : '女子'}
-                {ageYears > 0 && ` ・ ${ageYears} 歳`}
-                {typeof heightCm === 'number' && ` ・ 身長 ${heightCm} cm`}
-                {typeof weightKg === 'number' && ` ・ 体重 ${weightKg} kg`}
-              </p>
-            </div>
-
-            {!result && (
-              <p className="text-sm text-gray-500 text-center py-8">
-                身長・体重・年齢を入力すると結果が表示されます。
-              </p>
-            )}
-
-            {result && (
-              <div className="space-y-4">
-                {/* 1. 成長予測サマリー（4ボックス） */}
-                <SectionTitle
-                  icon={<HiOutlineTrendingUp className="w-4 h-4 text-blue-700" />}
-                  label="成長予測サマリー"
-                  bar="bg-blue-600"
-                />
-                <div className="grid grid-cols-2 gap-3">
-                  <SummaryBox
-                    title="18歳時点の予測身長"
-                    value={`${result.finalPrediction.center}`}
-                    unit="cm"
-                    sub={`予測幅 ${result.finalPrediction.min}〜${result.finalPrediction.max}cm`}
-                    accent="border-blue-500"
-                  />
-                  <SummaryBox
-                    title="残りの伸びしろ"
-                    value={`+${result.finalPrediction.remainingGrowthCm}`}
-                    unit="cm"
-                    sub="現時点から18歳までの見込み"
-                    accent="border-orange-500"
-                  />
-                  <SummaryBox
-                    title="同年齢平均との位置（SD値）"
-                    value={`${result.currentSD >= 0 ? '+' : ''}${result.currentSD.toFixed(2)}`}
-                    unit=""
-                    sub={result.currentSDLabel}
-                    accent={
-                      result.currentSDTone === 'safe'
-                        ? 'border-emerald-500'
-                        : result.currentSDTone === 'watch'
-                          ? 'border-amber-500'
-                          : 'border-red-500'
-                    }
-                  />
-                  <SummaryBox
-                    title="骨の成長が止まるまで"
-                    value={`約 ${result.epiphysealClosure.yearsRemaining}`}
-                    unit="年"
-                    sub={`予測 ${result.epiphysealClosure.estimatedAgeAtClosure} 歳ごろ`}
-                    accent="border-purple-500"
-                  />
-                </div>
-
-                {/* 2. 成長スパートの位置 */}
-                <SectionTitle
-                  icon={<HiOutlineHeart className="w-4 h-4 text-purple-700" />}
-                  label="成長スパートの位置"
-                  bar="bg-purple-600"
-                />
-                <div className="border-l-4 border-purple-500 bg-purple-50 px-4 py-3">
-                  <div className="flex items-baseline justify-between mb-1.5">
-                    <span className="text-xs font-bold text-purple-800">
-                      現在の段階：{result.tanner.label}
-                    </span>
-                    {result.phv && (
-                      <span className="text-[11px] text-purple-700">
-                        ピーク年齢：約 {result.phv.estimatedAgeYears} 歳
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-gray-800 leading-relaxed">
-                    {result.tanner.message}
+            {/* ===== ページ1: ヘッダー + サマリー + 成長スパート ===== */}
+            <div
+              data-pdf-page="1"
+              style={{
+                width: 720,
+                aspectRatio: '210 / 297',
+                backgroundColor: '#ffffff',
+                overflow: 'hidden',
+              }}
+              className="mx-auto border border-gray-300 px-7 py-6 text-gray-900 flex flex-col"
+            >
+              {/* ヘッダー */}
+              <div className="border-b-2 border-gray-900 pb-3 mb-5">
+                <div className="flex items-baseline justify-between">
+                  <p className="text-[10px] tracking-[0.2em] text-gray-500 font-bold">
+                    NOBISHIRO KIDS GROWTH KARTE
                   </p>
-                  {result.phv && (
-                    <p className="text-xs text-gray-700 mt-2 leading-relaxed">
-                      {result.phv.message}
-                    </p>
-                  )}
+                  <p className="text-[10px] text-gray-500">計測日 {measuredAt}</p>
                 </div>
+                <h1 className="text-2xl font-bold mt-2">
+                  {name || '— お名前未入力 —'}
+                </h1>
+                <p className="text-sm text-gray-600 mt-1">
+                  {sex === 'male' ? '男子' : '女子'}
+                  {ageYears > 0 && ` ・ ${ageYears} 歳`}
+                  {typeof heightCm === 'number' && ` ・ 身長 ${heightCm} cm`}
+                  {typeof weightKg === 'number' && ` ・ 体重 ${weightKg} kg`}
+                </p>
+              </div>
 
-                {/* 3. 姿勢を整えることで見込める見た目身長 */}
-                {result.apparentHeightGain.hasIssues ? (
-                  <>
+              {!result && (
+                <p className="text-sm text-gray-500 text-center py-8">
+                  身長・体重・年齢を入力すると結果が表示されます。
+                </p>
+              )}
+
+              {result && (
+                <div className="flex-1 flex flex-col gap-5">
+                  {/* 1. 成長予測サマリー */}
+                  <div>
                     <SectionTitle
-                      icon={<HiOutlineSparkles className="w-4 h-4 text-blue-700" />}
-                      label="姿勢を整えることで見込める見た目身長"
+                      icon={<HiOutlineTrendingUp className="w-4 h-4 text-blue-700" />}
+                      label="成長予測サマリー"
                       bar="bg-blue-600"
                     />
-                    <div className="border border-gray-300 p-4">
-                      <div className="grid grid-cols-2 gap-3 mb-3">
-                        <div className="border-l-4 border-blue-400 bg-blue-50 p-3">
-                          <p className="text-[10px] text-gray-700">数週〜1ヶ月（即時）</p>
-                          <p className="text-xl font-bold text-blue-900 mt-1">
-                            +{result.apparentHeightGain.shortTerm.min.toFixed(1)}〜
-                            {result.apparentHeightGain.shortTerm.max.toFixed(1)}
-                            <span className="text-xs font-normal ml-1">cm</span>
-                          </p>
-                          <p className="text-[10px] text-gray-600 mt-1">
-                            姿勢の整えと圧迫の解消
-                          </p>
-                        </div>
-                        <div className="border-l-4 border-orange-400 bg-orange-50 p-3">
-                          <p className="text-[10px] text-gray-700">3〜6ヶ月（中期）</p>
-                          <p className="text-xl font-bold text-orange-900 mt-1">
-                            +{result.apparentHeightGain.midTerm.min.toFixed(1)}〜
-                            {result.apparentHeightGain.midTerm.max.toFixed(1)}
-                            <span className="text-xs font-normal ml-1">cm</span>
-                          </p>
-                          <p className="text-[10px] text-gray-600 mt-1">
-                            姿勢の角度改善とトレーニング効果
-                          </p>
-                        </div>
+                    <div className="grid grid-cols-2 gap-3 mt-3">
+                      <SummaryBox
+                        title="18歳時点の予測身長"
+                        value={`${result.finalPrediction.center}`}
+                        unit="cm"
+                        sub={`予測幅 ${result.finalPrediction.min}〜${result.finalPrediction.max}cm`}
+                        accent="border-blue-500"
+                      />
+                      <SummaryBox
+                        title="残りの伸びしろ"
+                        value={`+${result.finalPrediction.remainingGrowthCm}`}
+                        unit="cm"
+                        sub="現時点から18歳までの見込み"
+                        accent="border-orange-500"
+                      />
+                      <SummaryBox
+                        title="同年齢平均との位置（SD値）"
+                        value={`${result.currentSD >= 0 ? '+' : ''}${result.currentSD.toFixed(2)}`}
+                        unit=""
+                        sub={result.currentSDLabel}
+                        accent={
+                          result.currentSDTone === 'safe'
+                            ? 'border-emerald-500'
+                            : result.currentSDTone === 'watch'
+                              ? 'border-amber-500'
+                              : 'border-red-500'
+                        }
+                      />
+                      <SummaryBox
+                        title="骨の成長が止まるまで"
+                        value={`約 ${result.epiphysealClosure.yearsRemaining}`}
+                        unit="年"
+                        sub={`予測 ${result.epiphysealClosure.estimatedAgeAtClosure} 歳ごろ`}
+                        accent="border-purple-500"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 2. 成長スパートの位置 */}
+                  <div>
+                    <SectionTitle
+                      icon={<HiOutlineHeart className="w-4 h-4 text-purple-700" />}
+                      label="成長スパートの位置"
+                      bar="bg-purple-600"
+                    />
+                    <div className="border-l-4 border-purple-500 bg-purple-50 px-4 py-3 mt-3">
+                      <div className="flex items-baseline justify-between mb-2">
+                        <span className="text-sm font-bold text-purple-800">
+                          現在の段階：{result.tanner.label}
+                        </span>
+                        {result.phv && (
+                          <span className="text-xs text-purple-700">
+                            ピーク年齢：約 {result.phv.estimatedAgeYears} 歳
+                          </span>
+                        )}
                       </div>
-                      <div>
-                        <p className="text-[11px] font-bold text-gray-700 mb-1.5">
-                          内訳（中期見込み）
+                      <p className="text-sm text-gray-800 leading-relaxed">
+                        {result.tanner.message}
+                      </p>
+                      {result.phv && (
+                        <p className="text-sm text-gray-700 mt-2 leading-relaxed">
+                          {result.phv.message}
                         </p>
-                        <ul className="space-y-1">
-                          {result.apparentHeightGain.contributions.map((c) => (
-                            <li
-                              key={c.key}
-                              className="flex items-baseline justify-between text-[11px] text-gray-700 leading-relaxed border-b border-gray-100 pb-1"
-                            >
-                              <span className="flex-1 pr-2">{c.label}</span>
-                              <span className="text-orange-700 font-bold whitespace-nowrap">
-                                +{c.midMin.toFixed(1)}〜{c.midMax.toFixed(1)} cm
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="text-[10px] text-gray-400 text-center pt-3 border-t border-gray-200 mt-auto">
+                FIREFITNESS Junior / NOBISHIRO KIDS — Page 1 / 2
+              </div>
+            </div>
+
+            {/* ===== ページ2: 見込み見た目身長 + 補足の所見 ===== */}
+            {result && (
+              <div
+                data-pdf-page="2"
+                style={{
+                  width: 720,
+                  aspectRatio: '210 / 297',
+                  backgroundColor: '#ffffff',
+                  overflow: 'hidden',
+                }}
+                className="mx-auto border border-gray-300 px-7 py-6 text-gray-900 flex flex-col"
+              >
+                {/* 簡易ヘッダー */}
+                <div className="border-b border-gray-300 pb-2 mb-4 flex items-baseline justify-between">
+                  <p className="text-[10px] tracking-[0.2em] text-gray-500 font-bold">
+                    NOBISHIRO KIDS GROWTH KARTE
+                  </p>
+                  <p className="text-[10px] text-gray-500">
+                    {name || '—'} ／ 計測日 {measuredAt}
+                  </p>
+                </div>
+
+                <div className="flex-1 flex flex-col gap-5">
+                  {/* 3. 姿勢を整えることで見込める見た目身長 */}
+                  {result.apparentHeightGain.hasIssues ? (
+                    <div>
+                      <SectionTitle
+                        icon={<HiOutlineSparkles className="w-4 h-4 text-blue-700" />}
+                        label="姿勢を整えることで見込める見た目身長"
+                        bar="bg-blue-600"
+                      />
+                      <div className="border border-gray-300 p-4 mt-3">
+                        <div className="grid grid-cols-2 gap-3 mb-4">
+                          <div className="border-l-4 border-blue-400 bg-blue-50 p-3">
+                            <p className="text-[11px] text-gray-700">
+                              数週〜1ヶ月（即時）
+                            </p>
+                            <p className="text-2xl font-bold text-blue-900 mt-1">
+                              +{result.apparentHeightGain.shortTerm.min.toFixed(1)}〜
+                              {result.apparentHeightGain.shortTerm.max.toFixed(1)}
+                              <span className="text-sm font-normal ml-1">cm</span>
+                            </p>
+                            <p className="text-[10px] text-gray-600 mt-1">
+                              姿勢の整えと圧迫の解消
+                            </p>
+                          </div>
+                          <div className="border-l-4 border-orange-400 bg-orange-50 p-3">
+                            <p className="text-[11px] text-gray-700">
+                              3〜6ヶ月（中期）
+                            </p>
+                            <p className="text-2xl font-bold text-orange-900 mt-1">
+                              +{result.apparentHeightGain.midTerm.min.toFixed(1)}〜
+                              {result.apparentHeightGain.midTerm.max.toFixed(1)}
+                              <span className="text-sm font-normal ml-1">cm</span>
+                            </p>
+                            <p className="text-[10px] text-gray-600 mt-1">
+                              姿勢の角度改善とトレーニング効果
+                            </p>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-gray-700 mb-2">
+                            内訳（中期見込み）
+                          </p>
+                          <ul className="space-y-1.5">
+                            {result.apparentHeightGain.contributions.map((c) => (
+                              <li
+                                key={c.key}
+                                className="flex items-baseline justify-between text-xs text-gray-700 leading-relaxed border-b border-gray-100 pb-1"
+                              >
+                                <span className="flex-1 pr-2">{c.label}</span>
+                                <span className="text-orange-700 font-bold whitespace-nowrap">
+                                  +{c.midMin.toFixed(1)}〜{c.midMax.toFixed(1)} cm
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        <p className="text-[10px] text-gray-500 mt-3 leading-relaxed">
+                          ※ 骨を伸ばすのではなく、姿勢の癖で「縮んでいた身長」を取り戻す範囲の見込みです。個人差があります。
+                        </p>
                       </div>
-                      <p className="text-[10px] text-gray-500 mt-3 leading-relaxed">
-                        ※ 骨を伸ばすのではなく、姿勢の癖で「縮んでいた身長」を取り戻す範囲の見込みです。個人差があります。
+                    </div>
+                  ) : (
+                    <div className="border-l-4 border-emerald-500 bg-emerald-50 px-4 py-3">
+                      <p className="text-sm font-bold text-emerald-800 mb-1">
+                        アライメント評価
+                      </p>
+                      <p className="text-sm text-gray-800 leading-relaxed">
+                        {result.apparentHeightGain.summary}
                       </p>
                     </div>
-                  </>
-                ) : (
-                  <div className="border-l-4 border-emerald-500 bg-emerald-50 px-4 py-3">
-                    <p className="text-xs font-bold text-emerald-800 mb-1">
-                      アライメント評価
-                    </p>
-                    <p className="text-xs text-gray-800 leading-relaxed">
-                      {result.apparentHeightGain.summary}
-                    </p>
+                  )}
+
+                  {/* 4. 補足の所見 */}
+                  <div>
+                    <SectionTitle
+                      icon={<HiOutlineExclamationCircle className="w-4 h-4 text-gray-700" />}
+                      label="補足の所見"
+                      bar="bg-gray-500"
+                    />
+                    <ul className="space-y-1.5 text-sm text-gray-700 leading-relaxed pl-1 mt-3">
+                      {result.notes.map((n, i) => (
+                        <li key={i} className="flex gap-2">
+                          <span className="text-gray-400 flex-shrink-0">•</span>
+                          <span>{n}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                )}
+                </div>
 
-                {/* 4. 補足の所見 */}
-                <SectionTitle
-                  icon={<HiOutlineExclamationCircle className="w-4 h-4 text-gray-700" />}
-                  label="補足の所見"
-                  bar="bg-gray-500"
-                />
-                <ul className="space-y-1 text-xs text-gray-700 leading-relaxed pl-1">
-                  {result.notes.map((n, i) => (
-                    <li key={i} className="flex gap-2">
-                      <span className="text-gray-400 flex-shrink-0">•</span>
-                      <span>{n}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <div className="text-[10px] text-gray-400 text-center pt-3 mt-3 border-t border-gray-200">
-                  FIREFITNESS Junior / NOBISHIRO KIDS
+                <div className="text-[10px] text-gray-400 text-center pt-3 border-t border-gray-200 mt-auto">
+                  FIREFITNESS Junior / NOBISHIRO KIDS — Page 2 / 2
                 </div>
               </div>
             )}
